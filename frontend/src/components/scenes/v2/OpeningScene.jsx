@@ -67,12 +67,6 @@ export default function OpeningScene() {
           { clipPath: "circle(140% at 82% 52%)", duration: 1.9, ease: "power3.inOut" },
           "-=1.45"
         )
-        .fromTo(
-          ".op-preview",
-          { autoAlpha: 0, scale: 1.12 },
-          { autoAlpha: 1, scale: 1, duration: 1.1, ease: "power2.out" },
-          "-=0.9"
-        )
         .to({}, { duration: 0.3 });
     }, ref);
     return () => ctx.revert();
@@ -165,11 +159,6 @@ export default function OpeningScene() {
           className="absolute left-[55%] top-[30%] h-[50vh] w-[40vw] rounded-full opacity-50 blur-[130px]"
           style={{ background: "radial-gradient(circle, rgba(255,42,0,0.14), transparent 70%)" }}
         />
-        <div className="op-preview absolute inset-0 flex flex-col items-center justify-center gap-8 opacity-0">
-          <span className="text-outline select-none whitespace-nowrap font-display text-[14vw] font-black leading-none">
-            WE MAKE
-          </span>
-        </div>
       </div>
     </section>
   );
