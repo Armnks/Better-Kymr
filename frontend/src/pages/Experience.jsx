@@ -5,8 +5,7 @@ import Background from "@/components/Background";
 import Cursor from "@/components/Cursor";
 import Nav from "@/components/Nav";
 import Preloader from "@/components/Preloader";
-import OriginScene from "@/components/scenes/v2/OriginScene";
-import ExpansionScene from "@/components/scenes/v2/ExpansionScene";
+import OpeningScene from "@/components/scenes/v2/OpeningScene";
 import StatementScene from "@/components/scenes/v2/StatementScene";
 import ProtocolScene from "@/components/scenes/v2/ProtocolScene";
 import ForcesScene from "@/components/scenes/v2/ForcesScene";
@@ -68,8 +67,7 @@ export default function Experience() {
       <Cursor />
       <Nav />
       <main className="relative">
-        <OriginScene />
-        <ExpansionScene />
+        <OpeningScene />
         <StatementScene />
         <ProtocolScene />
         <ForcesScene />

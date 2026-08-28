@@ -49,9 +49,6 @@ dump.rdb
 # Python
 __pycache__/
 *pyc*
-.env
-**/.env
-*.env.local
 venv/
 .venv/
 
