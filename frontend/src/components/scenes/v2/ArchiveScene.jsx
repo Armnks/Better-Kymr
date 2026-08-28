@@ -41,6 +41,7 @@ export default function ArchiveScene() {
         // initial geometry
         tl.set(".ax-hero", { scale: 0.16, clipPath: "inset(28% 38%)" }, 0);
         tl.set(".ax-t1", { y: "62vh" }, 0);
+        tl.set(".ax-mem", { x: "62vw", clipPath: "inset(4% 46%)", autoAlpha: 0 }, 0);
 
         // depth planes running the whole sequence
         tl.fromTo(".ax-ghost", { x: "4vw" }, { x: "-8vw", duration: 14, ease: "none" }, 0);
@@ -75,10 +76,11 @@ export default function ArchiveScene() {
 
         // SHOT 05 — SECOND MEMORY
         tl.to(".ax-t1", { autoAlpha: 0.1, duration: 0.7 }, 7.8)
+          .to(".ax-mem", { autoAlpha: 1, duration: 0.05 }, 7.8)
           .fromTo(
             ".ax-mem",
-            { x: "62vw", clipPath: "inset(4% 46%)", autoAlpha: 1 },
-            { x: "-16vw", duration: 2.0, ease: "none" },
+            { x: "62vw" },
+            { x: "-16vw", duration: 2.0, ease: "none", immediateRender: false },
             7.8
           )
           .to(".ax-mem", { clipPath: "inset(0% 14%)", duration: 1.0, ease: "power2.inOut" }, 8.0)
@@ -87,7 +89,7 @@ export default function ArchiveScene() {
           .to(".ax-mem", { autoAlpha: 0, duration: 0.35 }, 9.7);
 
         // SHOT 06 — TYPOGRAPHIC EVENT
-        tl.to(".ax-t1", { autoAlpha: 1, scale: 0.6, y: "-25vh", x: "-17vw", duration: 1.3, ease: "power3.inOut" }, 10.0)
+        tl.to(".ax-t1", { autoAlpha: 1, scale: 0.6, y: "-25vh", x: "-17vw", duration: 1.3, ease: "power3.inOut" }, 9.4)
           .fromTo(".ax-t2", { x: "58vw", autoAlpha: 0 }, { x: "9vw", autoAlpha: 1, duration: 1.2, ease: "power3.out" }, 10.7)
           .fromTo(".ax-t3", { y: "46vh", autoAlpha: 0 }, { y: "25vh", x: "-9vw", autoAlpha: 1, duration: 1.2, ease: "power3.out" }, 11.4);
 
@@ -122,6 +124,7 @@ export default function ArchiveScene() {
 
         tl.set(".ax-hero", { scale: 0.24, clipPath: "inset(30% 32%)" }, 0);
         tl.set(".ax-t1", { y: "58vh" }, 0);
+        tl.set(".ax-mem", { y: "70vh", clipPath: "inset(46% 4%)", autoAlpha: 0 }, 0);
 
         // SHOT 01 — silence
         tl.fromTo(".ax-meta", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.5 }, 0.2)
@@ -139,10 +142,11 @@ export default function ArchiveScene() {
 
         // SHOT 05 — memory band (horizontal mask, vertical travel)
         tl.to(".ax-t1", { autoAlpha: 0.12, duration: 0.5 }, 5.4)
+          .to(".ax-mem", { autoAlpha: 1, duration: 0.05 }, 5.4)
           .fromTo(
             ".ax-mem",
-            { y: "70vh", clipPath: "inset(46% 4%)", autoAlpha: 1 },
-            { y: "-20vh", duration: 1.4, ease: "none" },
+            { y: "70vh" },
+            { y: "-20vh", duration: 1.4, ease: "none", immediateRender: false },
             5.4
           )
           .to(".ax-mem", { clipPath: "inset(12% 0%)", duration: 0.7, ease: "power2.inOut" }, 5.6)
@@ -243,7 +247,7 @@ export default function ArchiveScene() {
           decoding="async"
           className="ax-mem-img absolute -left-[6%] top-0 h-full w-[112%] max-w-none object-cover"
         />
-        <span className="absolute bottom-3 left-3 bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
+        <span className="absolute left-1/2 top-[48%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
           {MEMORY.id} — SPEC CONCEPT
         </span>
       </div>
@@ -265,7 +269,7 @@ export default function ArchiveScene() {
       </div>
 
       {/* FINAL distant image — shot 07 */}
-      <div data-testid="archive-final" className="ax-final absolute bottom-[12vh] left-[8vw] h-[15vh] w-[26vw] overflow-hidden opacity-0 md:left-[10vw] md:w-[10vw]">
+      <div data-testid="archive-final" className="ax-final absolute bottom-[7vh] right-[6vw] h-[13vh] w-[26vw] overflow-hidden opacity-0 md:bottom-[7vh] md:right-[10vw] md:h-[14vh] md:w-[9vw]">
         <img src={FINAL.img} alt={`${FINAL.id} — spec concept, home`} loading="lazy" decoding="async" className="h-full w-full max-w-none object-cover" />
         <span className="absolute left-2 top-2 bg-[#050505]/60 px-1.5 py-0.5 font-mono text-[7px] tracking-[0.25em] text-white/85">
           {FINAL.id}
