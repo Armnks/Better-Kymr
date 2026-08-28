@@ -76,6 +76,8 @@ export default function ContactScene() {
         <a
           data-testid="contact-email-link"
           data-hover
+          data-magnetic
+          data-cursor="SAY HELLO"
           href="mailto:hello@kymr.studio"
           className="contact-reveal link-sweep mt-12 inline-block font-display text-[8vw] font-black leading-none tracking-[-0.04em] text-bone transition-colors duration-500 hover:text-ember md:text-[5vw]"
         >
@@ -153,6 +155,8 @@ export default function ContactScene() {
                 <button
                   data-testid="contact-submit-button"
                   data-hover
+                  data-magnetic
+                  data-cursor="TRANSMIT"
                   type="submit"
                   disabled={status === "sending"}
                   className="group flex items-center gap-4 font-mono text-[11px] tracking-[0.4em] text-bone transition-colors duration-300 hover:text-ember disabled:opacity-40"
