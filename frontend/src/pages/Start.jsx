@@ -5,7 +5,6 @@ import axios from "axios";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import Background from "@/components/Background";
 import Cursor from "@/components/Cursor";
-import SoundToggle from "@/components/SoundToggle";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const CAL_LINK = "armaan-khasim-shaik-p9vin0";
@@ -363,7 +362,6 @@ export default function Start() {
           KymrStudio<span className="text-ember">.</span>
         </Link>
         <div className="hidden md:block">{rail}</div>
-        <SoundToggle />
       </header>
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-32 pt-32 md:px-10 md:pt-40">

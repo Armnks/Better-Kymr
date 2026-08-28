@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { scrollToId } from "@/App";
-import SoundToggle from "@/components/SoundToggle";
 import { triggerRipple } from "@/components/Ripple";
 
 export default function Nav() {
@@ -33,7 +32,6 @@ export default function Nav() {
         </button>
 
         <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.3em] text-white/70 md:gap-8">
-          <SoundToggle />
           <button
             data-testid="nav-process"
             data-hover
