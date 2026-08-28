@@ -1,0 +1,115 @@
+{
+  "project_name": "KYMR STUDIO - The Living Organism",
+  "theme": "dark_cinematic",
+  "typography": {
+    "primary": "Cabinet Grotesk, sans-serif",
+    "secondary": "Cormorant Garamond, serif",
+    "mono": "JetBrains Mono, monospace",
+    "rules": [
+      "No standard headings. Typography is a kinetic object.",
+      "Use extremely tight tracking for large text (tracking-tighter).",
+      "Use extremely loose tracking for small monospaced labels (tracking-[0.2em] or more).",
+      "H1 does not exist as a static block. It is a scaling, morphing entity.",
+      "Mix weights aggressively. Use outline text (text-transparent with stroke) against solid text to create depth."
+    ]
+  },
+  "colors": {
+    "background": "#05050A",
+    "text_primary": "#F5F5F0",
+    "text_secondary": "#666666",
+    "accent": "#FF2A00",
+    "light_fields": [
+      "rgba(255, 255, 255, 0.03)",
+      "rgba(25, 35, 60, 0.05)"
+    ],
+    "rules": [
+      "Never use pure black or pure white. Background must feel like a deep, cinematic void.",
+      "Color is used exclusively for atmospheric light fields or extreme micro-accents.",
+      "CRITICAL: NO transparent backgrounds over content where text needs to be read. Use backdrops if necessary."
+    ]
+  },
+  "visual_enhancers": {
+    "grain": "Apply a fixed SVG noise overlay (mix-blend-mode: overlay, opacity: 0.04 - 0.06, pointer-events: none, z-index: 50) across the entire app to kill digital flatness.",
+    "light_fields": "Use 2-3 absolute positioned divs with extreme blur (blur-[100px] or blur-[150px]), low opacity, moving very slowly (yoyo, repeat) via GSAP to simulate breathing light.",
+    "cursor": "Implement a custom GSAP cursor. A subtle 8px white dot on desktop. On hover over interactive or massive text, it scales up 3x-4x with mix-blend-mode: exclusion. Hide default cursor. Disable on mobile.",
+    "scroll": "Use Lenis for buttery smooth, momentum-based scrolling. This is mandatory for the 'cinematic' feel."
+  },
+  "motion": {
+    "libraries": [
+      "gsap",
+      "@studio-freight/react-lenis",
+      "lucide-react"
+    ],
+    "rhythm_system": "The 'Breathing Rhythm' is mandatory. Transitions should alternate between slow, controlled drift (scrubbed to scroll) and sudden, fast snapping/transformations when crossing thresholds.",
+    "techniques": [
+      "clip-path wipes and masking for typographic reveals.",
+      "ScrollTrigger scrub for scaling, pinning, and horizontal translation.",
+      "Velocity-based skewing or tracking adjustments (using ScrollTrigger velocity).",
+      "SplitText (or custom character/word splitting) for staggered cinematic fades."
+    ]
+  },
+  "layouts": {
+    "structure": "ONE continuous composition. Do NOT build standard sections like <Hero />, <Features />, <Footer /> stacking on each other. Think of the page as a single fixed/sticky stage where elements enter, morph, and leave based on scroll progress.",
+    "transformational_states": [
+      {
+        "id": "state_01_hero",
+        "transformation": "Tiny Type -> Gigantic Typography",
+        "description": "The Quiet Start. Pitch black screen. A tiny monospaced text 'SCROLL TO INITIATE' in the absolute center. As the user scrolls, this text fades instantly and a massive 'KYMR' scales up from 0 to fill the entire viewport, going beyond the screen edges."
+      },
+      {
+        "id": "state_02_mask",
+        "transformation": "Text -> Visual Mask",
+        "description": "The massive 'KYMR' text stops scaling and becomes a clipping mask (clip-path). Inside the mask, a hyper-dense, frenetic typographic animation or light field is revealed. The mask then bursts open to fill the screen."
+      },
+      {
+        "id": "state_03_process",
+        "transformation": "Small Composition -> Full Viewport (Dense architectural shift)",
+        "description": "Layout snaps to a sparse, architectural grid. The process numbers (48H TURNAROUND, 3S HOOK WINDOW, 100% ASSET REVIEW, 10+ ITERATIONS/SPRINT) scroll into view. The typography morphs dramatically in weight and scale as it hits the center of the viewport."
+      },
+      {
+        "id": "state_04_capabilities",
+        "transformation": "Vertical -> Horizontal Movement",
+        "description": "STRATEGY → CREATIVE → PRODUCTION → EDITING → PERFORMANCE. These words appear as a massive, oversized kinetic ticker. The user scrolls vertically, but the content moves horizontally. The text should react to scroll velocity (slight skew or tracking change)."
+      },
+      {
+        "id": "state_05_anticipation",
+        "transformation": "Dense -> Sudden Emptiness",
+        "description": "The dense horizontal ticker collapses or accelerates away. Sudden, shocking emptiness. A beautifully set serif text appears in the center: 'Kymr is building. The next frame is yours.' Complete tonal contrast."
+      },
+      {
+        "id": "state_06_build",
+        "transformation": "Centered Alignment -> Fractured Edge Alignment",
+        "description": "The centered text fractures. Elements snap to the far corners of the viewport as tiny technical data coordinates. The rhythm changes to an automated tension-building pulse."
+      },
+      {
+        "id": "state_07_finale",
+        "transformation": "Visual Chaos -> Tonal Reset",
+        "description": "The final frame of a film. Everything abruptly fades. A massive, pure white 'KYMR' locks perfectly into the center. Elegant contact details fade in at the bottom. The user feels they have completed an experience."
+      }
+    ]
+  },
+  "accessibility": {
+    "reduced_motion": "MUST respect prefers-reduced-motion media queries. If active, disable skewing and heavy parallax, fallback to simple opacity fades.",
+    "testing": "All key text blocks, interactive moments, and the final contact section MUST include a data-testid attribute (e.g., data-testid='hero-text', data-testid='contact-trigger')."
+  },
+  "instructions_to_main_agent": [
+    "CRITICAL: Do NOT use standard Shadcn UI cards, buttons, or layouts for this. This is an experimental, art-directed experience.",
+    "Do NOT use HTML <section> tags stacking normally. You must rely heavily on GSAP ScrollTrigger 'pin' functionality or a fixed master container to create the illusion of states morphing into one another.",
+    "DO NOT use placeholder images, fake portfolio photos, or any AI generated images. The absence of work is part of the story. Rely entirely on kinetic typography, SVG grain, and subtle CSS gradients.",
+    "Install and configure @studio-freight/react-lenis (or lenis) at the root of the app. It is non-negotiable for this cinematic scroll feel.",
+    "Build a custom hook or centralized GSAP setup for the ScrollTriggers to ensure they refresh correctly in React.",
+    "Ensure fonts are imported. If premium fonts like Cabinet Grotesk or Cormorant Garamond aren't locally available, fetch suitable web fonts from Google Fonts (e.g., Space Grotesk/Syncopate for display, Cormorant for serif, JetBrains Mono for mono), but override their default feels via tight tracking and extreme scales.",
+    "Maintain the 'breathing rhythm': some animations must feel slow and heavy, while others (like the state transitions) must feel sudden and impactful.",
+    "Ensure mobile handles this elegantly. Mobile can have simpler ScrollTriggers but must retain the narrative sequence of the 7 states.",
+    "The final output must not look like 'AI slop'. It must look like a 2026 Awwwards winning creative studio site."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not converge toward generic, 'on distribution' outputs. Make creative, distinctive frontends.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "You MUST NOT apply universal transition (e.g., transition: all).",
+    "You MUST NOT center align the app container in App.css.",
+    "Every interaction needs micro-animations - hover states, transitions. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Never use AI assistant Emoji characters."
+  ]
+}
