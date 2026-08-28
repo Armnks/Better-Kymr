@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { scrollToId } from "@/App";
+import SoundToggle from "@/components/SoundToggle";
 
 export default function Nav() {
   const [state, setState] = useState("01 — ORIGIN");
@@ -60,6 +61,7 @@ export default function Nav() {
         </div>
 
         <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.3em] text-white/70 md:gap-8">
+          <SoundToggle />
           <button
             data-testid="nav-process"
             data-hover

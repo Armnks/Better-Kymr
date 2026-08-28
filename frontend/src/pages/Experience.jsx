@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Background from "@/components/Background";
 import Cursor from "@/components/Cursor";
 import Nav from "@/components/Nav";
+import Preloader from "@/components/Preloader";
 import OriginScene from "@/components/scenes/v2/OriginScene";
 import ExpansionScene from "@/components/scenes/v2/ExpansionScene";
 import StatementScene from "@/components/scenes/v2/StatementScene";
@@ -20,6 +21,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Experience() {
   const reduced = useReducedMotion();
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const refresh = () => ScrollTrigger.refresh();
@@ -33,6 +35,13 @@ export default function Experience() {
       window.removeEventListener("load", refresh);
     };
   }, []);
+
+  const handleLoaded = () => {
+    document.body.style.overflow = "";
+    setLoaded(true);
+    window.__lenis?.start();
+    ScrollTrigger.refresh();
+  };
 
   useEffect(() => {
     if (reduced) return undefined;
@@ -54,6 +63,7 @@ export default function Experience() {
 
   return (
     <div data-testid="kymr-experience" className="relative bg-void text-bone">
+      {!loaded && <Preloader onDone={handleLoaded} />}
       <Background />
       <Cursor />
       <Nav />
