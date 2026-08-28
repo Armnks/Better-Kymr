@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 5 — focused retest of the 3 iteration-4 ArchiveScene defects + the the-s/giant collision, plus the requested spot-checks and regression sweep. Method: hard reload per viewport, pin base read dynamically from the GSAP pin-spacer (1920x800=20960, 1920x1080=28296, 390x844=22114), window.__lenis.scrollTo(y,{immediate:true}) + 1.9s settle, t = d*23.3 desktop / d*13.25 mobile, span 11.5*innerHeight desktop / 6.8*innerHeight mobile, effective-opacity probe (ancestor opacity/visibility/display) plus bounding boxes and raw transform matrices. RESULT: RETEST 1, 2, 3 and the desktop spot-checks all PASS. RETEST 4 (mobile) partially FAILS: mid-sequence ARCHIVE clipping is correct, but .ax-beg (BEGINNING.) and .ax-just (IS JUST) lose their horizontal centering on mobile — their boxes start at left=195px (left:50%) with transform tx=0, so they run off the right edge and are cut in half in the IS JUST beat (t~7.5), the BEGINNING. beat (t~8.6) and the final mobile resolve (t~12.0). Screenshot-confirmed at 390x844 (only 'IS JUS' / 'BEGIN' visible). Regression green: pytest 9/9, nav-process/nav-capabilities/nav-contact anchors scroll, nav-start -> /start renders the configurator, zero console errors at every viewport (not even the benign 'scale not eligible for reset' warning fired this run).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ArchiveScene mobile (max-width:767px) — .ax-beg / .ax-just horizontal centering",
+        "issue": "On mobile both elements render from left:50% without the -translate-x-1/2 offset, so they overflow the right edge and are clipped. Measured at 390x844: t=7.5 .ax-just box x=(196..524) cx=360 (should be 195) op=1; t=8.6 .ax-beg box x=(195..558) cx=376 op=0.29; t=12.0 final resolve .ax-just x=(310..409) cx=360, .ax-beg x=(231..522) cx=376 — while .ax-arch3 (no GSAP x/y set) is correctly centered at cx=195. Raw matrices show tx=0 for .ax-just/.ax-beg (e.g. matrix(0.3,0,0,0.3,0,-50.9)) vs tx=-135.9 (=-50%) for .ax-arch3, i.e. the GSAP sets on x/y overwrote the Tailwind percentage translate. So 'THE ARCHIVE / IS JUST / BEGINNING. stacked cleanly' is NOT satisfied on mobile (vertical order is right: 203-249 / 407-437 / 596-653, horizontal is broken). Fix: add xPercent:-50, yPercent:-50 explicitly in the mobile tl.set() calls for .ax-beg and .ax-just (desktop keeps centering: .ax-beg cx=960 at d=0.95).",
+        "selector": ".ax-beg / .ax-just (mobile)",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Mobile only: restore horizontal centering for .ax-beg and .ax-just (add xPercent:-50 / yPercent:-50 to the mobile GSAP sets) — IS JUST beat, BEGINNING. beat and the final mobile resolve are all clipped off the right edge at 390x844."
+  ],
+  "critical_code_review_comments": [
+    "ArchiveScene relies on Tailwind's -translate-x-1/2/-translate-y-1/2 for centering while GSAP also writes x/y on the same elements; that mix is what silently broke mobile centering. Set xPercent/yPercent in GSAP for every element GSAP moves and drop the translate utility classes on those nodes.",
+    "Mobile timeline still reuses .ax-just for the final resolve (desktop now uses the dedicated .ax-just2). Consider mirroring the desktop split so the mobile resolve does not inherit the beat-H transform state."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (9/9 pytest)", "frontend": "~90% (5 of 6 requested checks fully pass; mobile resolve/beats fail on horizontal centering)"},
+  "seed_data_creation": "none",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "not needed for this frontend-only retest (admin vault key not exercised)",
+  "context_for_next_testing_agent": "VERIFIED PASSES this iteration (1920x800 unless noted): RETEST1 beat E payoff — d=0.455..0.47 giant op=0.95 resolved to 554x142 at y171-313, .ax-the-s op=0.9 at y64-165 (theBottom 165 < giantTop 171, gap 6px, no glyph collision), .ax-black op=0 until 0.475 (0.81) and 1.0 at d=0.49. RETEST2 beat J — d=0.95 order arch3 208-381 / just2 398-466 / beg 477-707 gaps +17/+11 all inside H=800; at 1920x1080 281-454 / 550-617 / 684-914 gaps +96/+67, all op=1, stray .ax-just op=0. RETEST3 reverse — forward d=0.70 .ax-beg op=0.413, after 0.95->0.70 still 0.413 with the/arch2/just/slit all op=1 (fully reversible now). SPOT-CHECKS — d=0.25 hero full-bleed inset(2%) op=0.85, d=0.485 black op=1, d=0.70 poster slit inset(0%) crossing y352-456 with arch2 behind and small IS JUST in front, d=0.80 intentionally empty ivory, d=0.99 dark circle 136.7%, past-pin transit ('THE NEXT') renders. Mobile mid ARCHIVE at t=4.2 is 466px wide vs 390 screen (clipped, op=0.94) — pass. Pin bases unchanged from iteration 4. Only open defect: mobile .ax-beg/.ax-just horizontal centering.",
+  "rca_of_the_issue": "GSAP parses the element's existing computed transform when it first writes x/y. On the mobile timeline .ax-beg (tl.set x:'0vw', y:'0vh' at 0, then y/scale sets at 10.9/11.25) and .ax-just (tl.set x:'0vw', scale:0.3 at 11.6, plus the fromTo x:105vw->0vw at 7.0) end up with translate tx=0 instead of the -50% supplied by the Tailwind -translate-x-1/2 class, so both are positioned from left:50% and overflow the right edge. Elements GSAP never moves horizontally (.ax-arch3, .ax-arch2) keep the -50% and stay centered, which is why only these two are broken and only on mobile."
+}
