@@ -66,7 +66,7 @@ export default function FinalScene() {
       <div className="fn-stage absolute inset-0 flex items-center justify-center" data-cursor="FINALE">
         <h2
           data-testid="final-word"
-          className="fn-word flex select-none font-display text-[9vw] font-black leading-none tracking-[-0.05em] text-bone"
+          className="fn-word flex select-none font-cinzel text-[9vw] font-black leading-none tracking-[-0.01em] text-bone"
         >
           {"KYMRSTUDIO".split("").map((l, i) => (
             <span key={i} className="fn-l inline-block will-change-transform">

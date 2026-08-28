@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Experience from "@/pages/Experience";
 import Admin from "@/pages/Admin";
+import Start from "@/pages/Start";
 
 gsap.registerPlugin(ScrollTrigger);
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -44,6 +45,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Experience />} />
+        <Route path="/start" element={<Start />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>

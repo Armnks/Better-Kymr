@@ -9,6 +9,7 @@ module.exports = {
         extend: {
             fontFamily: {
                 display: ['"Cabinet Grotesk"', 'sans-serif'],
+                cinzel: ['"Cinzel Decorative"', 'serif'],
                 serif: ['"Cormorant Garamond"', 'serif'],
                 mono: ['"JetBrains Mono"', 'monospace'],
             },

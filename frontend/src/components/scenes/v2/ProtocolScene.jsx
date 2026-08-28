@@ -128,7 +128,7 @@ export default function ProtocolScene() {
 
         <div className={`pr-s1 ${stepCls}`}>
           <span className="font-mono text-[10px] tracking-[0.5em] text-white/50 md:text-xs">STEP 01 — TURNAROUND</span>
-          <div data-testid="protocol-step-01" className="pr-num1 font-display text-[30vw] font-black leading-[0.85] tracking-[-0.05em] text-ember md:text-[24vw]">
+          <div data-testid="protocol-step-01" className="pr-num1 font-cinzel text-[30vw] font-black leading-[0.85] tracking-[-0.02em] text-ember md:text-[24vw]">
             00H
           </div>
           <span className="font-mono text-[10px] tracking-[0.35em] text-white/40">00:00:00 → 48:00:00</span>

@@ -88,10 +88,20 @@ export default function Nav() {
             data-magnetic
             data-cursor="CONTACT"
             onClick={() => scrollToId("contact")}
-            className="text-ember transition-colors duration-300 hover:text-white"
+            className="text-white/70 transition-colors duration-300 hover:text-white"
           >
             CONTACT
           </button>
+          <a
+            data-testid="nav-start"
+            data-hover
+            data-magnetic
+            data-cursor="BEGIN"
+            href="/start"
+            className="text-ember transition-colors duration-300 hover:text-white"
+          >
+            START ↗
+          </a>
         </div>
       </nav>
     </>

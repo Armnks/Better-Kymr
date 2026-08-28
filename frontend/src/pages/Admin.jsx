@@ -8,19 +8,24 @@ export default function Admin() {
     () => sessionStorage.getItem("kymr_admin_key") || ""
   );
   const [enquiries, setEnquiries] = useState(null);
+  const [leads, setLeads] = useState(null);
   const [error, setError] = useState("");
 
   const load = async (k) => {
     setError("");
     try {
-      const res = await axios.get(`${API}/enquiries`, {
-        headers: { "X-Admin-Key": k },
-      });
-      setEnquiries(res.data);
+      const headers = { "X-Admin-Key": k };
+      const [eq, ld] = await Promise.all([
+        axios.get(`${API}/enquiries`, { headers }),
+        axios.get(`${API}/leads`, { headers }),
+      ]);
+      setEnquiries(eq.data);
+      setLeads(ld.data);
       sessionStorage.setItem("kymr_admin_key", k);
     } catch {
       setError("ACCESS DENIED — INVALID KEY");
       setEnquiries(null);
+      setLeads(null);
     }
   };
 
@@ -86,37 +91,83 @@ export default function Admin() {
           </form>
         )}
 
-        {enquiries && (
-          <div data-testid="admin-enquiry-list" className="mt-16 space-y-6">
-            {enquiries.length === 0 && (
-              <p className="font-serif text-xl italic text-white/50">
-                The void is quiet. No signals yet.
-              </p>
-            )}
-            {enquiries.map((q) => (
-              <article
-                key={q.id}
-                data-testid={`admin-enquiry-${q.id}`}
-                className="border border-white/10 p-6 transition-colors duration-300 hover:border-white/25"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="font-display text-xl font-bold">{q.name}</h2>
-                  <span className="font-mono text-[10px] tracking-[0.2em] text-white/40">
-                    {new Date(q.created_at).toLocaleString()}
-                  </span>
-                </div>
-                <a
-                  href={`mailto:${q.email}`}
-                  className="mt-1 inline-block font-mono text-xs tracking-[0.15em] text-ember"
-                >
-                  {q.email}
-                </a>
-                <p className="mt-4 font-serif text-lg italic text-white/70">
-                  {q.message}
+        {(enquiries || leads) && (
+          <>
+            {leads && (
+              <div data-testid="admin-lead-list" className="mt-16 space-y-6">
+                <p className="font-mono text-[10px] tracking-[0.35em] text-ember">
+                  CONFIGURED SCOPES — {leads.length}
                 </p>
-              </article>
-            ))}
-          </div>
+                {leads.length === 0 && (
+                  <p className="font-serif text-xl italic text-white/50">
+                    No scopes configured yet.
+                  </p>
+                )}
+                {leads.map((l) => (
+                  <article
+                    key={l.id}
+                    data-testid={`admin-lead-${l.id}`}
+                    className="border border-ember/30 p-6"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h2 className="font-display text-xl font-bold">
+                        {l.name}
+                        {l.company ? ` — ${l.company}` : ""}
+                      </h2>
+                      <span className="font-mono text-[10px] tracking-[0.2em] text-white/40">
+                        {new Date(l.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <a
+                      href={`mailto:${l.email}`}
+                      className="mt-1 inline-block font-mono text-xs tracking-[0.15em] text-ember"
+                    >
+                      {l.email}
+                    </a>
+                    <p className="mt-4 font-mono text-[11px] tracking-[0.2em] text-white/70">
+                      {l.config?.volume || "—"} ADS/MO · {(l.config?.mix || "—").toUpperCase()} ·{" "}
+                      {(l.config?.cadence || "—").toUpperCase()} · {l.tier || "—"}
+                    </p>
+                    <p className="mt-2 font-mono text-[10px] tracking-[0.2em] text-white/40">
+                      CALL: {l.meeting?.booked ? `BOOKED ${l.meeting.startTime || ""}` : "NOT BOOKED"}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
+            <div data-testid="admin-enquiry-list" className="mt-16 space-y-6">
+              <p className="font-mono text-[10px] tracking-[0.35em] text-white/40">
+                LEGACY SIGNALS — {enquiries ? enquiries.length : 0}
+              </p>
+              {enquiries && enquiries.length === 0 && (
+                <p className="font-serif text-xl italic text-white/50">
+                  The void is quiet. No signals yet.
+                </p>
+              )}
+              {enquiries &&
+                enquiries.map((q) => (
+                  <article
+                    key={q.id}
+                    data-testid={`admin-enquiry-${q.id}`}
+                    className="border border-white/10 p-6 transition-colors duration-300 hover:border-white/25"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h2 className="font-display text-xl font-bold">{q.name}</h2>
+                      <span className="font-mono text-[10px] tracking-[0.2em] text-white/40">
+                        {new Date(q.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <a
+                      href={`mailto:${q.email}`}
+                      className="mt-1 inline-block font-mono text-xs tracking-[0.15em] text-ember"
+                    >
+                      {q.email}
+                    </a>
+                    <p className="mt-4 font-serif text-lg italic text-white/70">{q.message}</p>
+                  </article>
+                ))}
+            </div>
+          </>
         )}
       </div>
     </div>

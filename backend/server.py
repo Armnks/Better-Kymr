@@ -83,6 +83,48 @@ async def list_enquiries(x_admin_key: str = Header(default="")):
             doc['created_at'] = datetime.fromisoformat(doc['created_at'])
     return docs
 
+class LeadCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=200)
+    company: str = ""
+    phone: str = ""
+    config: dict = Field(default_factory=dict)
+    tier: str = ""
+    meeting: dict = Field(default_factory=dict)
+    message: str = ""
+
+class Lead(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: str
+    company: str = ""
+    phone: str = ""
+    config: dict = Field(default_factory=dict)
+    tier: str = ""
+    meeting: dict = Field(default_factory=dict)
+    message: str = ""
+    source: str = "website"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+@api_router.post("/leads", response_model=Lead)
+async def create_lead(input: LeadCreate):
+    lead = Lead(**input.model_dump())
+    doc = lead.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    _ = await db.leads.insert_one(doc)
+    return lead
+
+@api_router.get("/leads", response_model=List[Lead])
+async def list_leads(x_admin_key: str = Header(default="")):
+    if x_admin_key != os.environ.get('ADMIN_KEY'):
+        raise HTTPException(status_code=401, detail="unauthorized")
+    docs = await db.leads.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    for doc in docs:
+        if isinstance(doc.get('created_at'), str):
+            doc['created_at'] = datetime.fromisoformat(doc['created_at'])
+    return docs
+
 
 app.include_router(api_router)
 

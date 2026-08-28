@@ -139,6 +139,16 @@ export default function ContactScene() {
         </p>
         {emailBlock}
         {inquireBlock}
+        <div className="ct-inquire mt-8 opacity-0">
+          <a
+            data-testid="contact-start-link"
+            data-hover
+            href="/start"
+            className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-ember"
+          >
+            OR CONFIGURE YOUR PRODUCTION SYSTEM →
+          </a>
+        </div>
       </div>
       {footerBlock}
     </section>
