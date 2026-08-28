@@ -11,6 +11,7 @@ import ProtocolScene from "@/components/scenes/v2/ProtocolScene";
 import ForcesScene from "@/components/scenes/v2/ForcesScene";
 import VoidScene from "@/components/scenes/v2/VoidScene";
 import ArchiveScene from "@/components/scenes/v2/ArchiveScene";
+import InterludeScene from "@/components/scenes/v2/InterludeScene";
 import FinalScene from "@/components/scenes/v2/FinalScene";
 import ContactScene from "@/components/scenes/ContactScene";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -64,6 +65,7 @@ export default function Experience() {
         <ForcesScene />
         <VoidScene />
         <ArchiveScene />
+        <InterludeScene />
         <FinalScene />
         <ContactScene />
       </main>

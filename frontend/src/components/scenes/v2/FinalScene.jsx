@@ -5,12 +5,11 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FROM = [
-  { x: "-58vw", y: "-46vh", r: -14 },
-  { x: "54vw", y: "-52vh", r: 10 },
-  { x: "-62vw", y: "48vh", r: 8 },
-  { x: "58vw", y: "44vh", r: -10 },
-];
+const FROM = Array.from({ length: 10 }, (_, i) => ({
+  x: `${(i % 2 === 0 ? -1 : 1) * (52 + (i % 3) * 6)}vw`,
+  y: `${(i % 4 < 2 ? -1 : 1) * (44 + (i % 5) * 3)}vh`,
+  r: (i % 2 === 0 ? -1 : 1) * (8 + i),
+}));
 
 export default function FinalScene() {
   const ref = useRef(null);
@@ -29,7 +28,7 @@ export default function FinalScene() {
           anticipatePin: 1,
           onToggle: (self) =>
             self.isActive &&
-            window.dispatchEvent(new CustomEvent("kymr:state", { detail: "09 — KYMR" })),
+            window.dispatchEvent(new CustomEvent("kymr:state", { detail: "10 — KYMRSTUDIO" })),
         },
       });
       gsap.utils.toArray(".fn-l").forEach((el, i) => {
@@ -37,7 +36,7 @@ export default function FinalScene() {
           el,
           { x: FROM[i].x, y: FROM[i].y, rotation: FROM[i].r, scale: 2.6, autoAlpha: 0 },
           { x: 0, y: 0, rotation: 0, scale: 1, autoAlpha: 1, duration: 1.3, ease: "power3.inOut" },
-          i * 0.07
+          i * 0.05
         );
       });
       tl.to(".fn-stage", { y: 6, duration: 0.06 })
@@ -54,7 +53,7 @@ export default function FinalScene() {
   if (reduced) {
     return (
       <section id="finale" data-testid="final-scene" className="relative z-10 flex h-screen flex-col items-center justify-center gap-8">
-        <h2 className="font-display text-[19vw] font-black leading-none tracking-[-0.06em] text-bone">KYMR</h2>
+        <h2 className="font-display text-[9vw] font-black leading-none tracking-[-0.05em] text-bone">KYMRSTUDIO</h2>
         <p className="font-serif text-xl italic text-white/50">the next frame is yours.</p>
       </section>
     );
@@ -65,9 +64,9 @@ export default function FinalScene() {
       <div className="fn-stage absolute inset-0 flex items-center justify-center">
         <h2
           data-testid="final-word"
-          className="fn-word flex select-none font-display text-[19vw] font-black leading-none tracking-[-0.06em] text-bone"
+          className="fn-word flex select-none font-display text-[9vw] font-black leading-none tracking-[-0.05em] text-bone"
         >
-          {["K", "Y", "M", "R"].map((l, i) => (
+          {"KYMRSTUDIO".split("").map((l, i) => (
             <span key={i} className="fn-l inline-block will-change-transform">
               {l}
             </span>

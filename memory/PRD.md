@@ -3,6 +3,13 @@
 ## Original Problem Statement
 Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a living, breathing visual organism, not a conventional website. One continuous evolving composition of states (not header/hero/sections/footer), scroll-linked transformations, alive typography and background, cursor influence, no fake portfolio (absence is part of the story), 7+ major transformations, cinematic finale resolving into KYMR + contact. GSAP/ScrollTrigger + Lenis, no WebGL, performant, responsive, reduced-motion support.
 
+## v3 Escalation (2026-08-28)
+- BRAND: renamed everywhere to KymrStudio (KYMRSTUDIO as uppercase visual treatment). Nav logo, Origin/Expansion/Finale wordmarks rebuilt around the 10-letter wordmark (letters repel cursor; whole-word beyond-viewport expansion with circular window at the O counter; 10-letter corner convergence finale), contact hello@kymrstudio.com, page title/metadata, backend root message, admin vault heading, footer.
+- NEW STATE 09 — TRANSIT (InterludeScene): pinned horizontal travel between Archive and Finale. THE NEXT / FRAME / IS YOURS. with empty UNWRITTEN frames passing, counter-directional KYMRSTUDIO ghost backtrack (depth layer), velocity skew on items, ember hairline motif return drawing across the final word, serif "we saved you a seat in the archive."
+- Finale state renumbered to 10 — KYMRSTUDIO. Archive teaser now foreshadows the sideways scene.
+- Bug audit: console clean (only benign platform-script warning), zero horizontal overflow, title/metadata fixed (frontend restart required for public/index.html changes), all states re-screenshotted desktop + mobile (390×844 transit verified).
+- DOM assertions verified: title, nav text, 10 origin letters, KYMRSTUDIO final word, mailto href.
+
 ## v2 Escalation (2026-08-28)
 User demanded a different category: a LIVING DIGITAL WORLD. Visual STATES not sections; elements physically transform into the next scene; 4-layer motion system (atmosphere / scroll response / scene transformation / cursor micro-interaction); film pacing (tension→transformation→release→quiet); 10 distinct "holy shit" moments; seeded daily variation; interaction depth (scroll, cursor, hover, pause, direction); depth layers; no overdesign; mobile gets intentional lighter interpretation. Full rebuild of the front experience (backend + contact + admin vault unchanged).
 
@@ -42,7 +49,7 @@ User demanded a different category: a LIVING DIGITAL WORLD. Visual STATES not se
 - Contact form e2e (from v1): submit → DB → admin vault; 401 guard intact (unchanged code paths)
 
 ## Credentials
-See /app/memory/test_credentials.md. Admin key: kymr-vault-7f3a-2026. Contact email placeholder: hello@kymr.studio; social URLs placeholders.
+See /app/memory/test_credentials.md. Admin key: kymr-vault-7f3a-2026. Contact email placeholder: hello@kymrstudio.com; social URLs placeholders.
 
 ## Backlog
 - P1: Replace placeholder email/socials with real ones (user input needed)

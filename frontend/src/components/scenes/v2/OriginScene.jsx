@@ -6,7 +6,7 @@ import { range } from "@/utils/seed";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const LETTERS = ["K", "Y", "M", "R"];
+const LETTERS = "KYMRSTUDIO".split("");
 
 export default function OriginScene() {
   const ref = useRef(null);
@@ -40,7 +40,7 @@ export default function OriginScene() {
         .fromTo(".og-edge-b", { autoAlpha: 0, y: 0 }, { autoAlpha: 1, y: "24vh", duration: 0.9, ease: "power3.inOut" }, "<")
         .fromTo([".og-edge-l", ".og-edge-r"], { scaleY: 0 }, { scaleY: 1, duration: 0.9, ease: "power3.inOut" }, "<0.15")
         .fromTo(".og-word", { autoAlpha: 0, scale: 0.55 }, { autoAlpha: 1, scale: 1, duration: 1.1, ease: "power3.out" }, "-=0.45")
-        .fromTo(".og-word", { letterSpacing: "-0.04em" }, { letterSpacing: "0.2em", duration: 1, ease: "power2.inOut" })
+        .fromTo(".og-word", { letterSpacing: "-0.04em" }, { letterSpacing: "0.14em", duration: 1, ease: "power2.inOut" })
         .to(".og-edge-t", { y: "-54vh", autoAlpha: 0, duration: 0.8, ease: "power2.in" }, "+=0.1")
         .to(".og-edge-b", { y: "54vh", autoAlpha: 0, duration: 0.8, ease: "power2.in" }, "<")
         .to([".og-edge-l", ".og-edge-r"], { autoAlpha: 0, scaleY: 1.6, duration: 0.8 }, "<")
@@ -83,7 +83,7 @@ export default function OriginScene() {
   if (reduced) {
     return (
       <section id="top" data-testid="origin-scene" className="relative z-10 flex h-screen items-center justify-center">
-        <h1 className="font-display text-[16vw] font-black tracking-[-0.05em] text-bone">KYMR</h1>
+        <h1 className="font-display text-[10vw] font-black tracking-[-0.05em] text-bone">KYMRSTUDIO</h1>
       </section>
     );
   }
@@ -106,7 +106,7 @@ export default function OriginScene() {
 
       <div className="absolute inset-0 flex items-end justify-center pb-[28vh]">
         <p data-testid="origin-label" className="og-label font-mono text-[10px] tracking-[0.5em] text-white/50 opacity-0">
-          SIGNAL ACQUIRED — KYMR
+          SIGNAL ACQUIRED — KYMRSTUDIO
         </p>
       </div>
 
@@ -122,10 +122,10 @@ export default function OriginScene() {
       <div className="absolute inset-0 flex items-center justify-center">
         <h1
           data-testid="origin-word"
-          className="og-word select-none font-display text-[16vw] font-black leading-none tracking-[-0.04em] text-bone opacity-0"
+          className="og-word select-none font-display text-[9vw] font-black leading-none tracking-[-0.04em] text-bone opacity-0"
         >
-          {LETTERS.map((l) => (
-            <span key={l} className="og-l inline-block" data-hover>
+          {LETTERS.map((l, i) => (
+            <span key={i} className="og-l inline-block" data-hover>
               {l}
             </span>
           ))}

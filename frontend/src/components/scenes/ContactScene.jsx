@@ -78,10 +78,10 @@ export default function ContactScene() {
           data-hover
           data-magnetic
           data-cursor="SAY HELLO"
-          href="mailto:hello@kymr.studio"
+          href="mailto:hello@kymrstudio.com"
           className="contact-reveal link-sweep mt-12 inline-block font-display text-[8vw] font-black leading-none tracking-[-0.04em] text-bone transition-colors duration-500 hover:text-ember md:text-[5vw]"
         >
-          hello@kymr.studio
+          hello@kymrstudio.com
         </a>
 
         <div className="contact-reveal mt-8 flex flex-wrap gap-8 font-mono text-[10px] tracking-[0.35em] text-white/50">
@@ -178,7 +178,7 @@ export default function ContactScene() {
         </div>
 
         <div className="contact-reveal mt-32 flex flex-col justify-between gap-4 border-t border-white/10 pt-8 font-mono text-[10px] tracking-[0.3em] text-white/30 md:flex-row">
-          <span>© 2026 KYMR STUDIO</span>
+          <span>© 2026 KymrStudio</span>
           <span>BUILT AS A LIVING SYSTEM</span>
           <a
             data-testid="admin-link"

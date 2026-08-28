@@ -43,9 +43,9 @@ export default function Nav() {
           data-testid="nav-logo"
           data-hover
           onClick={() => scrollToId("top")}
-          className="font-display text-lg font-black tracking-tight text-white"
+          className="font-display text-base font-black tracking-tight text-white"
         >
-          KYMR<span className="text-ember">.</span>
+          KymrStudio<span className="text-ember">.</span>
         </button>
 
         <div className="hidden overflow-hidden md:block">

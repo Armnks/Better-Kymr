@@ -18,7 +18,7 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-app = FastAPI()
+app = FastAPI(title="KymrStudio")
 api_router = APIRouter(prefix="/api")
 
 
@@ -47,7 +47,7 @@ class Enquiry(BaseModel):
 
 @api_router.get("/")
 async def root():
-    return {"message": "KYMR STUDIO — system live"}
+    return {"message": "KymrStudio — system live"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):

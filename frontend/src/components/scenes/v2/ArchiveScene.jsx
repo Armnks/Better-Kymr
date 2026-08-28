@@ -130,7 +130,7 @@ export default function ArchiveScene() {
         style={{ clipPath: "circle(0% at 50% 115%)" }}
       >
         <span className="ar-teaser font-mono text-[10px] tracking-[0.35em] text-white/50 opacity-0">
-          09 — THE LAST FRAME
+          NEXT — EVERYTHING MOVES SIDEWAYS
         </span>
       </div>
     </section>

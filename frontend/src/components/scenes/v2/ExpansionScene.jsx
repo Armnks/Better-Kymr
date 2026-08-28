@@ -5,13 +5,6 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const MOVES = [
-  { x: "-75vw", y: "-50vh", s: 9 },
-  { x: "16vw", y: "-85vh", s: 12 },
-  { x: "-28vw", y: "62vh", s: 10 },
-  { x: "66vw", y: "30vh", s: 14 },
-];
-
 export default function ExpansionScene() {
   const ref = useRef(null);
   const reduced = useReducedMotion();
@@ -32,19 +25,21 @@ export default function ExpansionScene() {
             window.dispatchEvent(new CustomEvent("kymr:state", { detail: "02 — EXPANSION" })),
         },
       });
-      gsap.utils.toArray(".exp-l").forEach((el, i) => {
-        tl.to(
-          el,
-          { x: MOVES[i].x, y: MOVES[i].y, scale: MOVES[i].s, duration: 1.7, ease: "power2.in" },
-          i * 0.12
-        );
-      });
-      tl.fromTo(
-        ".exp-window",
-        { clipPath: "circle(0% at 76% 52%)" },
-        { clipPath: "circle(140% at 76% 52%)", duration: 1.9, ease: "power3.inOut" },
-        0.55
-      )
+      tl.to(".exp-word", {
+        scale: 15,
+        y: "-6vh",
+        rotation: -3,
+        letterSpacing: "-0.1em",
+        duration: 2,
+        ease: "power2.in",
+      })
+        .to(".exp-l", { y: (i) => (i % 2 ? "-3vh" : "3vh"), duration: 2, ease: "none" }, 0)
+        .fromTo(
+          ".exp-window",
+          { clipPath: "circle(0% at 82% 52%)" },
+          { clipPath: "circle(140% at 82% 52%)", duration: 1.9, ease: "power3.inOut" },
+          0.55
+        )
         .fromTo(
           ".exp-preview",
           { autoAlpha: 0, scale: 1.12 },
@@ -71,8 +66,8 @@ export default function ExpansionScene() {
       </div>
 
       <div className="absolute inset-0 flex items-center justify-center">
-        <div data-testid="expansion-word" className="exp-word flex select-none font-display text-[16vw] font-black leading-none tracking-[-0.05em] text-bone">
-          {["K", "Y", "M", "R"].map((l, i) => (
+        <div data-testid="expansion-word" className="exp-word flex select-none font-display text-[9vw] font-black leading-none tracking-[-0.05em] text-bone">
+          {"KYMRSTUDIO".split("").map((l, i) => (
             <span key={i} className="exp-l inline-block will-change-transform">
               {l}
             </span>

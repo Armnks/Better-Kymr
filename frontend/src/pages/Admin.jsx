@@ -37,7 +37,7 @@ export default function Admin() {
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
           <h1 className="font-display text-3xl font-black tracking-tight">
-            KYMR<span className="text-ember">.</span> VAULT
+            KymrStudio<span className="text-ember">.</span> Vault
           </h1>
           <a
             data-testid="admin-back-link"
