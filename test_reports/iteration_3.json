@@ -1,0 +1,54 @@
+{
+  "summary": "Iteration 3 — focused frontend QA of the rebuilt ArchiveScene (isolated shot system) plus the requested regression sweep. Desktop 1920x800: swept the 800% pin at 29 depths (base=20960, y=base+d*8*innerHeight, Lenis immediate + 1.7s settle, hard reload before each run) with a clip-path-AWARE visibility probe (raw getBoundingClientRect alone gives false positives because .ax-mem is rendered at opacity 1 from load by the GSAP fromTo immediateRender, but its inset(4% 46%) band sits fully off-screen at x>=2106px). Results: (a) at NO depth are 3+ images actually visible — max is hero + traveler (d=0.2, bg2 op 0.26-0.35) or memory alone (d=0.55-0.65) or the tiny final alone (d>=0.82); (b) no glyph collisions between THE ARCHIVE / IS JUST / BEGINNING. (t2 and t3 bounding boxes overlap ~20px vertically at d=0.78-0.9 but leading-none glyph bodies are clear — verified in screenshots) and the meta line never touches them; (c) image frames are flush — hero img gap l/r = 0/0 at every depth with vertical headroom -43..+43px, memory img gap is negative (image overhangs) through the whole widest-clip window (d=0.58-0.62: l=-78/-44/-11, r=-56/-89/-123); the +40/+45px left gap that appears at d>=0.65 is fully hidden by the 46% inset band, so no background is ever revealed inside a frame; (d) reverse scrub 0.9 -> 0.25 fully restores the hero (op 0.90, visible, clip inset(11.9% 23.85%), scale-0.42 approach geometry) and THE ARCHIVE returns to its approach position (top=403) — no stuck opacity-0 elements; (e) exit wipe: .ax-dark reaches circle(106% ) at d=0.96 and circle(140%) at d=0.99 with the viewport 100% black in screenshots; the transit scene immediately after the pin travels horizontally (its two images move 1263->471->-453 px across d=0.15/0.45/0.8). Mobile 390x844 (hard reload): exactly one image at a time at every probed depth (0.1/0.25/0.4 hero, 0.5 headline only, 0.6 memory, 0.85 final), huge typography with no overlaps, horizontal overflow = 0, and ZERO leaks from void/transit/final/contact scenes into the archive viewport. Regression: VoidScene hands off into the ivory archive (bg rgb(234,230,223)) cleanly; FinalScene (KYMRSTUDIO letters) and ContactScene ('you made it to the last frame.' + email) render; nav-process/capabilities/contact anchors scroll (0->8480->13440->35279); nav-start fires exactly 1 ripple-overlay, navigates to /start and the overlay is torn down (0 nodes on arrival); /start estimator renders with volume slider/live estimate and the USD/INR toggle switches the investment line to rupees; pytest backend suite 9/9 pass. Console/page errors: ZERO across all runs. ONE REAL DEFECT FOUND: the FR.002 — SPEC CONCEPT chip on the memory frame is clipped out of existence by the shot-05 mask, so the brief's requirement of spec chips on hero+memory+final is only met for 2 of 3.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ArchiveScene.jsx — memory frame spec chip clipped by the shot-05 mask",
+        "issue": "The FR.002 chip is positioned bottom-3 left-3 INSIDE .ax-mem, but every shot-05 clip-path removes that corner. Measured chip-visible fraction (clip-aware) desktop: d=0.58 clip inset(0.43% 17.46%) -> 0.00, d=0.60 clip inset(0% 14%) -> 0.12 (only a sliver of the 'F' renders, visible in the screenshot), d=0.61 -> 0.09, d=0.62 -> 0.00. Mobile is worse: clip inset(12.3% 0.04%) / inset(12.7% 0.08%) / inset(26.7% 1.7%) -> 0.00 at every depth, i.e. the memory chip is NEVER visible on mobile. Hero (FR.001, frac 1.0 at d=0.4) and final (FR.003, frac 1.0 at d=0.87) chips are fine. Fix: move the memory chip inside the guaranteed-safe band (e.g. desktop left >= 16% of frame width / vertically centred; mobile inset from top/bottom >= 14%), or render the chip as a sibling of .ax-mem that is animated with it instead of a clipped child.",
+        "selector": "[data-testid=\"archive-memory\"] span",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Archive SHOT 07 (d=0.82-0.90, desktop and mobile)",
+        "issues": [
+          "The tiny FR.003 image (desktop box [192,584,192,120]; mobile [31,616,101,127]) sits directly behind the 'B' of the outline 'BEGINNING.' — the outline stroke and the FR.003 label chip cross the photo, which reads as an accidental collision rather than a composed stack. Consider nudging the final image left/down out of the t3 glyph band or dropping t3 opacity where they intersect."
+        ]
+      },
+      {
+        "screen": "Archive transition between SHOT 05 and SHOT 06 (desktop d≈0.66-0.71, ≈320px of scroll)",
+        "issues": [
+          "Near-empty frame: memory has faded out, THE ARCHIVE is still at 0.10-0.26 opacity and no image is on screen, so the ivory viewport looks blank for a noticeable scroll window (only the tiny meta line remains). Consider starting the t1 ramp-up earlier (overlap it with the memory fade) so the sequence never goes dead outside the intentional SHOT-01 silence."
+        ]
+      },
+      {
+        "screen": "Archive SHOT 02/reverse-scrub state (d≈0.25-0.30)",
+        "issues": [
+          "'THE ARCHIVE' runs straight across the middle of the approaching hero photo (black type over a dark fragrance image) — legible but the depth-plane crossing looks unintentional at this scale; confirm it is the intended composition."
+        ]
+      }
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results_3.xml"],
+  "action_items": [
+    "ArchiveScene.jsx: reposition the FR.002 — SPEC CONCEPT chip so it survives the shot-05 clip-path on both breakpoints (currently 0-12% visible desktop, 0% mobile).",
+    "Optional polish: shift the SHOT-07 FR.003 image out of the 'BEGINNING.' glyph band.",
+    "Optional polish: close the ≈320px near-blank scroll window at desktop d≈0.66-0.71 by overlapping the memory fade-out with the THE ARCHIVE fade-in."
+  ],
+  "critical_code_review_comments": [
+    "GSAP fromTo() with default immediateRender applies the from-vars at timeline build time, which is why .ax-mem is opacity 1 and clip inset(4% 46%) from page load even though the markup says opacity-0. It happens to be off-screen (left 83vw + 46% inset > 100vw) so nothing leaks today, but any change to the memory frame's left/width could make it visible during shots 01-04. Prefer immediateRender:false or an explicit tl.set() at time 0.",
+    "Any chip/label placed inside an element that is animated with clip-path must live in the mask-safe area (or be a sibling) — the FR.002 defect above is exactly this class of bug.",
+    "Positive: hero <img> now uses max-w-none, so the iteration-2 right-edge background reveal is gone (gap l=0 r=0 at all depths) and the memory image keeps negative gaps through its widest exposure."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (9/9 pytest)", "frontend": "95% (5/6 archive acceptance checks pass; memory spec chip fails)"},
+  "seed_data_creation": "None — no leads or bookings created this iteration (no Cal.com booking attempted).",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin key kymr-vault-7f3a-2026 (X-Admin-Key) — not re-exercised this iteration (unchanged area).",
+  "context_for_next_testing_agent": "Archive pin base at 1920x800 = 20960 (scene tops: opening 0, statement 4960, protocol 8480, forces 13440, void 17760, archive 20960, transit 28160, final 32719, contact 35279); mobile 390x844 base = 22114. ALWAYS measure with a clip-path-aware visible-rect helper — plain bounding rects report .ax-mem as visible from depth 0 (false positive) and report t2/t3 as overlapping when the glyphs are actually clear. Desktop timeline depth->shot map: 0-0.05 silence, 0.1-0.2 approach, 0.3-0.45 frame takeover, 0.5-0.55 pass-through, 0.58-0.65 memory band, 0.72-0.88 typographic event + final frame, 0.92-0.99 exit circle wipe. Verified green this run: 3-image rule, glyph collisions, frame flushness, reverse scrub, exit wipe coverage, transit horizontal travel, mobile one-image-at-a-time + no overflow + no scene leaks, nav anchors, ripple START->/start teardown, USD/INR toggle, pytest 9/9, zero console errors. Only open item: FR.002 chip clipped in shot 05 (re-verify with the chipVisibleFrac probe at desktop d=0.58-0.62 and mobile d=0.58-0.62).",
+  "rca_of_the_issue": "FR.002 chip invisibility: .ax-mem is revealed exclusively through clip-path insets (desktop widest inset(0% 14%) = 156px removed from each side of a 1114px frame; mobile widest inset(12% 0%) = ~36px removed top and bottom of a 304px frame). The chip is absolutely positioned 12px from the frame's bottom-left corner, which lies inside the removed region at every keyframe, so the chip is masked away for the whole shot — the element is painted and in the DOM (hence it passes naive visibility assertions) but never rasterised on screen."
+}
