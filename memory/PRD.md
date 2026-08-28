@@ -3,6 +3,16 @@
 ## Original Problem Statement
 Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a living, breathing visual organism, not a conventional website. One continuous evolving composition of states (not header/hero/sections/footer), scroll-linked transformations, alive typography and background, cursor influence, no fake portfolio (absence is part of the story), 7+ major transformations, cinematic finale resolving into KYMR + contact. GSAP/ScrollTrigger + Lenis, no WebGL, performant, responsive, reduced-motion support.
 
+## v11 Consolidated Correction + Ripple + QA Pass (2026-08-28) — commit 008a011 on main (LOCAL; push blocked on git auth — owner must use "Save to Github" or supply a fresh token)
+- Ripple: new components/Ripple.jsx (RippleHost mounted in App.js inside BrowserRouter). Nav START ↗ and Contact INQUIRE both trigger a full-screen water-ripple (3 expanding rings + blur + dark veil) → navigate /start; /start shows an arrival veil fade (sessionStorage kymr-ripple). Double-activation guarded; reduced-motion path navigates instantly with no overlay. INQUIRE is never a mailto (mailto stays only on the big email link).
+- Internal label purge: removed "FINAL TRANSMISSION" slate (ContactScene), "03 — INCOMING TRANSMISSION" (OpeningScene), "NEXT — EVERYTHING MOVES SIDEWAYS" (Archive teaser → italic serif "the direction is about to change"), "END OF TRANSMISSION —" (FinalScene meta → "SCROLL FOR CONTACT"), "SIGNAL ACQUIRED — KYMRSTUDIO" → "SIGNAL ACQUIRED" (identity introduced exactly once).
+- Typography: JetBrains Mono REMOVED — tailwind font-mono now maps to Spectral serif; index.css loads Cinzel Decorative + Cormorant Garamond + Spectral. Cinzel Decorative remains signature-only.
+- Ghost-layer fix: StatementScene corner echoes (WE MAKE/THINGS/PEOPLE residues) now fade fully out before the release line — verified by screenshot.
+- Media: decoding="async" added to Archive/Interlude imgs (already lazy, fixed-size frames).
+- Fixes from testing_agent iteration_1: added GET /api/health; Admin.jsx vault rendering hardened with String() coercion (was full-page crash on non-string config); Start.jsx config.volume now defaults to 20 so leads always carry volume; mobile nav sound label hidden below sm (wrap/collision fix).
+- TESTING: testing_agent iteration_1.json — 9/9 pytest backend pass (regression suite at /app/backend/tests/backend_test.py), all frontend flows pass (21 scroll-depth label sweep clean, Forces one-word-at-a-time, ripple mouse+keyboard+touch paths, /start full flow incl. Cal embed real event types, reduced-motion, mobile no-overflow, console clean). Report: /app/test_reports/iteration_1.json. NOT tested: completing a real Cal.com booking (would create a real meeting).
+- Git: .env files remain untracked, no secrets committed.
+
 ## v10 Wordmark Font (2026-08-28)
 - Brand wordmark switched from Cabinet Grotesk to Cinzel Decorative everywhere it appears: film nav logo, /start header, vault heading, and the giant opening identity reveal (now bookends with the Cinzel finale). Cinzel is caps-only so the mark renders as KYMRSTUDIO — the approved uppercase treatment. Cabinet Grotesk remains the kinetic scene typography; JetBrains Mono for utility; Cormorant for serif lines.
 

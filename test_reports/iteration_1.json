@@ -1,0 +1,41 @@
+{
+  "summary": "First full test pass on KymrStudio (fresh coverage). Backend: created /app/backend/tests/backend_test.py (9 pytest cases) — 8 pass, 1 fails only because GET /api/health does not exist (root is /api/). Leads CRUD, admin-key gate (401/200), Cal.com BOOKING_CREATED webhook (flips meeting.booked), legacy enquiries all verified with persistence re-reads. Frontend: verified cold load + preloader + nav testids, scanned visible DOM text at 21 scroll depths (0%→100%) for internal scene labels — none found; Archive teaser reads 'the direction is about to change', FinalScene meta reads 'SCROLL FOR CONTACT' only. Forces scene shows exactly one dominant word at a time (STRATEGY→CREATIVE→PRODUCTION→EDITING→PERFORMANCE, opacity 1, no overlaps). Ripple flows all pass: nav START click, keyboard Enter on START, and Contact INQUIRE (a BUTTON, no mailto) all show data-testid='ripple-overlay' then land on /start with data-testid='start-arrival-veil'; contact-email-link stays mailto:media@kymrstudio.com. /start flow fully verified: slider keyboard arrows (20→25), tier thresholds (20=MOMENTUM, 40=SCALE), mix/cadence do not reset each other, EDIT preserves all selections, refresh restores mid-flow stage, details validation errors appear and clear individually, Cal.com inline embed loads real event types (Kymr Connect / 15 min / 30 min), skip-the-call posts a lead and reaches RECEIVED. Reduced-motion: INQUIRE is an <a href='/start'>, navigates with zero ripple overlay, page renders statically (height 10184 vs 44367 pinned). Mobile 390x844: no horizontal overflow on / or /start. font-mono resolves to 'Spectral, serif' (no JetBrains anywhere). No application console errors anywhere on / or /start.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/health", "issue": "Endpoint does not exist (404). Review request expected GET /api/health to return the system-live message; it is served at GET /api/ instead. Either add /api/health or update the spec."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Admin (/admin) pages/Admin.jsx L128-129", "issue": "Unguarded (l.config?.mix || '—').toUpperCase() crashes the whole Vault page with 'toUpperCase is not a function' if any lead's config.mix/cadence is not a string (e.g. legacy/array/numeric value from an older schema or an API client). Reproduced with a lead whose config.mix was an array — full white-screen runtime error, no error boundary. Coerce with String(...) or render a safe fallback.", "selector": "/admin", "priority": "MEDIUM"},
+      {"component": "Start.jsx submitLead", "issue": "config.volume is sent as undefined when the user never drags the slider (UI displays default 20 but state stays empty), so the stored lead has config = {mix, cadence} with no volume and /admin shows '— ADS/MO'. Initialise config.volume to 20 (or send config.volume || 20).", "selector": "[data-testid=\"volume-slider\"]", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Statement → Protocol handoff (~25% scroll)", "issues": ["A shrunken low-opacity 'PEOPLE' residue sits at the top-left while the italic release line is centred, and 'WE MAKE'/'THINGS' residues are not visible — the asymmetric leftover reads as a stale ghost layer rather than an intentional constellation."]},
+      {"screen": "Home nav on mobile 390px", "issues": ["'SOUND OFF' wraps to two lines and sits flush against the KYMRSTUDIO wordmark (near-collision); consider hiding the sound label or shortening it below md."]},
+      {"screen": "Statement scene end", "issues": ["Outline 'WATCH.' after the band swap is effectively invisible on the near-black background (very low contrast) — verify it is intended."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Add GET /api/health (or drop it from the spec) — currently 404.",
+    "Harden /admin lead rendering against non-string config values (String() coercion) to avoid a full-page runtime crash.",
+    "Default config.volume to 20 in Start.jsx so submitted leads always carry a volume."
+  ],
+  "critical_code_review_comments": [
+    "backend/server.py has no DELETE endpoint for leads/enquiries, so test data can only be cleaned directly in Mongo — consider an admin-key-protected delete for QA.",
+    "Cal.com webhook uses update_many on email with no dedupe/idempotency; multiple leads for the same email all get flipped to booked.",
+    "pages/Start.jsx is 622 lines — worth splitting stage components out of the page.",
+    "Internal scene labels are still dispatched as 'kymr:state' event strings (e.g. '01 — ORIGIN') but are only consumed by SoundToggle for an ambient swell — nothing is rendered, so the no-visible-labels requirement holds."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "89% (8/9; only the non-existent /api/health fails)", "frontend": "95% (all requested flows pass; 1 crash on /admin with malformed lead data, 1 missing volume in submitted lead)"},
+  "seed_data_creation": "Created TEST_-prefixed leads/enquiries via API and one lead via the UI skip-the-call flow (TEST_skip_ui@example.test); all TEST_ documents were deleted from Mongo afterwards. Pre-existing seed leads (Armaan/Ava/Test Lead — BrandCo) were left untouched.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin key kymr-vault-7f3a-2026 (X-Admin-Key header / /admin unlock) — works; key is cached in browser storage so /admin auto-unlocks on revisit.",
+  "context_for_next_testing_agent": "Regression suite: /app/backend/tests/backend_test.py (run with pytest from /app/backend; the /api/health test is an intentional spec check). Frontend: use immediate window.scrollTo jumps + ~1.5s settle for pinned scenes (page height ~44k on desktop). Ripple testids: ripple-overlay, start-arrival-veil. /start stage testids: volume-slider, volume-readout, estimate-tier, opt-mix-*, opt-cadence-*, continue-*, result-tier, edit-scope-button, start-inquiry-button, lead-*-input, error-name/error-email, book-stage, book-skip-button, done-stage, start-logo. Do NOT complete a real Cal.com booking. Not retested: sound toggle audio, PROCESS/CAPABILITIES anchor scrolling, tablet viewport.",
+  "rca_of_the_issue": "/admin crash: Admin.jsx assumes config.mix/config.cadence are strings and calls .toUpperCase() directly inside the map; any non-string value (legacy schema, array, number from an external POST /api/leads client) throws during render and, with no error boundary, blanks the whole Vault. Missing volume: Start.jsx initialises config as {} and the volume slider only writes state onChange, so an untouched slider leaves config.volume undefined while the UI shows the hardcoded fallback 20; submitLead then posts volume: undefined which Mongo stores as absent."
+}
