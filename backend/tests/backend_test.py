@@ -11,7 +11,6 @@ base_url = os.environ.get("REACT_APP_BACKEND_URL") or frontend_env.get("REACT_AP
 if not base_url:
     raise RuntimeError("REACT_APP_BACKEND_URL missing")
 BASE_URL = base_url.rstrip("/")
-ADMIN_KEY = "kymr-vault-7f3a-2026"
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +35,7 @@ class TestHealth:
 
 # --- leads ---
 class TestLeads:
-    def test_create_lead_and_admin_list(self, api):
+    def test_create_lead(self, api):
         email = f"TEST_lead_{uuid.uuid4().hex[:8]}@example.test"
         payload = {
             "name": "TEST_Lead",
@@ -57,28 +56,10 @@ class TestLeads:
         assert data["source"] == "website"
         assert "_id" not in data
 
-        # 401 without admin key
-        r401 = api.get(f"{BASE_URL}/api/leads", timeout=30)
-        assert r401.status_code == 401
-
-        # 200 with admin key + persistence check
-        r200 = api.get(f"{BASE_URL}/api/leads", headers={"X-Admin-Key": ADMIN_KEY}, timeout=30)
-        assert r200.status_code == 200
-        leads = r200.json()
-        assert isinstance(leads, list)
-        found = [x for x in leads if x["email"] == email]
-        assert found, "created lead not persisted/returned"
-        assert found[0]["name"] == "TEST_Lead"
-        assert all("_id" not in x for x in leads)
 
     def test_create_lead_validation(self, api):
         r = api.post(f"{BASE_URL}/api/leads", json={"name": "", "email": "a"}, timeout=30)
         assert r.status_code == 422
-
-    def test_leads_wrong_admin_key(self, api):
-        r = api.get(f"{BASE_URL}/api/leads", headers={"X-Admin-Key": "nope"}, timeout=30)
-        assert r.status_code == 401
-
 
 # --- cal.com webhook ---
 class TestCalcomWebhook:
@@ -96,10 +77,6 @@ class TestCalcomWebhook:
         assert body["matched"] is True
         assert body["updated"] >= 1
 
-        leads = api.get(f"{BASE_URL}/api/leads", headers={"X-Admin-Key": ADMIN_KEY}, timeout=30).json()
-        lead = next(x for x in leads if x["email"] == email)
-        assert lead["meeting"]["booked"] is True
-        assert lead["meeting"]["startTime"] == "2026-08-01T10:00:00Z"
 
     def test_other_event_ignored(self, api):
         r = api.post(f"{BASE_URL}/api/webhooks/calcom", json={"triggerEvent": "PING"}, timeout=30)
@@ -118,7 +95,7 @@ class TestCalcomWebhook:
 
 # --- legacy enquiries ---
 class TestEnquiries:
-    def test_create_and_list_enquiry(self, api):
+    def test_create_enquiry(self, api):
         email = f"TEST_enq_{uuid.uuid4().hex[:8]}@example.test"
         r = api.post(
             f"{BASE_URL}/api/enquiries",
@@ -128,7 +105,3 @@ class TestEnquiries:
         assert r.status_code == 200, r.text
         assert r.json()["email"] == email
 
-        assert api.get(f"{BASE_URL}/api/enquiries", timeout=30).status_code == 401
-        r2 = api.get(f"{BASE_URL}/api/enquiries", headers={"X-Admin-Key": ADMIN_KEY}, timeout=30)
-        assert r2.status_code == 200
-        assert any(x["email"] == email for x in r2.json())

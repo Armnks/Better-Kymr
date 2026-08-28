@@ -102,21 +102,16 @@ export default function ContactScene() {
             </a>
           ))}
         </div>
-        <div className="flex items-center gap-8">
-          <button
-            type="button"
-            data-testid="back-to-top"
-            data-hover
-            data-cursor="REWIND"
-            onClick={() => scrollToId("top")}
-            className="transition-colors duration-300 hover:text-white"
-          >
-            BACK TO TOP ↑
-          </button>
-          <a data-testid="admin-link" data-hover href="/admin" className="transition-colors duration-300 hover:text-white/70">
-            VAULT ↗
-          </a>
-        </div>
+        <button
+          type="button"
+          data-testid="back-to-top"
+          data-hover
+          data-cursor="REWIND"
+          onClick={() => scrollToId("top")}
+          className="transition-colors duration-300 hover:text-white"
+        >
+          BACK TO TOP ↑
+        </button>
       </div>
     </div>
   );

@@ -77,16 +77,6 @@ async def create_enquiry(input: EnquiryCreate):
     _ = await db.enquiries.insert_one(doc)
     return enquiry
 
-@api_router.get("/enquiries", response_model=List[Enquiry])
-async def list_enquiries(x_admin_key: str = Header(default="")):
-    if x_admin_key != os.environ.get('ADMIN_KEY'):
-        raise HTTPException(status_code=401, detail="unauthorized")
-    docs = await db.enquiries.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
-    for doc in docs:
-        if isinstance(doc.get('created_at'), str):
-            doc['created_at'] = datetime.fromisoformat(doc['created_at'])
-    return docs
-
 class LeadCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     email: str = Field(min_length=3, max_length=200)
@@ -118,16 +108,6 @@ async def create_lead(input: LeadCreate):
     doc['created_at'] = doc['created_at'].isoformat()
     _ = await db.leads.insert_one(doc)
     return lead
-
-@api_router.get("/leads", response_model=List[Lead])
-async def list_leads(x_admin_key: str = Header(default="")):
-    if x_admin_key != os.environ.get('ADMIN_KEY'):
-        raise HTTPException(status_code=401, detail="unauthorized")
-    docs = await db.leads.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
-    for doc in docs:
-        if isinstance(doc.get('created_at'), str):
-            doc['created_at'] = datetime.fromisoformat(doc['created_at'])
-    return docs
 
 @api_router.post("/webhooks/calcom")
 async def calcom_webhook(payload: dict):

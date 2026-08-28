@@ -5,7 +5,6 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Experience from "@/pages/Experience";
-import Admin from "@/pages/Admin";
 import Start from "@/pages/Start";
 import RippleHost from "@/components/Ripple";
 
@@ -49,7 +48,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Experience />} />
         <Route path="/start" element={<Start />} />
-        <Route path="/admin" element={<Admin />} />
       </Routes>
       <RippleHost />
     </BrowserRouter>
