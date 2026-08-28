@@ -71,6 +71,11 @@ body {
     color: transparent;
 }
 
+.text-outline-dark {
+    -webkit-text-stroke: 1px rgba(5, 5, 5, 0.85);
+    color: transparent;
+}
+
 .grain {
     position: fixed;
     inset: -100%;
