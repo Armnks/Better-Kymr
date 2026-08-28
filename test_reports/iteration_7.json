@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 7 frontend verification of the ArchiveScene 7-image REEL expansion + exit circle-wipe timing fix. Desktop (1920x800) reel sweep, full-timeline regression sweep, traveler behaviour, reverse scrub, mobile (390x844) sweep, cold-load performance sanity, and cross-scene regressions (statement/transit/contact/back-to-top/estimator/USD-INR) all executed via DOM probes with lenis immediate scrollTo + 1.9s settle after hard reload. Backend pytest 9/9 passed. Zero console/page errors across every run. ONE real defect found: on MOBILE the .ax-dark exit circle-wipe is still positioned at t=17.55 while the mobile resolve beats run 17.4-19.05, so the final 'THE ARCHIVE / IS JUST / BEGINNING.' resolve is completely covered by the black wipe and is never visible on mobile. Desktop equivalent (29.7) is correct.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ArchiveScene (mobile branch, max-width:767px)",
+        "issue": "Exit circle-wipe fires too early and buries the final resolve. .ax-dark fromTo is positioned at 17.55 (dur 0.9 -> full at 18.45) but the mobile resolve beats are: .ax-beg set 17.4 / rise 17.75-18.45, .ax-arch3 fade 18.05-18.40, .ax-just fade 18.15-18.45, hold to 19.05, hide at 18.75-19.05. Measured: at d=0.94 darkCircle=27.9%, d=0.95 darkCircle=114% while arch3 was only at 0.26 opacity, d=0.96 darkCircle=138.8% with arch3=0.9 -> the resolve is 100% behind opaque black at every point where it is legible. Screenshot at d=0.955 is a fully black frame. Desktop 29.7 is correct; mobile appears to have received the desktop-relative number instead of its own. Suggested position: ~18.8 (after the 18.75 hide) or at minimum 18.45, keeping dur 0.9.",
+        "selector": ".ax-dark (ArchiveScene.jsx line 259)",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Nav bar over the ivory Archive poster frame (desktop d~0.80 and mobile)",
+        "issues": [
+          "The 'START' nav link renders pale cyan/teal on the #EAE6DF ivory background (mix-blend inversion of the ember colour) — very low contrast and reads as a broken colour rather than the intended orange accent. Same link is correct orange over dark scenes. Cosmetic / pre-existing, not part of this iteration's change."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "ArchiveScene.jsx mobile branch: move the .ax-dark exit circle-wipe from position 17.55 to ~18.8 so the mobile 'THE ARCHIVE / IS JUST / BEGINNING.' resolve is visible before the wipe. This is the same class of bug as the desktop t22.3 issue — the mobile number was not shifted with its own beats."
+  ],
+  "critical_code_review_comments": [
+    "The mobile exit fromTo has its position argument (17.55) on a separate line from the tween, the exact pattern that caused the original desktop t22.3 miss. Consider co-locating positions or deriving all beat times from a single named constants object (e.g. T.exit) per breakpoint so numeric shifts cannot desync again.",
+    "Documented mobile total is 18.85 but the actual timeline duration is 19.05 (last tween = 18.75 + 0.3). Depth->time math based on 18.85 is off by ~1%. Desktop is exact (29.7 + 1.0 = 30.7, matches the 30.7 rail tween). Update the comment/spec or pad the mobile timeline explicitly.",
+    "Beat comment blocks above both matchMedia branches still describe the pre-expansion 23.3-unit timeline ('total: 23.3 units', 'BEAT H 14.3-15.55', 'BEAT I 15.5-17.35', 'exit 22.2-23.3'). Misleading for the next editor — refresh them to the 30.7/19.05 numbers.",
+    "ArchiveScene.jsx is 455 lines with a 230-line useLayoutEffect; the desktop and mobile timelines are near-duplicate structures (REEL loop, splice, resolve). Extracting buildDesktopTimeline/buildMobileTimeline into separate modules would make future numeric shifts safer."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (9/9 pytest)",
+    "frontend": "94% (17/18 checks; only the mobile exit-wipe timing failed)"
+  },
+  "seed_data_creation": "none",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin vault key kymr-vault-7f3a-2026 (X-Admin-Key) — not needed for this frontend-only run",
+  "context_for_next_testing_agent": "Depth probe that works: read pin base from `document.querySelector('[data-testid=\"archive-scene\"]').closest('.pin-spacer').offsetTop`; desktop span = 14*innerHeight and t = d*30.7; mobile span = 9.8*innerHeight and t = d*19.05 (NOT 18.85). Scroll with window.__lenis.scrollTo(y,{immediate:true}) then wait 1900ms. VERIFIED GREEN this run: desktop reel sweeps t=14.65..20.65 -> exactly r0..r6 one at a time with .ax-black at opacity 1 and correct FRAME 003-009 chips; all 7 reel imgs naturalWidth=900; full desktop sweep d=0.02/0.10/0.25/0.36/0.46/0.47/0.71/0.80/0.83/0.94/0.985 correct; .ax-just confirmed opacity 1 but parked at top=938px (viewport 800) during the reel so genuinely invisible — audit note is accurate; desktop exit wipe stays circle(0%) through the whole reel (t22.3 bug is fixed); trav1 crosses L->R at op 0.04-0.26 during approach (t1.8-4.4) and trav2 crosses R->L at op 0.03-0.19 during letterform travel (t8.2-10.5), never overlapping; reverse scrub 0.94->0.55 shows r2 with black held, 0.02 restores only meta/crops/tiny hero, nothing stuck; mobile reel t=7.35..13.05 one frame at a time, no horizontal overflow (390/390); cold-load jump to d=0.55 renders r2 fully loaded (no blank/broken image); FRAME 010 poster slit + THE/ARCHIVE/IS JUST/BEGINNING. intact; transit reachable past the pin; statement WE MAKE half-fill clip inset ~26.7%/34.6% at d=0.17; contact email media@kymrstudio.com, inquire visible, back-to-top returns scrollY 0; /start estimator USD $3,000-$6,000 -> INR Rs.2.5L-Rs.5L toggle works. Only re-test the mobile tail (d 0.86-1.00) after the wipe fix.",
+  "rca_of_the_issue": "The desktop exit-wipe bug was fixed by moving the fromTo to position 29.7, but the mobile branch's wipe was left/set at 17.55. The mobile timeline has its own, shorter beat map whose resolve sequence occupies 17.4-19.05, so 17.55 lands at the very start of the resolve instead of after it — the black circle reaches 140% coverage by t~18.4 while THE ARCHIVE / IS JUST are still fading in. Reproduction: viewport 390x844, hard reload, scroll to pinBase + d*9.8*innerHeight for d in 0.93..0.99 and read getComputedStyle('.ax-dark').clipPath against '.ax-arch3'/'.ax-just' opacity — dark is fully expanded while the type opacities are still ramping. Mitigation: reposition the mobile .ax-dark fromTo to ~18.8 (dur 0.9), i.e. after the 18.75 hide, mirroring how desktop's 29.7 sits after its 29.6 hide."
+}

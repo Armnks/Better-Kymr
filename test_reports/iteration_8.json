@@ -1,0 +1,54 @@
+{
+  "summary": "Iteration 8 frontend verification of the two owner-reported ArchiveScene fixes (poster-frame slit position + final resolve styling) plus re-confirmation of the interrupted iteration_7 12-image/7-frame reel coverage. BOTH REPORTED FIXES ARE CONFIRMED GOOD on desktop (1920x800, 1366x768, 1440x900): poster frame at t=24.5 has ARCHIVE fully clear of the slit (ARCHIVE bottom 480 vs slit top 488, no bbox overlap), slit measured at exactly 61.0% of viewport height, IS JUST sits at the slit's right end (bbox 1030-1581, slit band 488-592) at z-30 IN FRONT of the slit's z-10, BEGINNING. outline cropped below viewport (bottom 848 > vh 800) with fill hidden (op 0). Resolve at t=29.2: THE ARCHIVE left=455 (>=0, no left clipping), IS JUST ember centred, BEGINNING. .ax-beg-fill opacity 1.0 (solid black, not outline), reading order top-to-bottom arch3(122) < just2(358) < beg(454), nothing clipped; same holds at 1366x768 (arch3 l=324 r=1042) and 1440x900 (arch3 l=344 r=1096), no horizontal overflow. Reverse scrub 0.94 -> 0.80 -> 0.02 behaves correctly (fill drops back to 0, slit and ARCHIVE restore, d=0.02 clean silence). Regression sweep green: reel t=14.65..20.65 shows exactly one frame at a time (r0..r6) with .ax-black held at 1 and the exit wipe at circle(0%) throughout; beat timings d=0.02/0.25/0.46/0.47/0.71/0.83/0.985 all intact; ripple START -> /start works; back-to-top returns scrollY=0; backend pytest 9/9; zero console/page errors. ONE BLOCKER: the HIGH-priority mobile exit-wipe defect reported in iteration_7 was NEVER FIXED - .ax-dark is still positioned at 17.55 in the mobile branch (ArchiveScene.jsx line 261), so the entire mobile resolve is buried under opaque black and the requested mobile verification fails.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ArchiveScene (mobile branch, max-width:767px)",
+        "issue": "UNFIXED CARRY-OVER FROM ITERATION_7. The mobile exit circle-wipe .ax-dark fromTo is still positioned at 17.55 (ArchiveScene.jsx line 261) while the mobile resolve beats run 17.4-19.05. Measured at 390x844 (span 9.8*ih, total 19.05): d=0.945 (t~18.0) dark=circle(71.3%) with arch3 op=0 / begfill op=0; d=0.955 (t~18.19) dark=circle(132.6%) while THE ARCHIVE is only op=0.65, IS JUST op=0.27, BEGINNING. fill op=0.18; d=0.968 (t~18.44) and d=0.98 (t~18.67) all three lines reach op=1 but dark=circle(140%) - fully opaque. Screenshot at t~18.19 is a 100% black frame. So the requested check 'MOBILE resolve at t~18.0-18.5: THE ARCHIVE / IS JUST / BEGINNING. stacked, BEGINNING. solid' CANNOT be satisfied - the stack is never visible on mobile. The new .ax-beg-fill crossfade at mobile t=18.0 is therefore also invisible. Fix: move the mobile .ax-dark fromTo position from 17.55 to ~18.8 (after the 18.75 hide), keeping dur 0.9, mirroring desktop's 29.7.",
+        "selector": ".ax-dark (frontend/src/components/scenes/v2/ArchiveScene.jsx line 261)",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Archive poster frame, desktop 1920x800 (t=24.5)",
+        "issues": [
+          "ARCHIVE clears the slit by only 8px (ARCHIVE bbox bottom 480, slit top 488). It is genuinely non-overlapping and the owner's complaint is resolved, but the margin is within one line-height rounding of re-bisecting on shorter/odd desktop heights. Consider nudging ARCHIVE up ~1-2vh or reducing slit height for a safer gap.",
+          "Pre-existing (also flagged in iteration_7): the 'START' nav link renders pale cyan/teal over the #EAE6DF ivory Archive background (mix-blend inversion of the ember) - low contrast, reads as a colour bug rather than an accent."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL/HIGH: ArchiveScene.jsx line 261 - move the mobile .ax-dark exit wipe from position 17.55 to ~18.8 (dur 0.9). This is the exact bug reported in iteration_7 and it is still in the code; the mobile final resolve (and the new .ax-beg-fill solid BEGINNING.) is 100% invisible behind black on 390x844.",
+    "Optional polish: increase the ARCHIVE-to-slit clearance on the desktop poster frame (currently only 8px at 1920x800).",
+    "Optional: fix the pale-cyan 'START' nav link contrast over ivory scenes (pre-existing)."
+  ],
+  "critical_code_review_comments": [
+    "The mobile exit fromTo still carries its position argument (17.55) on a separate line from the tween - the same pattern that produced this desync twice now. Derive all beat times from a per-breakpoint named constants object (T.exit, T.resolve...) so a resolve shift cannot leave the wipe behind.",
+    "The beat comment blocks above both matchMedia branches still describe the pre-expansion 23.3-unit timeline ('total: 23.3 units', 'BEAT H 14.3-15.55', 'exit 22.2-23.3'). They now contradict the actual 30.7 / 19.05 numbers and are actively misleading - this stale map is plausibly why the mobile wipe was missed.",
+    "Documented mobile total is 18.85 but the actual timeline duration is 19.05 (18.75 + 0.3); any depth->time math based on 18.85 is ~1% off. Desktop is exact (29.7 + 1.0 = 30.7).",
+    "ArchiveScene.jsx is 461 lines with a ~230-line useLayoutEffect and two near-duplicate timeline builders (reel loop, splice, resolve). Extract buildDesktopTimeline/buildMobileTimeline into separate modules.",
+    ".ax-beg-fill relies on the outline span staying visible underneath at op 1; if a future edit fades .ax-beg the fill goes with it since the fill is a child of .ax-beg. Works today (verified fill op=1 at resolve, op=0 at poster) but is a fragile coupling."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (9/9 pytest)",
+    "frontend": "92% (23/25 checks; the 2 failures are the mobile resolve visibility and the mobile beg-fill crossfade, both caused by the single unfixed .ax-dark position)"
+  },
+  "seed_data_creation": "none",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin vault key kymr-vault-7f3a-2026 (X-Admin-Key) - not required for this frontend-only run",
+  "context_for_next_testing_agent": "Working probe: base = document.querySelector('[data-testid=\"archive-scene\"]').closest('.pin-spacer').offsetTop; desktop y = base + d*14*innerHeight, t = d*30.7; mobile y = base + d*9.8*innerHeight, t = d*19.05 (NOT 18.85). Scroll via window.__lenis.scrollTo(y,{immediate:true}) then wait 1800-1900ms; hard reload per viewport; park mouse at (2,2) so the custom cursor ring stays out of typography screenshots. VERIFIED GREEN this run: poster t=24.5 (slit exactly 61.0% top, ARCHIVE no overlap, IS JUST z30 over slit z10 at its right end, BEGINNING. cropped below vh, fill op 0); resolve t=29.2 at 1920x800 / 1366x768 / 1440x900 (arch3 left>=0, fill op 1, top-to-bottom order, no overflow); reverse 0.94->0.80->0.02; desktop reel t=14.65..20.65 one frame at a time with black held and wipe at circle(0%); beats d=0.02/0.25/0.46/0.47/0.71/0.83/0.985; START->/start; back-to-top scrollY=0; pytest 9/9; zero console errors. NOT re-measured numerically: the WE MAKE half-fill clip inset at statement d=0.17 (scene renders and the WE MAKE / THINGS / PEOPLE lines are present, but my generic [class*=fill] selector did not resolve the clip element - iteration_7 measured inset ~26.7%/34.6% there). ONLY OUTSTANDING WORK: mobile .ax-dark reposition, then re-test mobile d 0.93-1.00.",
+  "rca_of_the_issue": "Root cause: the mobile matchMedia branch's exit circle-wipe (.ax-dark fromTo, ArchiveScene.jsx line 261) is positioned at t=17.55 while the mobile resolve sequence occupies 17.4-19.05. The wipe therefore starts at the very beginning of the resolve and reaches full 140% coverage by t~18.4, exactly when THE ARCHIVE / IS JUST / BEGINNING. are ramping to opacity 1. The desktop equivalent was previously corrected to 29.7 (after its 29.6 hide) but the mobile number was never shifted with its own beats, and the stale beat comments above the branch still describe the old 23.3-unit map. Reproduction: viewport 390x844, hard reload, scroll to pinBase + d*9.8*innerHeight for d in 0.94..0.99 and compare getComputedStyle('.ax-dark').clipPath against the opacities of .ax-arch3 / .ax-just / .ax-beg-fill. Mitigation: change the position argument from 17.55 to ~18.8 (dur 0.9 unchanged) so the wipe begins after the 18.75 hide."
+}

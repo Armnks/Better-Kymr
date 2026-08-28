@@ -1,0 +1,25 @@
+{
+  "summary": "FINAL sign-off pass on the ArchiveScene resolve rework + image quality. DESKTOP (1920x800, t=29.2 / d=0.9511): resolve is exactly two lines — ember 'IS JUST' (op 1, bbox 731-960 x, top 254) above SOLID black 'BEGINNING.' (.ax-beg op 1, .ax-beg-fill op 1) at bbox l=332 r=1588 t=358 b<800, FULLY inside viewport, no horizontal overflow (scrollWidth == innerWidth). document.querySelector('.ax-arch3') === null and grep shows 0 'arch3' refs in the whole src tree — the clipped 'THE ARCHIVE' line the owner asked to remove is GONE (visible text nodes at resolve: SEQ. 07 — 24 FPS, BEGINNING. x2 (outline+fill spans), IS JUST). REVERSE scrub d=0.95 -> 0.80 -> 0.02: at 0.80 poster BEGINNING. is back to outline (fill autoAlpha 0, hidden) and just2 hidden; at 0.02 all resolve elements hidden, .ax-dark still circle(0%), silence frame clean (screenshot verified), nothing stuck. MOBILE (390x844, span 9.8*ih, total 19.05): at t=18.2/18.4 'IS JUST' (rising to op 0.97) + solid 'BEGINNING.' (fill op 1) both visible, bbox l=50 r=340 inside 390 — no clipping, no horizontal overflow, no arch3. Exit wipe verified correct: circle 0% at t=17.8, 0.01% at 18.2, 6.7% at 18.4 (never covers the resolve early) and exactly circle(140%) at d=1.0 / t=19.05 — the iteration_7/8 HIGH mobile blocker is FIXED. REEL: sweep t=14.65..20.65 shows exactly one frame at a time (r0..r6) with .ax-black held at 1, chips read FRAME 003 -> FRAME 009 in order. IMAGES: all 12 /ads/*.webp return HTTP 200 (21KB-139KB) and render with naturalWidth 928 (10) / 1264 (fashion, beverage) — zero broken. REGRESSION: statement 'WE MAKE' half-fill materialization at d=0.17 verified visually; archive beats d=0.02/0.25/0.46/0.47/0.71/0.83 all show the expected content; nav anchors process/capabilities/contact scroll correctly (9920 / 14880 / 41519); BACK TO TOP from page bottom returns scrollY 0; nav START navigates to /start; /start USD/INR toggle switches investment copy from $3,000-$6,000 to Rs2.5L-Rs5L. Backend pytest 9/9 passed. ZERO console/page errors across every pass (excluding the ignorable 'scale not eligible for reset').",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global nav", "issues": ["Pre-existing/known: the 'START' nav link renders pale cyan over the ivory archive scenes (low contrast) — cosmetic only, unchanged from previous iterations."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ArchiveScene.jsx mobile branch: .ax-beg-fill is tweened to autoAlpha 1 at 16.9 while its parent .ax-beg is only revealed at 17.45 — it works today because the fill is a child span, but the out-of-order position is fragile; consider moving it to >=17.75 for readability.",
+    "ArchiveScene.jsx is 454 lines of dense timeline positions with magic numbers duplicated between the desktop and mobile branches; extracting a beats/time constant map would reduce the risk of another desync like the 17.55 wipe bug."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (9/9 pytest)", "frontend": "100% (all requested desktop + mobile resolve, reverse, reel/image, and regression checks passed)"},
+  "seed_data_creation": "none",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Admin vault key kymr-vault-7f3a-2026 (X-Admin-Key) — not needed for this frontend pass; no Cal.com booking was completed.",
+  "context_for_next_testing_agent": "Working probe: base = document.querySelector('[data-testid=\"archive-scene\"]').closest('.pin-spacer').offsetTop; desktop y = base + d*14*innerHeight with t = d*30.7; mobile y = base + d*9.8*innerHeight with t = d*19.05. Scroll via window.__lenis.scrollTo(y,{immediate:true}) then wait ~1900ms; hard reload per viewport; park mouse at (2,2) so the custom cursor ring stays out of typography screenshots. Nav links are NOT role=link-resolvable by accessible name (letter-spaced spans) — use data-testid nav-process / nav-capabilities / nav-contact / nav-start. back-to-top only becomes visible at true document bottom (scroll to document.scrollHeight 2-3 times). Archive resolve now has only .ax-just2 + .ax-beg/.ax-beg-fill on desktop and .ax-just + .ax-beg on mobile; .ax-arch3 no longer exists.",
+  "rca_of_the_issue": "Previous iteration's mobile blocker (exit wipe positioned at 17.55, burying the resolve) is resolved: the wipe now starts at 18.15 with duration 0.9, finishing precisely at the 19.05 timeline end, measured as 0% at t=17.8 and 140% at d=1.0."
+}
