@@ -3,6 +3,12 @@
 ## Original Problem Statement
 Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a living, breathing visual organism, not a conventional website. One continuous evolving composition of states (not header/hero/sections/footer), scroll-linked transformations, alive typography and background, cursor influence, no fake portfolio (absence is part of the story), 7+ major transformations, cinematic finale resolving into KYMR + contact. GSAP/ScrollTrigger + Lenis, no WebGL, performant, responsive, reduced-motion support.
 
+## v9 Spec Ad Collection (2026-08-28)
+- Generated 8 original ultra-photorealistic SPEC ad concepts (Gemini 3.1 Flash Image via Emergent key): fragrance, skincare, audio, tech (4:5) + food, home (4:5) + beverage, fashion (3:2). All unbranded, no text/logos, no fake clients. Manually inspected all 8 — zero AI artifacts accepted (no hands/faces/text risks by prompt design).
+- Wired into existing empty frames: Archive scene = 6 spec frames scattered behind the headline (typography crosses IN FRONT — layered editorial depth), Transit interlude = beverage + fashion frames between the giant words. Small editorial "SPEC CONCEPT — CATEGORY" chips on every image (honest labeling, no big warnings). Serif line keeps the anti-portfolio stance: "no borrowed glory. no invented clients."
+- Web-optimized: resized ≤1350px, JPEG q82, total 1.1MB for all 8, lazy-loaded, object-cover in fixed frames (no layout shift).
+- QA: all images 200 + naturalWidth verified, desktop + mobile (no overflow), label wrap fixed (whitespace-nowrap), build clean. Generation script persisted at /root/gen_ads.py (idempotent, re-runnable).
+
 ## v8 Final Frontend Handoff (2026-08-28) — commit 4afa823 on main
 - Cal.com webhook: POST /api/webhooks/calcom handles BOOKING_CREATED → matches lead by attendee email → sets meeting.booked + startTime (verified: matched+updated ava@brandco.com; unknown email → matched:false; optional CAL_WEBHOOK_SECRET enforcement supported). OWNER ACTION: add subscriber URL https://living-studio-1.preview.emergentagent.com/api/webhooks/calcom in Cal.com → Settings → Webhooks, event "Booking Created".
 - Removed all STATE 0X corner labels + "07 — INVERSION" + "11 —" prefix; nav state label now shows name only (ORIGIN/FORCES/...).

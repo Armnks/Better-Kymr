@@ -46,16 +46,28 @@ export default function InterludeScene() {
     return () => ctx.revert();
   }, [reduced]);
 
-  const Frame = ({ n }) => (
+  const Frame = ({ n, img, label }) => (
     <div
-      className="tr-item relative h-[42vh] w-[34vw] shrink-0 border border-white/20 md:w-[26vw]"
-      data-cursor="UNWRITTEN"
+      className="tr-item relative h-[42vh] w-[34vw] shrink-0 overflow-hidden border border-white/20 md:w-[26vw]"
+      data-cursor={img ? "SPEC" : "UNWRITTEN"}
       data-testid={`transit-frame-${n}`}
     >
-      <span className="absolute left-3 top-3 font-mono text-[9px] tracking-[0.3em] text-white/40">
-        FRAME 00{n} — UNWRITTEN
+      {img && (
+        <img
+          src={img}
+          alt={label}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
+      <span
+        className={`absolute left-3 top-3 z-10 font-mono text-[9px] tracking-[0.3em] ${
+          img ? "bg-[#050505]/60 px-1.5 py-0.5 text-white/85" : "text-white/40"
+        }`}
+      >
+        {label}
       </span>
-      <span className="absolute bottom-3 right-3 font-mono text-[9px] tracking-[0.3em] text-white/25">
+      <span className="absolute bottom-3 right-3 z-10 font-mono text-[9px] tracking-[0.3em] text-white/25">
         KYMRSTUDIO
       </span>
     </div>
@@ -89,11 +101,11 @@ export default function InterludeScene() {
         <h3 className="tr-item shrink-0 select-none whitespace-nowrap font-display text-[15vw] font-black leading-none tracking-[-0.05em] text-bone" data-testid="transit-the-next">
           THE NEXT
         </h3>
-        <Frame n={7} />
+        <Frame n={7} img="/ads/beverage.jpg" label="SPEC CONCEPT — BEVERAGE" />
         <h3 className="tr-item shrink-0 select-none whitespace-nowrap font-display text-[16vw] font-black leading-none tracking-[-0.05em] text-ember" data-testid="transit-frame-word">
           FRAME
         </h3>
-        <Frame n={8} />
+        <Frame n={8} img="/ads/fashion.jpg" label="SPEC CONCEPT — FASHION" />
         <h3 className="tr-item text-outline shrink-0 select-none whitespace-nowrap font-display text-[15vw] font-black leading-none tracking-[-0.05em]" data-testid="transit-is-yours">
           IS YOURS.
         </h3>

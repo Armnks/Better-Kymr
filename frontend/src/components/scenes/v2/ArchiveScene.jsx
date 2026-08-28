@@ -14,13 +14,20 @@ export default function ArchiveScene() {
 
   const frames = useMemo(
     () =>
-      Array.from({ length: 6 }, (_, i) => ({
+      [
+        { img: "/ads/fragrance.jpg", label: "SPEC CONCEPT — FRAGRANCE" },
+        { img: "/ads/skincare.jpg", label: "SPEC CONCEPT — SKINCARE" },
+        { img: "/ads/audio.jpg", label: "SPEC CONCEPT — AUDIO" },
+        { img: "/ads/tech.jpg", label: "SPEC CONCEPT — TECH" },
+        { img: "/ads/food.jpg", label: "SPEC CONCEPT — FOOD" },
+        { img: "/ads/home.jpg", label: "SPEC CONCEPT — HOME" },
+      ].map((f) => ({
+        ...f,
         top: range(8, 62),
         left: range(3, 78),
         w: range(13, 22),
         h: range(15, 26),
         r: range(-7, 7),
-        label: `FRAME 00${i + 1} — UNWRITTEN`,
       })),
     []
   );
@@ -91,7 +98,7 @@ export default function ArchiveScene() {
       data-testid="archive-scene"
       className="relative z-10 h-screen overflow-hidden bg-[#EAE6DF] text-[#050505]"
     >
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
         {LINES.map((line, i) => (
           <div key={line} className="overflow-hidden">
             <div
@@ -112,10 +119,22 @@ export default function ArchiveScene() {
       {frames.map((f, i) => (
         <div
           key={i}
-          className="ar-frame absolute border border-[#050505]/25 opacity-0"
+          className="ar-frame absolute overflow-hidden border border-[#050505]/25 opacity-0"
           style={{ top: `${f.top}%`, left: `${f.left}%`, width: `${f.w}vw`, height: `${f.h}vh` }}
         >
-          <span className="absolute left-2 top-2 font-mono text-[8px] tracking-[0.25em] text-[#050505]/50">
+          {f.img && (
+            <img
+              src={f.img}
+              alt={f.label}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+          <span
+            className={`absolute left-2 top-2 z-10 whitespace-nowrap font-mono text-[8px] tracking-[0.25em] ${
+              f.img ? "bg-[#050505]/60 px-1.5 py-0.5 text-white/85" : "text-[#050505]/50"
+            }`}
+          >
             {f.label}
           </span>
         </div>
