@@ -11,7 +11,9 @@ gsap.registerPlugin(ScrollTrigger);
 // Images: FR.001 fragrance (hero dolly) · FR.002 home (aperture projection) · FR.003 skincare (slit).
 const HERO = { img: "/ads/fragrance.webp", id: "FRAME 001" };
 const PROJ = { img: "/ads/home.webp", id: "FRAME 002" };
-const SLIT = { img: "/ads/skincare.webp", id: "FRAME 003" };
+const PROJ2 = { img: "/ads/food.webp", id: "FRAME 003" };
+const SLIT = { img: "/ads/skincare.webp", id: "FRAME 004" };
+const TRAV = { img: "/ads/audio.webp" };
 
 export default function ArchiveScene() {
   const ref = useRef(null);
@@ -46,6 +48,7 @@ export default function ArchiveScene() {
         tl.set(".ax-hero", { scale: 0.5, clipPath: "inset(40% 42%)" }, 0);
         tl.set(".ax-giant", { xPercent: -50, yPercent: -50, x: "125vw" }, 0);
         tl.set(".ax-ap", { clipPath: "inset(49.6% 0%)" }, 0);
+        tl.set(".ax-ap2", { clipPath: "inset(49.6% 0%)" }, 0);
         tl.set(".ax-slit", { clipPath: "inset(0% 50%)" }, 0);
         tl.set(".ax-the", { xPercent: -50, yPercent: -50, x: "-32vw", y: "-34vh" }, 0);
         tl.set(".ax-arch2", { xPercent: -50, yPercent: -50, x: "-10vw", y: "-8vh" }, 0);
@@ -54,7 +57,7 @@ export default function ArchiveScene() {
         tl.set(".ax-just2", { xPercent: -50, yPercent: -50, y: "4vh" }, 0);
 
         // foreground rail drifts the whole sequence (fast plane)
-        tl.fromTo(".ax-rail", { yPercent: 18 }, { yPercent: -18, duration: 23.3, ease: "none" }, 0);
+        tl.fromTo(".ax-rail", { yPercent: 18 }, { yPercent: -18, duration: 24.9, ease: "none" }, 0);
 
         // ── BEAT A · SILENCE (0–1.2)
         tl.fromTo(".ax-meta", { autoAlpha: 0, y: 10 }, { autoAlpha: 0.9, y: 0, duration: 0.6 }, 0.25)
@@ -67,6 +70,10 @@ export default function ArchiveScene() {
           .fromTo(".ax-hero-img", { yPercent: -7 }, { yPercent: 0, duration: 2.4, ease: "none" }, 1.2)
           .fromTo(".ax-arch", { xPercent: -50, yPercent: -50, autoAlpha: 0, y: "42vh" }, { autoAlpha: 1, y: "12vh", duration: 1.4, ease: "power3.out" }, 2.2)
           .to(".ax-crops", { autoAlpha: 0, duration: 0.4 }, 3.2);
+
+        // supporting frame crossing at its own velocity
+        tl.fromTo(".ax-trav", { x: "-45vw", autoAlpha: 0 }, { x: "112vw", autoAlpha: 0.3, duration: 3.4, ease: "none" }, 1.4)
+          .to(".ax-trav", { autoAlpha: 0, duration: 0.4 }, 5.0);
 
         // ── BEAT C · TAKEOVER — 21:9 → full bleed (3.6–6.2)
         tl.to(".ax-hero", { scale: 1, clipPath: "inset(27% 0%)", duration: 1.4, ease: "power2.inOut" }, 3.6)
@@ -99,40 +106,47 @@ export default function ArchiveScene() {
           .to(".ax-black-meta", { autoAlpha: 0, duration: 0.3 }, 12.8)
           .to([".ax-giant", ".ax-the-s"], { autoAlpha: 0, duration: 0.3 }, 13.5)
           .to(".ax-ap", { clipPath: "inset(49.8% 0%)", duration: 0.5, ease: "power3.in" }, 13.7)
-          .to(".ax-ap", { autoAlpha: 0, duration: 0.15 }, 14.15)
-          .to(".ax-black", { autoAlpha: 0, duration: 0.4 }, 13.9);
+          .to(".ax-ap", { autoAlpha: 0, duration: 0.15 }, 14.15);
+
+        // ── BEAT G2 · SECOND PROJECTION (14.3–15.7)
+        tl.fromTo(".ax-ap2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15 }, 14.3)
+          .to(".ax-ap2", { clipPath: "inset(0% 0%)", duration: 0.7, ease: "power3.inOut" }, 14.3)
+          .fromTo(".ax-ap2-img", { yPercent: 6, scale: 1.1 }, { yPercent: -6, scale: 1, duration: 1.4, ease: "none" }, 14.3)
+          .to(".ax-ap2", { clipPath: "inset(49.8% 0%)", duration: 0.45, ease: "power3.in" }, 15.15)
+          .to(".ax-ap2", { autoAlpha: 0, duration: 0.15 }, 15.55)
+          .to(".ax-black", { autoAlpha: 0, duration: 0.4 }, 15.6);
 
         // ── BEAT H · IS JUST — orange impact (14.3–15.55)
-        tl.fromTo(".ax-just", { xPercent: -50, yPercent: -50, autoAlpha: 1, y: "108vh" }, { y: "-4vh", duration: 0.7, ease: "power4.out" }, 14.3)
-          .to({}, { duration: 0.35 }, 15.0)
-          .to(".ax-just", { scale: 0.26, x: "20vw", y: "7vh", duration: 0.5, ease: "power3.inOut" }, 15.05);
+        tl.fromTo(".ax-just", { xPercent: -50, yPercent: -50, autoAlpha: 1, y: "108vh" }, { y: "-4vh", duration: 0.7, ease: "power4.out" }, 15.9)
+          .to({}, { duration: 0.35 }, 16.6)
+          .to(".ax-just", { scale: 0.26, x: "20vw", y: "7vh", duration: 0.5, ease: "power3.inOut" }, 16.65);
 
         // ── BEAT I · THE POSTER FRAME (15.5–17.35) — hold
-        tl.set(".ax-slit", { autoAlpha: 1 }, 15.5)
-          .fromTo(".ax-the", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 15.55)
-          .fromTo(".ax-arch2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 15.65)
-          .to(".ax-slit", { clipPath: "inset(0% 0%)", duration: 0.6, ease: "power3.inOut" }, 15.55)
-          .fromTo(".ax-slit-img", { xPercent: -8 }, { xPercent: 8, duration: 1.6, ease: "none" }, 15.55)
-          .fromTo(".ax-beg", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.9, ease: "power1.in" }, 15.7)
-          .to({}, { duration: 0.75 }, 16.6);
+        tl.set(".ax-slit", { autoAlpha: 1 }, 17.1)
+          .fromTo(".ax-the", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 17.15)
+          .fromTo(".ax-arch2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 17.25)
+          .to(".ax-slit", { clipPath: "inset(0% 0%)", duration: 0.6, ease: "power3.inOut" }, 17.15)
+          .fromTo(".ax-slit-img", { xPercent: -8 }, { xPercent: 8, duration: 1.6, ease: "none" }, 17.15)
+          .fromTo(".ax-beg", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.9, ease: "power1.in" }, 17.3)
+          .to({}, { duration: 0.75 }, 18.2);
 
         // ── BEAT J · SILENCE → FINAL REVEAL (17.3–22.6)
-        tl.to([".ax-the", ".ax-arch2", ".ax-just", ".ax-beg", ".ax-slit"], { autoAlpha: 0, duration: 0.4 }, 17.3)
-          .to({}, { duration: 1.5 }, 17.7)
-          .fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 19.2)
-          .to({}, { duration: 0.35 }, 19.55)
-          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 19.9)
-          .to({}, { duration: 0.3 }, 20.25)
-          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.3 }, 20.5)
-          .set(".ax-beg", { xPercent: -50, yPercent: -50, x: "0vw", y: "92vh", scale: 1.45 }, 20.55)
-          .to(".ax-beg", { autoAlpha: 1, duration: 0.3 }, 20.6)
-          .to(".ax-beg", { y: "24vh", scale: 0.8, duration: 0.9, ease: "power3.inOut" }, 20.9)
-          .fromTo(".ax-arch3", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 21.2)
-          .fromTo(".ax-just2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 21.3)
-          .to({}, { duration: 0.8 }, 21.8);
+        tl.to([".ax-the", ".ax-arch2", ".ax-just", ".ax-beg", ".ax-slit"], { autoAlpha: 0, duration: 0.4 }, 18.9)
+          .to({}, { duration: 1.5 }, 19.3)
+          .fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 20.8)
+          .to({}, { duration: 0.35 }, 21.15)
+          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 21.5)
+          .to({}, { duration: 0.3 }, 21.85)
+          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.3 }, 22.1)
+          .set(".ax-beg", { xPercent: -50, yPercent: -50, x: "0vw", y: "92vh", scale: 1.45 }, 22.15)
+          .to(".ax-beg", { autoAlpha: 1, duration: 0.3 }, 22.2)
+          .to(".ax-beg", { y: "24vh", scale: 0.8, duration: 0.9, ease: "power3.inOut" }, 22.5)
+          .fromTo(".ax-arch3", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 22.8)
+          .fromTo(".ax-just2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 22.9)
+          .to({}, { duration: 0.8 }, 23.4);
 
         // ── EXIT · circle wipe into transit (22.2–23.3)
-        tl.to([".ax-arch3", ".ax-just2", ".ax-beg", ".ax-rail"], { autoAlpha: 0, duration: 0.4 }, 22.2)
+        tl.to([".ax-arch3", ".ax-just2", ".ax-beg", ".ax-rail"], { autoAlpha: 0, duration: 0.4 }, 23.8)
           .fromTo(
             ".ax-dark",
             { clipPath: "circle(0% at 50% 115%)" },
@@ -147,7 +161,7 @@ export default function ArchiveScene() {
           scrollTrigger: {
             trigger: ref.current,
             start: "top top",
-            end: "+=680%",
+            end: "+=760%",
             scrub: 1,
             pin: true,
             anticipatePin: 1,
@@ -157,6 +171,7 @@ export default function ArchiveScene() {
 
         tl.set(".ax-hero", { scale: 0.6, clipPath: "inset(38% 32%)" }, 0);
         tl.set(".ax-ap", { clipPath: "inset(48% 4%)" }, 0);
+        tl.set(".ax-ap2", { clipPath: "inset(48% 4%)" }, 0);
         tl.set(".ax-the", { xPercent: -50, yPercent: -50, x: "-16vw", y: "-30vh" }, 0);
         tl.set(".ax-arch2", { xPercent: -50, yPercent: -50, x: "0vw", y: "0vh" }, 0);
         tl.set(".ax-beg", { xPercent: -50, yPercent: -50, x: "0vw", y: "0vh" }, 0);
@@ -186,33 +201,40 @@ export default function ArchiveScene() {
           .fromTo(".ax-ap-img", { yPercent: -6 }, { yPercent: 6, duration: 1.2, ease: "none" }, 5.5)
           .to(".ax-black-meta", { autoAlpha: 0, duration: 0.25 }, 6.0)
           .to(".ax-ap", { clipPath: "inset(48% 4%)", duration: 0.5, ease: "power3.in" }, 6.4)
-          .to(".ax-ap", { autoAlpha: 0, duration: 0.15 }, 6.85)
-          .to(".ax-black", { autoAlpha: 0, duration: 0.35 }, 6.75);
+          .to(".ax-ap", { autoAlpha: 0, duration: 0.15 }, 6.85);
+
+        // second projection
+        tl.set(".ax-ap2", { autoAlpha: 1 }, 6.9)
+          .to(".ax-ap2", { clipPath: "inset(12% 0%)", duration: 0.7, ease: "power2.inOut" }, 6.9)
+          .fromTo(".ax-ap2-img", { yPercent: 5 }, { yPercent: -5, duration: 1.1, ease: "none" }, 6.9)
+          .to(".ax-ap2", { clipPath: "inset(48% 4%)", duration: 0.45, ease: "power3.in" }, 7.6)
+          .to(".ax-ap2", { autoAlpha: 0, duration: 0.15 }, 8.0)
+          .to(".ax-black", { autoAlpha: 0, duration: 0.35 }, 8.05);
 
         // IS JUST — orange, from the opposite axis
-        tl.fromTo(".ax-just", { xPercent: -50, yPercent: -50, autoAlpha: 1, x: "105vw" }, { x: "0vw", duration: 0.7, ease: "power4.out" }, 7.0)
-          .to({}, { duration: 0.3 }, 7.7)
-          .to(".ax-just", { autoAlpha: 0, duration: 0.3 }, 8.0);
+        tl.fromTo(".ax-just", { xPercent: -50, yPercent: -50, autoAlpha: 1, x: "105vw" }, { x: "0vw", duration: 0.7, ease: "power4.out" }, 8.3)
+          .to({}, { duration: 0.3 }, 9)
+          .to(".ax-just", { autoAlpha: 0, duration: 0.3 }, 9.3);
 
         // BEGINNING. outline, then silence
-        tl.fromTo(".ax-beg", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.7, ease: "power1.in" }, 8.2)
-          .to(".ax-beg", { autoAlpha: 0, duration: 0.3 }, 9.0)
-          .to({}, { duration: 0.8 }, 9.3);
+        tl.fromTo(".ax-beg", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.7, ease: "power1.in" }, 9.5)
+          .to(".ax-beg", { autoAlpha: 0, duration: 0.3 }, 10.3)
+          .to({}, { duration: 0.8 }, 10.6);
 
         // foot lines, then the resolve
-        tl.fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 10.1)
-          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 10.5)
-          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.25 }, 10.85)
-          .set(".ax-beg", { xPercent: -50, yPercent: -50, y: "80vh", scale: 1.3 }, 10.9)
-          .to(".ax-beg", { autoAlpha: 1, duration: 0.3 }, 10.95)
-          .to(".ax-beg", { y: "24vh", scale: 0.8, duration: 0.7, ease: "power3.inOut" }, 11.25)
-          .fromTo(".ax-arch3", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35 }, 11.55)
-          .set(".ax-just", { xPercent: -50, yPercent: -50, x: "0vw", scale: 0.3 }, 11.6)
-          .to(".ax-just", { autoAlpha: 1, duration: 0.3 }, 11.65)
-          .to({}, { duration: 0.6 }, 11.95);
+        tl.fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 11.4)
+          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 11.8)
+          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.25 }, 12.15)
+          .set(".ax-beg", { xPercent: -50, yPercent: -50, y: "80vh", scale: 1.3 }, 12.2)
+          .to(".ax-beg", { autoAlpha: 1, duration: 0.3 }, 12.25)
+          .to(".ax-beg", { y: "24vh", scale: 0.8, duration: 0.7, ease: "power3.inOut" }, 12.55)
+          .fromTo(".ax-arch3", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35 }, 12.85)
+          .set(".ax-just", { xPercent: -50, yPercent: -50, x: "0vw", scale: 0.3 }, 12.9)
+          .to(".ax-just", { autoAlpha: 1, duration: 0.3 }, 12.95)
+          .to({}, { duration: 0.6 }, 13.25);
 
         // exit
-        tl.to([".ax-arch3", ".ax-just", ".ax-beg"], { autoAlpha: 0, duration: 0.3 }, 12.25)
+        tl.to([".ax-arch3", ".ax-just", ".ax-beg"], { autoAlpha: 0, duration: 0.3 }, 13.55)
           .fromTo(
             ".ax-dark",
             { clipPath: "circle(0% at 50% 115%)" },
@@ -291,8 +313,18 @@ export default function ArchiveScene() {
         </span>
       </div>
 
-      {/* approach-era headline (behind the hero plane) */}
-      <h2 className="ax-arch pointer-events-none absolute left-1/2 top-1/2 z-[5] hidden -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[9vw] font-black leading-none tracking-[-0.04em] text-[#050505] opacity-0 md:block">
+      {/* BACKGROUND TRAVELER — one supporting frame during the approach */}
+      <div className="ax-trav pointer-events-none absolute left-0 top-[32vh] z-[6] hidden h-[30vh] w-[20vw] overflow-hidden opacity-0 md:block">
+        <img
+          src={TRAV.img}
+          alt="Spec concept, audio"
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full max-w-none object-cover"
+        />
+      </div>
+
+      {/* approach-era headline (behind the hero plane) */}<h2 className="ax-arch pointer-events-none absolute left-1/2 top-1/2 z-[5] hidden -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[9vw] font-black leading-none tracking-[-0.04em] text-[#050505] opacity-0 md:block">
         THE ARCHIVE
       </h2>
 
@@ -325,6 +357,20 @@ export default function ArchiveScene() {
         />
         <span className="absolute bottom-[8%] right-[6%] bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
           {PROJ.id} — SPEC CONCEPT
+        </span>
+      </div>
+
+      {/* SECOND PROJECTION — one more frame of light */}
+      <div data-testid="archive-aperture-2" className="ax-ap2 absolute inset-0 z-[45] opacity-0">
+        <img
+          src={PROJ2.img}
+          alt={`${PROJ2.id} — spec concept, food`}
+          loading="lazy"
+          decoding="async"
+          className="ax-ap2-img absolute -top-[9%] left-0 h-[118%] w-full max-w-none object-cover"
+        />
+        <span className="absolute bottom-[8%] left-[6%] bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
+          {PROJ2.id} — SPEC CONCEPT
         </span>
       </div>
 
