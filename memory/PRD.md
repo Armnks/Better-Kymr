@@ -3,6 +3,16 @@
 ## Original Problem Statement
 Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a living, breathing visual organism, not a conventional website. One continuous evolving composition of states (not header/hero/sections/footer), scroll-linked transformations, alive typography and background, cursor influence, no fake portfolio (absence is part of the story), 7+ major transformations, cinematic finale resolving into KYMR + contact. GSAP/ScrollTrigger + Lenis, no WebGL, performant, responsive, reduced-motion support.
 
+## v7 Commercial Journey (2026-08-28)
+- /start route: CONFIGURE → ESTIMATE → INQUIRE → BOOK in the film's visual language (void bg, grain, cursor, sound toggle, progress rail 01-06). Estimator: VOLUME 10/20/40+ ads/mo, MIX Static/Motion/Hybrid, CADENCE Standard 48H/Sprint/Weekly drops; live configured-scope panel; tiers IGNITION/MOMENTUM/SCALE in Cinzel Decorative; investment shown as "custom quote on your call" (NO invented prices — owner delegated structure, no rates given).
+- Inquiry: name*/work email*/company/phone, inline ember validation that clears on correction, configured-scope summary with EDIT that preserves state; sessionStorage persistence (kymr-start) survives refresh mid-flow.
+- Booking: Cal.com inline embed (@calcom/embed-react, namespace "booking", calLink armaan-khasim-shaik-p9vin0, dark theme, real event types confirmed loading); bookingSuccessfulV2 → lead posted with meeting data; linkFailed → honest error + mailto fallback; "skip the call" path posts lead without booking; duplicate-submit guarded.
+- Backend: POST/GET /api/leads (admin-key guarded) with full lead structure (name/email/company/phone/config/tier/meeting/message/source/created_at) — Business-OS-ready shape. Admin vault now lists CONFIGURED SCOPES + legacy signals.
+- Typography: Cinzel Decorative added (Google Fonts) — used ONLY for signature moments: protocol numbers (48H/3S/100%/10+), finale wordmark, estimate tier, RECEIVED.
+- Forces scene hierarchy fix: one dominant force at a time; strategy/creative collapse to corner echoes and clear before the EDITING cut.
+- Nav gained START ↗ (ember) → /start; contact scene gained "CONFIGURE YOUR PRODUCTION SYSTEM →".
+- QA: production build clean (23s); estimator gating/edit/refresh/validation verified; leads e2e (skip path posted Ava Reyes SCALE to vault); Cal iframe real availability; mobile /start zero overflow; protocol+finale Cinzel confirmed via computed fonts.
+
 ## v6 One-Shot Opening + GitHub (2026-08-28)
 - Origin + Expansion MERGED into OpeningScene.jsx — a single pinned timeline (520%): dot → hairline → aperture → KYMRSTUDIO introduced ONCE inside the aperture → aperture dissolves outward → the same wordmark scales 2.2x → 15x beyond viewport with letter drift → O-counter window opens mid-expansion into the Statement preview (stroke strengthened for a visible handoff). No cut, no duplicate logo. Nav state flips 01 ORIGIN → 02 EXPANSION at 50% progress. Old OriginScene/ExpansionScene files unused.
 - Verified: full arc screenshotted (identity-in-aperture, transition, expansion drift, window, statement handoff), reverse-scroll restores the aperture, mobile opening clean, console clean.
