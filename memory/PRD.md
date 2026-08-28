@@ -7,6 +7,9 @@ Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a livi
 ## v12 Interactive Archive + Ripple Fix + WebP + Instagram Card (2026-08-28) — commit 5948580 on main (LOCAL; awaiting owner approval → push via "Save to Github")
 ## v13 Instagram Reel + Git Push Attempt (2026-08-28) — commit 5e62330 on main (LOCAL; push still blocked — no GitHub credentials in environment)
 ## v14 Sound Toggle Removed (2026-08-28) — commit d7b5b54 on main (LOCAL, push pending owner's Save to Github)
+## v15 Indicative Pricing USD/INR (2026-08-28) — commit 165eda3 on main (LOCAL; push failed again — "correct access rights" — owner must use Save to Github)
+- Estimator now shows honest indicative monthly ranges per tier with a USD/INR toggle (data-testids: currency-toggle, currency-usd, currency-inr, estimate-rate, result-rate). Ranges: IGNITION $1.5–3k / ₹1.25–2.5L, MOMENTUM $3–6k / ₹2.5–5L, SCALE $6–12k / ₹5–10L — always suffixed "CONFIRMED ON YOUR CALL". Currency persists in the kymr-start session store. Live-updates with the volume slider in both the aside and the tier-reveal stage. Verified: USD/INR switch + slider-driven tier/rate changes by browser test; build clean.
+
 - Per owner request, ambient sound feature removed entirely: SoundToggle.jsx + utils/ambient.js deleted, removed from Nav and /start header. Nav is now PROCESS / CAPABILITIES / CONTACT / START only. Build clean, both headers verified by screenshot. Note: scenes still dispatch kymr:state CustomEvents (no listeners now — harmless).
 
 - INSTAGRAM REEL: full-experience showcase video recorded programmatically (Playwright headless chromium, 1080×1920 9:16, ~45s eased cinematic scroll through the whole site) → encoded H.264/yuv420p mp4 (~1.9MB) → served at /promo-instagram-reel.mp4. Recording script at /tmp/record.js (not committed).
