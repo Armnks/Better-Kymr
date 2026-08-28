@@ -11,8 +11,8 @@ const EMAIL = "media@kymrstudio.com";
 
 const SOCIALS = [
   { label: "INSTAGRAM", href: "https://instagram.com/kymrstudio" },
-  { label: "TIKTOK", href: "https://tiktok.com/@kymrstudio" },
-  { label: "LINKEDIN", href: "https://linkedin.com/company/kymrstudio" },
+  { label: "X", href: "https://x.com/KymrStudios" },
+  { label: "LINKEDIN", href: "https://www.linkedin.com/in/kymr-studios-711b1642a/" },
 ];
 
 export default function ContactScene() {
@@ -86,7 +86,11 @@ export default function ContactScene() {
     <div className="ct-foot absolute inset-x-6 bottom-8 opacity-0 md:inset-x-10">
       <div className="ct-rule mb-6 h-px w-full origin-left bg-white/10" />
       <div className="flex flex-col items-center justify-between gap-4 font-mono text-[9px] tracking-[0.3em] text-white/35 md:flex-row">
-        <span>© 2026 KYMRSTUDIO</span>
+        <div className="flex gap-4 md:gap-6">
+          <span>© 2026 KYMRSTUDIO</span>
+          <a href="/terms" data-hover className="transition-colors duration-300 hover:text-white">TERMS</a>
+          <a href="/privacy" data-hover className="transition-colors duration-300 hover:text-white">PRIVACY</a>
+        </div>
         <div className="flex gap-8">
           {SOCIALS.map((s) => (
             <a
@@ -128,6 +132,8 @@ export default function ContactScene() {
         </a>
         <div className="flex items-center gap-8 font-mono text-[9px] tracking-[0.3em] text-white/35">
           <p>© 2026 KYMRSTUDIO</p>
+          <a href="/terms" className="transition-colors duration-300 hover:text-white">TERMS</a>
+          <a href="/privacy" className="transition-colors duration-300 hover:text-white">PRIVACY</a>
           <button
             type="button"
             data-testid="back-to-top"

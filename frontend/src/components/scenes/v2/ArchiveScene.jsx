@@ -255,7 +255,7 @@ export default function ArchiveScene() {
         <h2 className="font-display text-[10vw] font-black leading-none text-[#050505]">
           THE ARCHIVE IS JUST BEGINNING.
         </h2>
-        <p className="font-mono text-[10px] tracking-[0.35em] text-[#050505]/60">
+        <p className="font-mono text-xs md:text-sm tracking-[0.35em] text-[#050505]/60">
           NO BORROWED GLORY. NO INVENTED CLIENTS.
         </p>
       </section>
@@ -420,10 +420,10 @@ export default function ArchiveScene() {
 
 
       {/* quiet foot lines */}
-      <p className="ax-foot1 pointer-events-none absolute left-1/2 top-[46%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-[9px] tracking-[0.42em] text-[#050505]/60 opacity-0">
+      <p className="ax-foot1 pointer-events-none absolute left-1/2 top-[46%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-xs md:text-sm tracking-[0.42em] text-[#050505]/60 opacity-0">
         NO BORROWED GLORY.
       </p>
-      <p className="ax-foot2 pointer-events-none absolute left-1/2 top-[53%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-[9px] tracking-[0.42em] text-[#050505]/60 opacity-0">
+      <p className="ax-foot2 pointer-events-none absolute left-1/2 top-[53%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-xs md:text-sm tracking-[0.42em] text-[#050505]/60 opacity-0">
         NO INVENTED CLIENTS.
       </p>
 

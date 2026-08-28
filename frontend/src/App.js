@@ -6,6 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Experience from "@/pages/Experience";
 import Start from "@/pages/Start";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
 import RippleHost from "@/components/Ripple";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -48,6 +50,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Experience />} />
         <Route path="/start" element={<Start />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
       </Routes>
       <RippleHost />
     </BrowserRouter>
