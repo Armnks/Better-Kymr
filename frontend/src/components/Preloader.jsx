@@ -7,9 +7,11 @@ export default function Preloader({ onDone }) {
   const done = useRef(false);
 
   useEffect(() => {
+    const returning = localStorage.getItem("kymr-visited") === "1";
     const finish = () => {
       if (done.current) return;
       done.current = true;
+      localStorage.setItem("kymr-visited", "1");
       onDone();
     };
     document.body.style.overflow = "hidden";
@@ -18,6 +20,18 @@ export default function Preloader({ onDone }) {
     if (isReducedMotion()) {
       ctx = gsap.context(() => {
         gsap.to(ref.current, { autoAlpha: 0, duration: 0.4, delay: 0.35, onComplete: finish });
+      }, ref);
+    } else if (returning) {
+      ctx = gsap.context(() => {
+        const tl = gsap.timeline();
+        tl.fromTo(
+          ".pl-dot",
+          { scale: 0, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 1, duration: 0.15, ease: "power2.out" },
+          0.05
+        )
+          .to(".pl-dot", { scale: 2.2, duration: 0.15, ease: "power3.in" }, 0.2)
+          .to(ref.current, { autoAlpha: 0, duration: 0.25, ease: "power1.inOut", onComplete: finish }, 0.34);
       }, ref);
     } else {
       ctx = gsap.context(() => {
