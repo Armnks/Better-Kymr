@@ -26,6 +26,41 @@ const tierFor = (v) => {
 };
 const RAIL = ["VOLUME", "MIX", "CADENCE", "ESTIMATE", "DETAILS", "CALL"];
 
+const RATES = {
+  USD: { IGNITION: [1500, 3000], MOMENTUM: [3000, 6000], SCALE: [6000, 12000] },
+  INR: { IGNITION: [125000, 250000], MOMENTUM: [250000, 500000], SCALE: [500000, 1000000] },
+};
+const fmtRate = (n, cur) =>
+  cur === "INR"
+    ? `₹${(n / 100000).toFixed(n % 100000 ? 2 : 0).replace(/\.?0+$/, "")}L`
+    : `$${n.toLocaleString("en-US")}`;
+const rateRange = (t, cur) => {
+  const [lo, hi] = (RATES[cur] || RATES.USD)[t] || RATES.USD.MOMENTUM;
+  return `${fmtRate(lo, cur)} – ${fmtRate(hi, cur)}`;
+};
+
+function CurrencyToggle({ value, onChange }) {
+  return (
+    <div className="inline-flex border border-white/15" data-testid="currency-toggle">
+      {["USD", "INR"].map((c) => (
+        <button
+          key={c}
+          type="button"
+          data-testid={`currency-${c.toLowerCase()}`}
+          data-hover
+          aria-pressed={value === c}
+          onClick={() => onChange(c)}
+          className={`px-4 py-2 font-mono text-[10px] tracking-[0.3em] transition-colors duration-300 ${
+            value === c ? "bg-ember text-void" : "text-white/40 hover:text-white"
+          }`}
+        >
+          {c}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const labelOf = (list, id) => (list.find((o) => o.id === id) || {}).label || "—";
 
 function OptionRow({ index, label, desc, selected, onSelect, testid }) {
@@ -89,6 +124,13 @@ export default function Start() {
     }
   });
   const [errors, setErrors] = useState({});
+  const [currency, setCurrency] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(STORE_KEY) || "{}").currency || "USD";
+    } catch {
+      return "USD";
+    }
+  });
   const [bookingState, setBookingState] = useState("idle");
   const [submitting, setSubmitting] = useState(false);
   const veilRef = useRef(null);
@@ -106,9 +148,9 @@ export default function Start() {
   useEffect(() => {
     sessionStorage.setItem(
       STORE_KEY,
-      JSON.stringify({ stage: stage === 6 ? 4 : stage, config, details })
+      JSON.stringify({ stage: stage === 6 ? 4 : stage, config, details, currency })
     );
-  }, [stage, config, details]);
+  }, [stage, config, details, currency]);
 
   useEffect(() => {
     if (!veil || !veilRef.current) return undefined;
@@ -235,8 +277,11 @@ export default function Start() {
         <p className="mt-4 font-mono text-[9px] leading-relaxed tracking-[0.25em] text-white/40">
           EVERY ASSET — 100% REVIEW · 10+ ITERATIONS
         </p>
-        <p className="mt-4 font-mono text-[10px] tracking-[0.2em] text-white/50">
-          INVESTMENT — CUSTOM QUOTE, CONFIRMED ON YOUR CALL
+        <div className="mt-4">
+          <CurrencyToggle value={currency} onChange={setCurrency} />
+        </div>
+        <p data-testid="estimate-rate" className="mt-4 font-mono text-[10px] tracking-[0.2em] text-white/50">
+          INVESTMENT — {rateRange(tier, currency)} / MO · CONFIRMED ON YOUR CALL
         </p>
       </div>
     </aside>
@@ -389,7 +434,12 @@ export default function Start() {
                 <p className="pt-4 text-white/40">
                   100% ASSET REVIEW — 10+ ITERATIONS / SPRINT — 48H TURNAROUND
                 </p>
-                <p className="text-white/40">INVESTMENT: CUSTOM QUOTE ON YOUR CALL</p>
+                <p data-testid="result-rate" className="text-white/40">
+                  INVESTMENT: {rateRange(tier, currency)} / MO — CONFIRMED ON YOUR CALL
+                </p>
+                <div className="pt-3">
+                  <CurrencyToggle value={currency} onChange={setCurrency} />
+                </div>
               </div>
               <div className="mt-14 flex items-center justify-center gap-10">
                 <button
