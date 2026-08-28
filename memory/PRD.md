@@ -3,6 +3,15 @@
 ## Original Problem Statement
 Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a living, breathing visual organism, not a conventional website. One continuous evolving composition of states (not header/hero/sections/footer), scroll-linked transformations, alive typography and background, cursor influence, no fake portfolio (absence is part of the story), 7+ major transformations, cinematic finale resolving into KYMR + contact. GSAP/ScrollTrigger + Lenis, no WebGL, performant, responsive, reduced-motion support.
 
+## v8 Final Frontend Handoff (2026-08-28) — commit 4afa823 on main
+- Cal.com webhook: POST /api/webhooks/calcom handles BOOKING_CREATED → matches lead by attendee email → sets meeting.booked + startTime (verified: matched+updated ava@brandco.com; unknown email → matched:false; optional CAL_WEBHOOK_SECRET enforcement supported). OWNER ACTION: add subscriber URL https://living-studio-1.preview.emergentagent.com/api/webhooks/calcom in Cal.com → Settings → Webhooks, event "Booking Created".
+- Removed all STATE 0X corner labels + "07 — INVERSION" + "11 —" prefix; nav state label now shows name only (ORIGIN/FORCES/...).
+- Forces rebuilt: strictly one dominant force — STRATEGY (vertical rise) → CREATIVE (horizontal displacement) → PRODUCTION (scale emergence) → EDITING (blade cut + halves join) → PERFORMANCE (viewport takeover); no typography cloud (verified frames).
+- Estimator volume is now a slider (5–50+ ads/mo, keyboard accessible, ember thumb, tier thresholds ≤15 IGNITION / ≤30 MOMENTUM / else SCALE) with live readout + aside updates; mix/cadence remain option rows.
+- INQUIRE in the final frame now routes to /start (no direct mailto); email remains the big secondary link.
+- Cleanup: deleted 10 dead scene/asset files (v1 scenes, OriginScene, ExpansionScene, OgCard); .env files UNTRACKED from repo per final handoff rules (still present locally).
+- QA: production build clean (16s), console clean, Forces frames verified, STATE-label grep empty, webhook curl verified, slider keyboard test passed.
+
 ## v7 Commercial Journey (2026-08-28)
 - /start route: CONFIGURE → ESTIMATE → INQUIRE → BOOK in the film's visual language (void bg, grain, cursor, sound toggle, progress rail 01-06). Estimator: VOLUME 10/20/40+ ads/mo, MIX Static/Motion/Hybrid, CADENCE Standard 48H/Sprint/Weekly drops; live configured-scope panel; tiers IGNITION/MOMENTUM/SCALE in Cinzel Decorative; investment shown as "custom quote on your call" (NO invented prices — owner delegated structure, no rates given).
 - Inquiry: name*/work email*/company/phone, inline ember validation that clears on correction, configured-scope summary with EDIT that preserves state; sessionStorage persistence (kymr-start) survives refresh mid-flow.
