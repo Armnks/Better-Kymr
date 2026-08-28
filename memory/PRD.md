@@ -6,6 +6,9 @@ Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a livi
 ## v11 Consolidated Correction + Ripple + QA Pass (2026-08-28) — commit 008a011 on main (LOCAL; push blocked on git auth — owner must use "Save to Github" or supply a fresh token)
 ## v12 Interactive Archive + Ripple Fix + WebP + Instagram Card (2026-08-28) — commit 5948580 on main (LOCAL; awaiting owner approval → push via "Save to Github")
 ## v13 Instagram Reel + Git Push Attempt (2026-08-28) — commit 5e62330 on main (LOCAL; push still blocked — no GitHub credentials in environment)
+## v14 Sound Toggle Removed (2026-08-28) — commit d7b5b54 on main (LOCAL, push pending owner's Save to Github)
+- Per owner request, ambient sound feature removed entirely: SoundToggle.jsx + utils/ambient.js deleted, removed from Nav and /start header. Nav is now PROCESS / CAPABILITIES / CONTACT / START only. Build clean, both headers verified by screenshot. Note: scenes still dispatch kymr:state CustomEvents (no listeners now — harmless).
+
 - INSTAGRAM REEL: full-experience showcase video recorded programmatically (Playwright headless chromium, 1080×1920 9:16, ~45s eased cinematic scroll through the whole site) → encoded H.264/yuv420p mp4 (~1.9MB) → served at /promo-instagram-reel.mp4. Recording script at /tmp/record.js (not committed).
 - GIT PUSH: attempted `git push origin main` — fails with "could not read Username for 'https://github.com'" — no token/credential helper/gh CLI in this environment. Owner must use the platform "Save to Github" feature to publish commits 008a011 → 5e62330.
 
