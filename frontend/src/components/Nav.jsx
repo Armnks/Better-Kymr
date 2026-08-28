@@ -46,7 +46,7 @@ export default function Nav() {
           data-hover
           aria-label="KymrStudio — back to the beginning"
           onClick={() => scrollToId("top")}
-          className="font-display text-base font-black tracking-tight text-white"
+          className="font-cinzel text-lg font-bold tracking-tight text-white"
         >
           KymrStudio<span className="text-ember">.</span>
         </button>

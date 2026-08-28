@@ -41,7 +41,7 @@ export default function Admin() {
     >
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
-          <h1 className="font-display text-3xl font-black tracking-tight">
+          <h1 className="font-cinzel text-3xl font-bold tracking-tight">
             KymrStudio<span className="text-ember">.</span> Vault
           </h1>
           <a

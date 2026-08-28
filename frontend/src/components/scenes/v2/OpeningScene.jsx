@@ -147,7 +147,7 @@ export default function OpeningScene() {
       <div className="absolute inset-0 flex items-center justify-center">
         <h1
           data-testid="origin-word"
-          className="op-word select-none font-display text-[9vw] font-black leading-none tracking-[-0.04em] text-bone opacity-0"
+          className="op-word select-none font-cinzel text-[9vw] font-black leading-none tracking-[-0.01em] text-bone opacity-0"
         >
           {LETTERS.map((l, i) => (
             <span key={i} className="op-l inline-block" data-hover>

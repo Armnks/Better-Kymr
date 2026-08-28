@@ -3,6 +3,9 @@
 ## Original Problem Statement
 Build an ORIGINAL digital experience for KYMR STUDIO that feels ALIVE — a living, breathing visual organism, not a conventional website. One continuous evolving composition of states (not header/hero/sections/footer), scroll-linked transformations, alive typography and background, cursor influence, no fake portfolio (absence is part of the story), 7+ major transformations, cinematic finale resolving into KYMR + contact. GSAP/ScrollTrigger + Lenis, no WebGL, performant, responsive, reduced-motion support.
 
+## v10 Wordmark Font (2026-08-28)
+- Brand wordmark switched from Cabinet Grotesk to Cinzel Decorative everywhere it appears: film nav logo, /start header, vault heading, and the giant opening identity reveal (now bookends with the Cinzel finale). Cinzel is caps-only so the mark renders as KYMRSTUDIO — the approved uppercase treatment. Cabinet Grotesk remains the kinetic scene typography; JetBrains Mono for utility; Cormorant for serif lines.
+
 ## v9 Spec Ad Collection (2026-08-28)
 - Generated 8 original ultra-photorealistic SPEC ad concepts (Gemini 3.1 Flash Image via Emergent key): fragrance, skincare, audio, tech (4:5) + food, home (4:5) + beverage, fashion (3:2). All unbranded, no text/logos, no fake clients. Manually inspected all 8 — zero AI artifacts accepted (no hands/faces/text risks by prompt design).
 - Wired into existing empty frames: Archive scene = 6 spec frames scattered behind the headline (typography crosses IN FRONT — layered editorial depth), Transit interlude = beverage + fashion frames between the giant words. Small editorial "SPEC CONCEPT — CATEGORY" chips on every image (honest labeling, no big warnings). Serif line keeps the anti-portfolio stance: "no borrowed glory. no invented clients."
