@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { triggerRipple } from "@/components/Ripple";
+import { scrollToId } from "@/App";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -101,9 +102,21 @@ export default function ContactScene() {
             </a>
           ))}
         </div>
-        <a data-testid="admin-link" data-hover href="/admin" className="transition-colors duration-300 hover:text-white/70">
-          VAULT ↗
-        </a>
+        <div className="flex items-center gap-8">
+          <button
+            type="button"
+            data-testid="back-to-top"
+            data-hover
+            data-cursor="REWIND"
+            onClick={() => scrollToId("top")}
+            className="transition-colors duration-300 hover:text-white"
+          >
+            BACK TO TOP ↑
+          </button>
+          <a data-testid="admin-link" data-hover href="/admin" className="transition-colors duration-300 hover:text-white/70">
+            VAULT ↗
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -118,7 +131,17 @@ export default function ContactScene() {
         <a data-testid="contact-inquire" href="/start" onClick={(e) => { e.preventDefault(); triggerRipple(e.clientX, e.clientY); }} className="border border-white/25 px-12 py-5 font-mono text-[11px] tracking-[0.5em] text-bone">
           INQUIRE ↗
         </a>
-        <p className="font-mono text-[9px] tracking-[0.3em] text-white/35">© 2026 KYMRSTUDIO</p>
+        <div className="flex items-center gap-8 font-mono text-[9px] tracking-[0.3em] text-white/35">
+          <p>© 2026 KYMRSTUDIO</p>
+          <button
+            type="button"
+            data-testid="back-to-top"
+            onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
+            className="transition-colors duration-300 hover:text-white"
+          >
+            BACK TO TOP ↑
+          </button>
+        </div>
       </section>
     );
   }

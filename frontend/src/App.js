@@ -17,12 +17,14 @@ export const isReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const scrollToId = (id) => {
-  const el = document.getElementById(id);
-  if (!el) return;
+  const target = id === "top" ? 0 : document.getElementById(id);
+  if (target === null) return;
   if (window.__lenis) {
-    window.__lenis.scrollTo(el, { duration: 2 });
+    window.__lenis.scrollTo(target, { duration: 2 });
+  } else if (target === 0) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
-    el.scrollIntoView({ behavior: "smooth" });
+    target.scrollIntoView({ behavior: "smooth" });
   }
 };
 
