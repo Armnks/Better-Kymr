@@ -40,7 +40,7 @@ export default function ArchiveScene() {
       // total: 30.7 units. beats: A silence 0-1.2 · B dolly 1.2-3.6 · C takeover 3.6-6.2
       // D pass 6.2-7.4 · E letterform travel 7.4-10.9 · F splice 11.0-11.9 · G aperture 11.8-14.15
       // G2 reel 14.3-21.3 (7 projections) · H orange impact 21.7-22.45 · I poster 22.9-24.75
-      // J silence+resolve 24.7-29.6 · exit wipe 29.6-30.7
+      // J silence+foot lines 24.7-27.8 · exit wipe 27.9-28.8
       mm.add("(min-width: 768px)", () => {
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -63,10 +63,9 @@ export default function ArchiveScene() {
         tl.set(".ax-the", { xPercent: -50, yPercent: -50, x: "-32vw", y: "-34vh" }, 0);
         tl.set(".ax-arch2", { xPercent: -50, yPercent: -50, x: "-10vw", y: "-11vh" }, 0);
         tl.set(".ax-beg", { xPercent: -50, yPercent: -50, x: "-8vw", y: "38vh" }, 0);
-        tl.set(".ax-just2", { xPercent: -50, yPercent: -50, y: "-14vh" }, 0);
 
         // foreground rail drifts the whole sequence (fast plane)
-        tl.fromTo(".ax-rail", { yPercent: 18 }, { yPercent: -18, duration: 30.7, ease: "none" }, 0);
+        tl.fromTo(".ax-rail", { yPercent: 18 }, { yPercent: -18, duration: 28.8, ease: "none" }, 0);
 
         // ── BEAT A · SILENCE (0–1.2)
         tl.fromTo(".ax-meta", { autoAlpha: 0, y: 10 }, { autoAlpha: 0.9, y: 0, duration: 0.6 }, 0.25)
@@ -146,26 +145,21 @@ export default function ArchiveScene() {
 
         // ── BEAT J · SILENCE → FINAL REVEAL (17.3–22.6)
         tl.to([".ax-the", ".ax-arch2", ".ax-just", ".ax-beg", ".ax-slit"], { autoAlpha: 0, duration: 0.4 }, 24.7)
-          .to({}, { duration: 1.5 }, 25.1)
-          .fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 26.6)
-          .to({}, { duration: 0.35 }, 26.95)
-          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 27.3)
-          .to({}, { duration: 0.3 }, 27.65)
-          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.3 }, 27.9)
-          .set(".ax-beg", { xPercent: -50, yPercent: -50, x: "0vw", y: "92vh", scale: 1.45 }, 27.95)
-          .to(".ax-beg", { autoAlpha: 1, duration: 0.3 }, 28)
-          .to(".ax-beg", { y: "10vh", scale: 0.85, duration: 0.9, ease: "power3.inOut" }, 28.3)
-          .to(".ax-beg-fill", { autoAlpha: 1, duration: 0.5, ease: "power1.in" }, 28.6)
-          .fromTo(".ax-just2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 28.7)
-          .to({}, { duration: 0.8 }, 29.2);
+          .to({}, { duration: 0.7 }, 25.1)
+          .fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 25.8)
+          .to({}, { duration: 0.3 }, 26.15)
+          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 26.45)
+          .to({}, { duration: 0.3 }, 26.8)
+          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.3 }, 27.1)
+          .to({}, { duration: 0.4 }, 27.4);
 
         // ── EXIT · circle wipe into transit (22.2–23.3)
-        tl.to([".ax-just2", ".ax-beg", ".ax-rail"], { autoAlpha: 0, duration: 0.4 }, 29.6)
+        tl.to([".ax-rail"], { autoAlpha: 0, duration: 0.4 }, 27.8)
           .fromTo(
             ".ax-dark",
             { clipPath: "circle(0% at 50% 115%)" },
-            { clipPath: "circle(140% at 50% 115%)", duration: 1.0, ease: "power3.inOut" },
-            29.7
+            { clipPath: "circle(140% at 50% 115%)", duration: 0.9, ease: "power3.inOut" },
+            27.9
           );
       });
 
@@ -238,24 +232,17 @@ export default function ArchiveScene() {
           .to({}, { duration: 0.8 }, 15.8);
 
         // foot lines, then the resolve
-        tl.fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 16.6)
-          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 17)
-          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.25 }, 17.35)
-          .set(".ax-beg", { xPercent: -50, yPercent: -50, y: "80vh", scale: 1.3 }, 17.4)
-          .to(".ax-beg", { autoAlpha: 1, duration: 0.3 }, 17.45)
-          .to(".ax-beg", { y: "8vh", scale: 0.8, duration: 0.7, ease: "power3.inOut" }, 17.75)
-          .to(".ax-beg-fill", { autoAlpha: 1, duration: 0.45, ease: "power1.in" }, 16.9)
-          .set(".ax-just", { xPercent: -50, yPercent: -50, x: "0vw", y: "-16vh", scale: 0.3 }, 18.1)
-          .to(".ax-just", { autoAlpha: 1, duration: 0.3 }, 18.15)
-          .to({}, { duration: 0.6 }, 18.45);
+        tl.fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 16.2)
+          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 16.6)
+          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.25 }, 16.95)
+          .to({}, { duration: 0.35 }, 17.25);
 
         // exit
-        tl.to([".ax-just", ".ax-beg"], { autoAlpha: 0, duration: 0.3 }, 18.75)
-          .fromTo(
-            ".ax-dark",
+        tl.fromTo(
+          ".ax-dark",
             { clipPath: "circle(0% at 50% 115%)" },
-            { clipPath: "circle(140% at 50% 115%)", duration: 0.9, ease: "power3.inOut" },
-            18.15
+            { clipPath: "circle(172% at 50% 115%)", duration: 0.9, ease: "power3.inOut" },
+            17.7
           );
       });
     }, ref);
@@ -415,9 +402,6 @@ export default function ArchiveScene() {
       </p>
       <p className="ax-beg pointer-events-none absolute left-1/2 top-1/2 z-[30] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[18vw] font-black leading-none tracking-[-0.04em] opacity-0 md:text-[15vw]">
         <span className="text-outline-dark block">BEGINNING.</span>
-        <span className="ax-beg-fill absolute inset-0 block text-[#050505] opacity-0" aria-hidden="true">
-          BEGINNING.
-        </span>
       </p>
 
       {/* the slit — one thin image crossing the poster frame */}
@@ -434,10 +418,6 @@ export default function ArchiveScene() {
         </span>
       </div>
 
-      {/* final resolved statement */}
-      <p className="ax-just2 pointer-events-none absolute left-1/2 top-1/2 z-[30] hidden -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[3.5vw] font-black leading-none tracking-[-0.02em] text-ember opacity-0 md:block">
-        IS JUST
-      </p>
 
       {/* quiet foot lines */}
       <p className="ax-foot1 pointer-events-none absolute left-1/2 top-[46%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-[9px] tracking-[0.42em] text-[#050505]/60 opacity-0">

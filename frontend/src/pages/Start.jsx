@@ -27,12 +27,14 @@ const tierFor = (v) => {
 const RAIL = ["VOLUME", "MIX", "CADENCE", "ESTIMATE", "DETAILS", "CALL"];
 
 const RATES = {
-  USD: { IGNITION: [1500, 3000], MOMENTUM: [3000, 6000], SCALE: [6000, 12000] },
-  INR: { IGNITION: [125000, 250000], MOMENTUM: [250000, 500000], SCALE: [500000, 1000000] },
+  USD: { IGNITION: [500, 1500], MOMENTUM: [1600, 3000], SCALE: [3100, 5000] },
+  INR: { IGNITION: [40000, 125000], MOMENTUM: [135000, 250000], SCALE: [260000, 415000] },
 };
 const fmtRate = (n, cur) =>
   cur === "INR"
-    ? `₹${(n / 100000).toFixed(n % 100000 ? 2 : 0).replace(/\.?0+$/, "")}L`
+    ? n < 100000
+      ? `₹${Math.round(n / 1000)}K`
+      : `₹${(n / 100000).toFixed(n % 100000 ? 2 : 0).replace(/\.?0+$/, "")}L`
     : `$${n.toLocaleString("en-US")}`;
 const rateRange = (t, cur) => {
   const [lo, hi] = (RATES[cur] || RATES.USD)[t] || RATES.USD.MOMENTUM;
