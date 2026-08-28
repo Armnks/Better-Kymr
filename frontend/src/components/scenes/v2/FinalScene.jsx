@@ -29,6 +29,8 @@ export default function FinalScene() {
           onToggle: (self) =>
             self.isActive &&
             window.dispatchEvent(new CustomEvent("kymr:state", { detail: "10 — KYMRSTUDIO" })),
+          onUpdate: () =>
+            window.dispatchEvent(new CustomEvent("kymr:state", { detail: "10 — KYMRSTUDIO" })),
         },
       });
       gsap.utils.toArray(".fn-l").forEach((el, i) => {
@@ -61,7 +63,7 @@ export default function FinalScene() {
 
   return (
     <section ref={ref} id="finale" data-testid="final-scene" className="relative z-10 h-screen overflow-hidden">
-      <div className="fn-stage absolute inset-0 flex items-center justify-center">
+      <div className="fn-stage absolute inset-0 flex items-center justify-center" data-cursor="FINALE">
         <h2
           data-testid="final-word"
           className="fn-word flex select-none font-display text-[9vw] font-black leading-none tracking-[-0.05em] text-bone"

@@ -158,6 +158,11 @@ body {
     transform-origin: left;
 }
 
+:focus-visible {
+    outline: 1px solid var(--ember);
+    outline-offset: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .marquee-track, .grain, .pulse-dot {
         animation: none !important;

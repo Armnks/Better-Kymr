@@ -70,7 +70,7 @@ export default function VoidScene() {
         </p>
       </div>
 
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center" data-cursor="WAIT">
         <div className="vd-ring h-16 w-16 rounded-full border border-bone/70 opacity-0" />
       </div>
 

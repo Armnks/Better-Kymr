@@ -42,6 +42,7 @@ export default function Nav() {
         <button
           data-testid="nav-logo"
           data-hover
+          aria-label="KymrStudio — back to the beginning"
           onClick={() => scrollToId("top")}
           className="font-display text-base font-black tracking-tight text-white"
         >

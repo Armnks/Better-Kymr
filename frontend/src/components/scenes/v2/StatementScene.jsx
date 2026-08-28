@@ -82,7 +82,7 @@ export default function StatementScene() {
       <div className={`st-w2 ${wordCls} text-[13vw] text-outline`}>THINGS</div>
       <div className={`st-w3 ${wordCls} text-[12vw] text-bone`}>PEOPLE</div>
 
-      <div className="st-watch absolute inset-0 flex items-center justify-center opacity-0">
+      <div className="st-watch absolute inset-0 flex items-center justify-center opacity-0" data-cursor="WATCH">
         <div className="relative select-none whitespace-nowrap font-display text-[16vw] font-black leading-none tracking-[-0.04em]">
           <span className="st-w4-solid block text-ember" data-testid="statement-watch">WATCH.</span>
           <span className="st-w4-outline text-outline absolute inset-0 block opacity-0" aria-hidden="true">

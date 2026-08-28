@@ -13,7 +13,7 @@ import VoidScene from "@/components/scenes/v2/VoidScene";
 import ArchiveScene from "@/components/scenes/v2/ArchiveScene";
 import InterludeScene from "@/components/scenes/v2/InterludeScene";
 import FinalScene from "@/components/scenes/v2/FinalScene";
-import ContactScene from "@/components/scenes/ContactScene";
+import ContactScene from "@/components/scenes/v2/ContactScene";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 gsap.registerPlugin(ScrollTrigger);
