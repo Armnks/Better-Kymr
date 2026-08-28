@@ -1,38 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import { useEffect, useRef } from "react";
 import { scrollToId } from "@/App";
 import SoundToggle from "@/components/SoundToggle";
+import { triggerRipple } from "@/components/Ripple";
 
 export default function Nav() {
-      const [state, setState] = useState("ORIGIN");
-  const labelRef = useRef(null);
   const barRef = useRef(null);
 
   useEffect(() => {
-    const onState = (e) => {
-      const name = e.detail.includes("—") ? e.detail.split("— ").pop() : e.detail;
-      setState((prev) => {
-        if (prev !== name && labelRef.current) {
-          gsap.fromTo(
-            labelRef.current,
-            { yPercent: 120 },
-            { yPercent: 0, duration: 0.6, ease: "power3.out" }
-          );
-        }
-        return name;
-      });
-    };
     const onScroll = () => {
       const max = document.body.scrollHeight - window.innerHeight;
       const p = max > 0 ? window.scrollY / max : 0;
       if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
     };
-    window.addEventListener("kymr:state", onState);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("kymr:state", onState);
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -51,23 +32,13 @@ export default function Nav() {
           KymrStudio<span className="text-ember">.</span>
         </button>
 
-        <div className="hidden overflow-hidden md:block">
-          <span
-            ref={labelRef}
-            data-testid="nav-state-label"
-            className="block font-mono text-[10px] tracking-[0.4em] text-white/50"
-          >
-            {state}
-          </span>
-        </div>
-
         <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.3em] text-white/70 md:gap-8">
           <SoundToggle />
           <button
             data-testid="nav-process"
             data-hover
             data-magnetic
-            data-cursor="PROTOCOL"
+            data-cursor="VIEW"
             onClick={() => scrollToId("process")}
             className="hidden transition-colors duration-300 hover:text-white md:block"
           >
@@ -77,7 +48,7 @@ export default function Nav() {
             data-testid="nav-capabilities"
             data-hover
             data-magnetic
-            data-cursor="FORCES"
+            data-cursor="VIEW"
             onClick={() => scrollToId("capabilities")}
             className="hidden transition-colors duration-300 hover:text-white md:block"
           >
@@ -93,16 +64,16 @@ export default function Nav() {
           >
             CONTACT
           </button>
-          <a
+          <button
             data-testid="nav-start"
             data-hover
             data-magnetic
             data-cursor="BEGIN"
-            href="/start"
+            onClick={(e) => triggerRipple(e.clientX, e.clientY)}
             className="text-ember transition-colors duration-300 hover:text-white"
           >
             START ↗
-          </a>
+          </button>
         </div>
       </nav>
     </>

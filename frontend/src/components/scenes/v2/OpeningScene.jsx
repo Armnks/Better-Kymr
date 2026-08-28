@@ -131,7 +131,7 @@ export default function OpeningScene() {
 
       <div className="absolute inset-0 flex items-end justify-center pb-[28vh]">
         <p data-testid="origin-label" className="op-label font-mono text-[10px] tracking-[0.5em] text-white/50 opacity-0">
-          SIGNAL ACQUIRED — KYMRSTUDIO
+          SIGNAL ACQUIRED
         </p>
       </div>
 
@@ -166,9 +166,6 @@ export default function OpeningScene() {
           style={{ background: "radial-gradient(circle, rgba(255,42,0,0.14), transparent 70%)" }}
         />
         <div className="op-preview absolute inset-0 flex flex-col items-center justify-center gap-8 opacity-0">
-          <span className="font-mono text-[10px] tracking-[0.5em] text-white/50">
-            03 — INCOMING TRANSMISSION
-          </span>
           <span className="text-outline select-none whitespace-nowrap font-display text-[14vw] font-black leading-none">
             WE MAKE
           </span>

@@ -49,6 +49,10 @@ class Enquiry(BaseModel):
 async def root():
     return {"message": "KymrStudio — system live"}
 
+@api_router.get("/health")
+async def health():
+    return {"message": "KymrStudio — system live"}
+
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
     status_obj = StatusCheck(**input.model_dump())

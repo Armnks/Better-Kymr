@@ -127,6 +127,7 @@ export default function ArchiveScene() {
               src={f.img}
               alt={f.label}
               loading="lazy"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
             />
           )}
@@ -144,8 +145,8 @@ export default function ArchiveScene() {
         className="ar-dark absolute inset-0 flex items-center justify-center bg-[#050505]"
         style={{ clipPath: "circle(0% at 50% 115%)" }}
       >
-        <span className="ar-teaser font-mono text-[10px] tracking-[0.35em] text-white/50 opacity-0">
-          NEXT — EVERYTHING MOVES SIDEWAYS
+        <span className="font-serif text-sm italic text-white/50 opacity-70">
+          the direction is about to change
         </span>
       </div>
     </section>

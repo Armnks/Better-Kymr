@@ -46,6 +46,7 @@ export default function StatementScene() {
         .to(".st-band", { x: 0, duration: 0.6, ease: "power3.inOut" }, "+=0.3")
         .to(".st-band", { autoAlpha: 0, duration: 0.08 })
         .to(".st-w4-outline", { autoAlpha: 1, duration: 0.3 }, "<")
+        .to([".st-w1", ".st-w2", ".st-w3"], { autoAlpha: 0, duration: 0.6, ease: "power2.in" }, "<0.1")
         .to(".st-watch", { scale: 0.5, y: "-18vh", duration: 0.9, ease: "power3.inOut" }, "+=0.2")
         .fromTo(
           ".st-release",

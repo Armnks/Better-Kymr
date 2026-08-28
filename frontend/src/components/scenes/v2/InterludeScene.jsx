@@ -57,6 +57,7 @@ export default function InterludeScene() {
           src={img}
           alt={label}
           loading="lazy"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}

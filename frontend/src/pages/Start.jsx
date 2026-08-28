@@ -77,7 +77,7 @@ export default function Start() {
   });
   const [config, setConfig] = useState(() => {
     try {
-      return JSON.parse(sessionStorage.getItem(STORE_KEY) || "{}").config || {};
+      return { volume: 20, ...(JSON.parse(sessionStorage.getItem(STORE_KEY) || "{}").config || {}) };
     } catch {
       return {};
     }
@@ -92,6 +92,14 @@ export default function Start() {
   const [errors, setErrors] = useState({});
   const [bookingState, setBookingState] = useState("idle");
   const [submitting, setSubmitting] = useState(false);
+  const veilRef = useRef(null);
+  const [veil, setVeil] = useState(() => {
+    if (sessionStorage.getItem("kymr-ripple") === "1") {
+      sessionStorage.removeItem("kymr-ripple");
+      return true;
+    }
+    return false;
+  });
 
   const tier = tierFor(config.volume);
   const stageIndex = stage <= 2 ? stage : stage === 3 ? 3 : stage === 4 ? 4 : 5;
@@ -102,6 +110,18 @@ export default function Start() {
       JSON.stringify({ stage: stage === 6 ? 4 : stage, config, details })
     );
   }, [stage, config, details]);
+
+  useEffect(() => {
+    if (!veil || !veilRef.current) return undefined;
+    const tween = gsap.to(veilRef.current, {
+      autoAlpha: 0,
+      duration: 0.7,
+      delay: 0.15,
+      ease: "power2.out",
+      onComplete: () => setVeil(false),
+    });
+    return () => tween.kill();
+  }, [veil]);
 
   useEffect(() => {
     if (panelRef.current) {
@@ -324,6 +344,13 @@ export default function Start() {
 
   return (
     <div data-testid="start-page" className="relative min-h-screen bg-void text-bone">
+      {veil && (
+        <div
+          ref={veilRef}
+          data-testid="start-arrival-veil"
+          className="pointer-events-none fixed inset-0 z-[250] bg-[#050505]"
+        />
+      )}
       <Background />
       <Cursor />
       <header className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-6 py-5 mix-blend-difference md:px-10">

@@ -81,7 +81,7 @@ export default function FinalScene() {
         </p>
       </div>
       <div className="fn-meta absolute inset-x-0 bottom-10 flex justify-center opacity-0">
-        <span className="font-mono text-[10px] tracking-[0.5em] text-white/40">END OF TRANSMISSION — SCROLL FOR CONTACT</span>
+        <span className="font-mono text-[10px] tracking-[0.5em] text-white/40">SCROLL FOR CONTACT</span>
       </div>
     </section>
   );

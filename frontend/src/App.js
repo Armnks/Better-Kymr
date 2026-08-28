@@ -7,6 +7,7 @@ import Lenis from "lenis";
 import Experience from "@/pages/Experience";
 import Admin from "@/pages/Admin";
 import Start from "@/pages/Start";
+import RippleHost from "@/components/Ripple";
 
 gsap.registerPlugin(ScrollTrigger);
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -48,6 +49,7 @@ function App() {
         <Route path="/start" element={<Start />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
+      <RippleHost />
     </BrowserRouter>
   );
 }

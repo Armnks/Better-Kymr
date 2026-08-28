@@ -125,8 +125,8 @@ export default function Admin() {
                       {l.email}
                     </a>
                     <p className="mt-4 font-mono text-[11px] tracking-[0.2em] text-white/70">
-                      {l.config?.volume || "—"} ADS/MO · {(l.config?.mix || "—").toUpperCase()} ·{" "}
-                      {(l.config?.cadence || "—").toUpperCase()} · {l.tier || "—"}
+                      {l.config?.volume || "—"} ADS/MO · {String(l.config?.mix || "—").toUpperCase()} ·{" "}
+                      {String(l.config?.cadence || "—").toUpperCase()} · {l.tier || "—"}
                     </p>
                     <p className="mt-2 font-mono text-[10px] tracking-[0.2em] text-white/40">
                       CALL: {l.meeting?.booked ? `BOOKED ${l.meeting.startTime || ""}` : "NOT BOOKED"}

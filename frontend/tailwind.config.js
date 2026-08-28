@@ -11,7 +11,7 @@ module.exports = {
                 display: ['"Cabinet Grotesk"', 'sans-serif'],
                 cinzel: ['"Cinzel Decorative"', 'serif'],
                 serif: ['"Cormorant Garamond"', 'serif'],
-                mono: ['"JetBrains Mono"', 'monospace'],
+                mono: ['"Spectral"', 'serif'],
             },
             colors: {
                 void: '#05050A',

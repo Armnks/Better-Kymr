@@ -51,7 +51,7 @@ export default function SoundToggle() {
           on ? "bg-ember" : "bg-white/30"
         }`}
       />
-      {on ? "SOUND ON" : "SOUND OFF"}
+      <span className="hidden sm:inline">{on ? "SOUND ON" : "SOUND OFF"}</span>
     </button>
   );
 }

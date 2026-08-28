@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { triggerRipple } from "@/components/Ripple";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,9 +36,7 @@ export default function ContactScene() {
             window.dispatchEvent(new CustomEvent("kymr:state", { detail: "11 — CONTACT" })),
         },
       });
-      tl.fromTo(".ct-slate", { autoAlpha: 0 }, { autoAlpha: 0.6, duration: 0.5 })
-        .to(".ct-slate", { autoAlpha: 0, duration: 0.4 }, "+=0.3")
-        .fromTo(".ct-serif", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" })
+      tl.fromTo(".ct-serif", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" })
         .to(".ct-serif", { y: "-16vh", scale: 0.7, autoAlpha: 0.5, duration: 0.9, ease: "power3.inOut" }, "+=0.6")
         .fromTo(".ct-email", { yPercent: 120 }, { yPercent: 0, duration: 1.1, ease: "power3.out" }, "<0.2")
         .fromTo(".ct-inquire", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.8 }, "+=0.35")
@@ -67,18 +66,19 @@ export default function ContactScene() {
   );
 
   const inquireBlock = (
-    <a
+    <button
+      type="button"
       data-testid="contact-inquire"
       data-magnetic
       data-cursor="BEGIN"
-      href="/start"
+      onClick={(e) => triggerRipple(e.clientX, e.clientY)}
       className="ct-inquire group relative mt-14 inline-block opacity-0"
     >
       <span className="absolute inset-0 origin-left scale-x-0 bg-ember transition-transform duration-500 ease-out group-hover:scale-x-100 group-focus-visible:scale-x-100" />
       <span className="relative block border border-white/25 px-12 py-5 font-mono text-[11px] tracking-[0.5em] text-bone transition-colors duration-500 group-hover:border-ember group-hover:text-void group-focus-visible:border-ember group-focus-visible:text-void">
         INQUIRE ↗
       </span>
-    </a>
+    </button>
   );
 
   const footerBlock = (
@@ -115,7 +115,7 @@ export default function ContactScene() {
         <a data-testid="contact-email-link" href={`mailto:${EMAIL}`} className="font-display text-[7vw] font-black text-bone md:text-[5vw]">
           {EMAIL}
         </a>
-        <a data-testid="contact-inquire" href={`mailto:${EMAIL}`} className="border border-white/25 px-12 py-5 font-mono text-[11px] tracking-[0.5em] text-bone">
+        <a data-testid="contact-inquire" href="/start" onClick={(e) => { e.preventDefault(); triggerRipple(e.clientX, e.clientY); }} className="border border-white/25 px-12 py-5 font-mono text-[11px] tracking-[0.5em] text-bone">
           INQUIRE ↗
         </a>
         <p className="font-mono text-[9px] tracking-[0.3em] text-white/35">© 2026 KYMRSTUDIO</p>
@@ -131,9 +131,6 @@ export default function ContactScene() {
       className="relative z-10 h-screen overflow-hidden px-6 md:px-10"
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <p className="ct-slate absolute top-[16vh] font-mono text-[10px] tracking-[0.6em] text-white/40 opacity-0">
-          FINAL TRANSMISSION
-        </p>
         <p data-testid="contact-serif" className="ct-serif absolute font-serif text-2xl italic text-white/60 opacity-0 md:text-4xl">
           you made it to the last frame.
         </p>
