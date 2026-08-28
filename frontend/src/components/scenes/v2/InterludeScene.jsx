@@ -102,11 +102,11 @@ export default function InterludeScene() {
         <h3 className="tr-item shrink-0 select-none whitespace-nowrap font-display text-[15vw] font-black leading-none tracking-[-0.05em] text-bone" data-testid="transit-the-next">
           THE NEXT
         </h3>
-        <Frame n={7} img="/ads/beverage.jpg" label="SPEC CONCEPT — BEVERAGE" />
+        <Frame n={7} img="/ads/beverage.webp" label="SPEC CONCEPT — BEVERAGE" />
         <h3 className="tr-item shrink-0 select-none whitespace-nowrap font-display text-[16vw] font-black leading-none tracking-[-0.05em] text-ember" data-testid="transit-frame-word">
           FRAME
         </h3>
-        <Frame n={8} img="/ads/fashion.jpg" label="SPEC CONCEPT — FASHION" />
+        <Frame n={8} img="/ads/fashion.webp" label="SPEC CONCEPT — FASHION" />
         <h3 className="tr-item text-outline shrink-0 select-none whitespace-nowrap font-display text-[15vw] font-black leading-none tracking-[-0.05em]" data-testid="transit-is-yours">
           IS YOURS.
         </h3>

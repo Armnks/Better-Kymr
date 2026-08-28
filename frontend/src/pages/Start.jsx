@@ -313,7 +313,7 @@ export default function Start() {
             value={config.volume || 20}
             aria-label="Monthly ad volume in ads per month"
             data-testid="volume-slider"
-            onChange={(e) => setConfig({ ...config, volume: e.target.value })}
+            onChange={(e) => setConfig({ ...config, volume: parseInt(e.target.value, 10) })}
             className="volume-slider"
           />
           <div className="mt-3 flex justify-between font-mono text-[9px] tracking-[0.3em] text-white/30">

@@ -45,20 +45,18 @@ export default function RippleHost() {
         .fromTo(
           ".rp-blur",
           { backdropFilter: "blur(0px) brightness(1)" },
-          { backdropFilter: "blur(18px) brightness(1.2)", duration: 0.85, ease: "power2.inOut" },
-          0.12
+          { backdropFilter: "blur(14px) brightness(1.15)", duration: 0.7, ease: "power2.inOut" },
+          0.1
         )
-        .to(".rp-ring.r1", { scale: 95, opacity: 0, duration: 1.0, ease: "power2.out" }, 0.12)
-        .to(".rp-ring.r2", { scale: 75, opacity: 0, duration: 1.0, ease: "power2.out" }, 0.26)
-        .to(".rp-ring.r3", { scale: 55, opacity: 0, duration: 1.0, ease: "power2.out" }, 0.4)
-        .to(".rp-veil", { opacity: 1, duration: 0.5, ease: "power1.in" }, 0.55)
+        .to(".rp-ring.r1", { scale: 95, opacity: 0, duration: 0.85, ease: "power2.out" }, 0.1)
+        .to(".rp-ring.r2", { scale: 75, opacity: 0, duration: 0.85, ease: "power2.out" }, 0.22)
+        .to(".rp-ring.r3", { scale: 55, opacity: 0, duration: 0.85, ease: "power2.out" }, 0.34)
+        .to(".rp-veil", { opacity: 1, duration: 0.4, ease: "power1.in" }, 0.5)
         .add(() => {
           sessionStorage.setItem("kymr-ripple", "1");
           navigate("/start");
-        }, 1.0)
-        .to(".rp-veil", { opacity: 0, duration: 0.6, delay: 0.2 })
-        .to(".rp-blur", { backdropFilter: "blur(0px) brightness(1)", duration: 0.6 }, "<")
-        .add(() => setRip(null));
+          setRip(null);
+        }, 0.9);
     });
     return () => ctx.revert();
   }, [rip, navigate]);

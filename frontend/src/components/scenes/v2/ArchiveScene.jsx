@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -15,12 +15,12 @@ export default function ArchiveScene() {
   const frames = useMemo(
     () =>
       [
-        { img: "/ads/fragrance.jpg", label: "SPEC CONCEPT — FRAGRANCE" },
-        { img: "/ads/skincare.jpg", label: "SPEC CONCEPT — SKINCARE" },
-        { img: "/ads/audio.jpg", label: "SPEC CONCEPT — AUDIO" },
-        { img: "/ads/tech.jpg", label: "SPEC CONCEPT — TECH" },
-        { img: "/ads/food.jpg", label: "SPEC CONCEPT — FOOD" },
-        { img: "/ads/home.jpg", label: "SPEC CONCEPT — HOME" },
+        { img: "/ads/fragrance.webp", label: "SPEC CONCEPT — FRAGRANCE" },
+        { img: "/ads/skincare.webp", label: "SPEC CONCEPT — SKINCARE" },
+        { img: "/ads/audio.webp", label: "SPEC CONCEPT — AUDIO" },
+        { img: "/ads/tech.webp", label: "SPEC CONCEPT — TECH" },
+        { img: "/ads/food.webp", label: "SPEC CONCEPT — FOOD" },
+        { img: "/ads/home.webp", label: "SPEC CONCEPT — HOME" },
       ].map((f) => ({
         ...f,
         top: range(8, 62),
@@ -81,6 +81,43 @@ export default function ArchiveScene() {
     return () => ctx.revert();
   }, [reduced, frames]);
 
+  useEffect(() => {
+    if (reduced || !window.matchMedia("(pointer: fine)").matches) return undefined;
+    const section = ref.current;
+    const imgs = gsap.utils.toArray(".ar-frame img", section);
+    if (!imgs.length) return undefined;
+    const setters = imgs.map((img, i) => ({
+      x: gsap.quickTo(img, "x", { duration: 0.7, ease: "power3" }),
+      y: gsap.quickTo(img, "y", { duration: 0.7, ease: "power3" }),
+      depth: 5 + (i % 3) * 4,
+    }));
+    const move = (e) => {
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+      setters.forEach((s) => {
+        s.x(-nx * s.depth);
+        s.y(-ny * s.depth);
+      });
+    };
+    const cleanups = imgs.map((img) => {
+      const frame = img.parentElement;
+      const enter = () => gsap.to(img, { scale: 1.1, duration: 0.7, ease: "power3.out" });
+      const leave = () => gsap.to(img, { scale: 1, duration: 0.7, ease: "power3.out" });
+      frame.addEventListener("mouseenter", enter);
+      frame.addEventListener("mouseleave", leave);
+      return () => {
+        frame.removeEventListener("mouseenter", enter);
+        frame.removeEventListener("mouseleave", leave);
+      };
+    });
+    section.addEventListener("mousemove", move);
+    return () => {
+      section.removeEventListener("mousemove", move);
+      cleanups.forEach((c) => c());
+    };
+  }, [reduced]);
+
+
   if (reduced) {
     return (
       <section data-testid="archive-scene" className="relative z-10 flex min-h-screen flex-col items-center justify-center gap-4 bg-[#EAE6DF] px-6 py-24 text-center">
@@ -98,7 +135,7 @@ export default function ArchiveScene() {
       data-testid="archive-scene"
       className="relative z-10 h-screen overflow-hidden bg-[#EAE6DF] text-[#050505]"
     >
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
         {LINES.map((line, i) => (
           <div key={line} className="overflow-hidden">
             <div
@@ -119,8 +156,16 @@ export default function ArchiveScene() {
       {frames.map((f, i) => (
         <div
           key={i}
-          className="ar-frame absolute overflow-hidden border border-[#050505]/25 opacity-0"
-          style={{ top: `${f.top}%`, left: `${f.left}%`, width: `${f.w}vw`, height: `${f.h}vh` }}
+          data-hover
+          data-cursor="SPEC"
+          data-testid={`archive-frame-${i}`}
+          className="ar-frame absolute overflow-hidden border border-[#050505]/25 opacity-0 transition-colors duration-500 hover:border-[#050505]/70"
+          style={{
+            top: `${f.top}%`,
+            left: `${f.left}%`,
+            width: `max(${f.w}vw, 110px)`,
+            height: `max(${f.h}vh, 110px)`,
+          }}
         >
           {f.img && (
             <img
@@ -128,7 +173,7 @@ export default function ArchiveScene() {
               alt={f.label}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute -inset-[6%] h-[112%] w-[112%] max-w-none object-cover"
             />
           )}
           <span
@@ -142,10 +187,10 @@ export default function ArchiveScene() {
       ))}
 
       <div
-        className="ar-dark absolute inset-0 flex items-center justify-center bg-[#050505]"
+        className="ar-dark absolute inset-0 flex items-end justify-center bg-[#050505] pb-[20vh]"
         style={{ clipPath: "circle(0% at 50% 115%)" }}
       >
-        <span className="font-serif text-sm italic text-white/50 opacity-70">
+        <span className="ar-teaser font-serif text-sm italic text-white/50 opacity-0">
           the direction is about to change
         </span>
       </div>
