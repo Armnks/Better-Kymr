@@ -110,10 +110,6 @@ export default function ProtocolScene() {
 
   return (
     <section ref={ref} id="process" data-testid="protocol-scene" className="relative z-10 h-screen overflow-hidden">
-      <div className="absolute left-6 top-24 z-10 font-mono text-[10px] tracking-[0.35em] text-white/40 md:left-10">
-        STATE 04 — PROTOCOL
-      </div>
-
       <div className="pr-stage absolute inset-0">
         <div className="pr-frame absolute inset-x-6 bottom-10 top-24 border border-white/10 opacity-0 md:inset-x-10" />
 

@@ -91,10 +91,6 @@ export default function ArchiveScene() {
       data-testid="archive-scene"
       className="relative z-10 h-screen overflow-hidden bg-[#EAE6DF] text-[#050505]"
     >
-      <div className="absolute left-6 top-24 z-10 font-mono text-[10px] tracking-[0.35em] text-[#050505]/40 md:left-10">
-        STATE 08 — ARCHIVE
-      </div>
-
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {LINES.map((line, i) => (
           <div key={line} className="overflow-hidden">

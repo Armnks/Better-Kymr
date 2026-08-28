@@ -11,11 +11,6 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const CAL_LINK = "armaan-khasim-shaik-p9vin0";
 const STORE_KEY = "kymr-start";
 
-const VOLUMES = [
-  { id: "10", label: "10 ADS / MO", desc: "FOCUSED OUTPUT" },
-  { id: "20", label: "20 ADS / MO", desc: "FULL CONTENT ENGINE" },
-  { id: "40", label: "40+ ADS / MO", desc: "SCALE PROGRAM" },
-];
 const MIXES = [
   { id: "static", label: "STATIC", desc: "STILL FRAMES THAT CONVERT" },
   { id: "motion", label: "MOTION", desc: "VIDEO-FIRST PRODUCTION" },
@@ -26,7 +21,10 @@ const CADENCES = [
   { id: "sprint", label: "SPRINT", desc: "CONDENSED PRODUCTION SPRINTS" },
   { id: "weekly", label: "WEEKLY DROPS", desc: "STANDING WEEKLY RELEASE RHYTHM" },
 ];
-const TIERS = { 10: "IGNITION", 20: "MOMENTUM", 40: "SCALE" };
+const tierFor = (v) => {
+  const n = parseInt(v || "20", 10);
+  return n <= 15 ? "IGNITION" : n <= 30 ? "MOMENTUM" : "SCALE";
+};
 const RAIL = ["VOLUME", "MIX", "CADENCE", "ESTIMATE", "DETAILS", "CALL"];
 
 const labelOf = (list, id) => (list.find((o) => o.id === id) || {}).label || "—";
@@ -95,7 +93,7 @@ export default function Start() {
   const [bookingState, setBookingState] = useState("idle");
   const [submitting, setSubmitting] = useState(false);
 
-  const tier = TIERS[config.volume] || "—";
+  const tier = tierFor(config.volume);
   const stageIndex = stage <= 2 ? stage : stage === 3 ? 3 : stage === 4 ? 4 : 5;
 
   useEffect(() => {
@@ -201,7 +199,7 @@ export default function Start() {
       <dl className="mt-6 space-y-4 font-mono text-[11px] tracking-[0.2em]">
         <div className="flex justify-between gap-4">
           <dt className="text-white/40">VOLUME</dt>
-          <dd data-testid="estimate-volume" className="text-bone">{labelOf(VOLUMES, config.volume)}</dd>
+          <dd data-testid="estimate-volume" className="text-bone">{config.volume || 20} ADS / MO</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-white/40">MIX</dt>
@@ -272,8 +270,54 @@ export default function Start() {
     </div>
   );
 
+  const volumeStage = (
+    <div className="grid gap-12 md:grid-cols-[1fr_340px]">
+      <div>
+        <p className="font-mono text-[10px] tracking-[0.5em] text-ember">01 / SCOPE</p>
+        <h1 className="mt-4 font-display text-4xl font-black tracking-tight text-bone md:text-6xl">
+          Monthly ad volume.
+        </h1>
+        <div className="mt-14">
+          <div className="flex items-baseline justify-between">
+            <span data-testid="volume-readout" className="font-display text-6xl font-black tracking-tight text-bone md:text-8xl">
+              {config.volume || 20}
+              <span className="ml-3 font-mono text-xs tracking-[0.3em] text-white/40">ADS / MO</span>
+            </span>
+            <span className="font-cinzel text-xl font-bold text-ember md:text-2xl">{tier}</span>
+          </div>
+          <input
+            type="range"
+            min="5"
+            max="50"
+            step="5"
+            value={config.volume || 20}
+            aria-label="Monthly ad volume in ads per month"
+            data-testid="volume-slider"
+            onChange={(e) => setConfig({ ...config, volume: e.target.value })}
+            className="volume-slider"
+          />
+          <div className="mt-3 flex justify-between font-mono text-[9px] tracking-[0.3em] text-white/30">
+            <span>5</span>
+            <span>50+</span>
+          </div>
+        </div>
+        <div className="mt-12">
+          <button
+            data-testid="continue-volume"
+            data-hover
+            onClick={() => setStage(1)}
+            className="font-mono text-[11px] tracking-[0.4em] text-bone transition-colors duration-300 hover:text-ember"
+          >
+            CONTINUE →
+          </button>
+        </div>
+      </div>
+      {estimateAside}
+    </div>
+  );
+
   const stages = [
-    configureStage(VOLUMES, config.volume, "volume", "Monthly ad volume.", "01 / SCOPE", "CONTINUE"),
+    volumeStage,
     configureStage(MIXES, config.mix, "mix", "Ad creative mix.", "02 / FORMAT", "CONTINUE"),
     configureStage(CADENCES, config.cadence, "cadence", "Production cadence.", "03 / RHYTHM", "REVEAL ESTIMATE"),
   ];
@@ -313,7 +357,7 @@ export default function Start() {
                 {tier}
               </h1>
               <div className="mx-auto mt-10 max-w-xl space-y-3 font-mono text-[11px] tracking-[0.25em] text-white/60">
-                <p data-testid="result-volume">{labelOf(VOLUMES, config.volume)}</p>
+                <p data-testid="result-volume">{config.volume} ADS / MO</p>
                 <p>{labelOf(MIXES, config.mix)} MIX</p>
                 <p>{labelOf(CADENCES, config.cadence)}</p>
                 <div className="mx-auto mt-6 h-px w-24 bg-ember" />
@@ -446,7 +490,7 @@ export default function Start() {
                   </button>
                 </div>
                 <div className="mt-6 space-y-3 font-mono text-[11px] tracking-[0.2em] text-bone">
-                  <p data-testid="summary-volume">{labelOf(VOLUMES, config.volume)}</p>
+                  <p data-testid="summary-volume">{config.volume} ADS / MO</p>
                   <p>{labelOf(MIXES, config.mix)} MIX</p>
                   <p>{labelOf(CADENCES, config.cadence)}</p>
                   <p className="pt-3 font-cinzel text-2xl font-bold text-ember">{tier}</p>

@@ -70,8 +70,8 @@ export default function ContactScene() {
     <a
       data-testid="contact-inquire"
       data-magnetic
-      data-cursor="OPEN"
-      href={`mailto:${EMAIL}?subject=New%20project%20—%20the%20next%20frame`}
+      data-cursor="BEGIN"
+      href="/start"
       className="ct-inquire group relative mt-14 inline-block opacity-0"
     >
       <span className="absolute inset-0 origin-left scale-x-0 bg-ember transition-transform duration-500 ease-out group-hover:scale-x-100 group-focus-visible:scale-x-100" />
@@ -132,23 +132,13 @@ export default function ContactScene() {
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
         <p className="ct-slate absolute top-[16vh] font-mono text-[10px] tracking-[0.6em] text-white/40 opacity-0">
-          11 — FINAL TRANSMISSION
+          FINAL TRANSMISSION
         </p>
         <p data-testid="contact-serif" className="ct-serif absolute font-serif text-2xl italic text-white/60 opacity-0 md:text-4xl">
           you made it to the last frame.
         </p>
         {emailBlock}
         {inquireBlock}
-        <div className="ct-inquire mt-8 opacity-0">
-          <a
-            data-testid="contact-start-link"
-            data-hover
-            href="/start"
-            className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-ember"
-          >
-            OR CONFIGURE YOUR PRODUCTION SYSTEM →
-          </a>
-        </div>
       </div>
       {footerBlock}
     </section>

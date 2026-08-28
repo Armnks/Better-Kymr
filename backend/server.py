@@ -125,6 +125,27 @@ async def list_leads(x_admin_key: str = Header(default="")):
             doc['created_at'] = datetime.fromisoformat(doc['created_at'])
     return docs
 
+@api_router.post("/webhooks/calcom")
+async def calcom_webhook(payload: dict):
+    secret = os.environ.get('CAL_WEBHOOK_SECRET')
+    if secret:
+        if payload.get('secret') != secret:
+            raise HTTPException(status_code=401, detail="invalid webhook secret")
+    event = payload.get('triggerEvent') or payload.get('trigger_event') or ""
+    if event != "BOOKING_CREATED":
+        return {"received": True, "ignored": event}
+    data = payload.get('payload') or {}
+    attendees = data.get('attendees') or []
+    email = (attendees[0].get('email') if attendees else None) or data.get('email')
+    if not email:
+        return {"received": True, "matched": False}
+    start = data.get('startTime')
+    result = await db.leads.update_many(
+        {"email": email},
+        {"$set": {"meeting": {"booked": True, "startTime": start, "via": "calcom-webhook"}}},
+    )
+    return {"received": True, "matched": result.matched_count > 0, "updated": result.modified_count}
+
 
 app.include_router(api_router)
 

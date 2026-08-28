@@ -119,10 +119,6 @@ export default function OpeningScene() {
 
   return (
     <section ref={ref} id="top" data-testid="opening-scene" className="relative z-10 h-screen overflow-hidden">
-      <div className="absolute left-6 top-24 z-10 font-mono text-[10px] tracking-[0.35em] text-white/40 md:left-10">
-        STATE 01 — ORIGIN
-      </div>
-
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="op-dot pulse-dot h-2 w-2 rounded-full bg-ember" />
       </div>

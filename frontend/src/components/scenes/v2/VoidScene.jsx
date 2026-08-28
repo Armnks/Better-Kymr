@@ -56,10 +56,6 @@ export default function VoidScene() {
 
   return (
     <section ref={ref} data-testid="void-scene" className="relative z-10 h-screen overflow-hidden">
-      <div className="absolute left-6 top-24 z-10 font-mono text-[10px] tracking-[0.35em] text-white/40 md:left-10">
-        STATE 06 — SILENCE
-      </div>
-
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="vd-seed pulse-dot h-1.5 w-1.5 rounded-full bg-ember" />
       </div>
@@ -83,7 +79,6 @@ export default function VoidScene() {
       </div>
 
       <div className="vd-after absolute inset-0 flex flex-col items-center justify-center gap-6 opacity-0">
-        <span className="font-mono text-[10px] tracking-[0.5em] text-[#050505]/60">07 — INVERSION</span>
         <p data-testid="void-after" className="px-6 text-center font-serif text-2xl italic text-[#050505] md:text-4xl">
           and then — everything changes.
         </p>

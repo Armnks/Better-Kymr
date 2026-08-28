@@ -72,10 +72,6 @@ export default function StatementScene() {
 
   return (
     <section ref={ref} data-testid="statement-scene" className="relative z-10 h-screen overflow-hidden">
-      <div className="absolute left-6 top-24 z-10 font-mono text-[10px] tracking-[0.35em] text-white/40 md:left-10">
-        STATE 03 — SIGNAL
-      </div>
-
       <div className={`st-w1 ${wordCls} text-[12vw] text-bone`} data-testid="statement-we-make">
         WE MAKE
       </div>

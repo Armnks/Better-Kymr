@@ -72,9 +72,6 @@ export default function InterludeScene() {
 
   return (
     <section ref={ref} data-testid="transit-scene" className="relative z-10 h-screen overflow-hidden">
-      <div className="absolute left-6 top-24 z-10 font-mono text-[10px] tracking-[0.35em] text-white/40 md:left-10">
-        STATE 09 — TRANSIT
-      </div>
       <div className="absolute bottom-8 right-6 z-10 font-mono text-[10px] tracking-[0.35em] text-white/40 md:right-10">
         SCROLL ↓ = TRAVEL →
       </div>

@@ -4,21 +4,22 @@ import { scrollToId } from "@/App";
 import SoundToggle from "@/components/SoundToggle";
 
 export default function Nav() {
-  const [state, setState] = useState("01 — ORIGIN");
+      const [state, setState] = useState("ORIGIN");
   const labelRef = useRef(null);
   const barRef = useRef(null);
 
   useEffect(() => {
     const onState = (e) => {
+      const name = e.detail.includes("—") ? e.detail.split("— ").pop() : e.detail;
       setState((prev) => {
-        if (prev !== e.detail && labelRef.current) {
+        if (prev !== name && labelRef.current) {
           gsap.fromTo(
             labelRef.current,
             { yPercent: 120 },
             { yPercent: 0, duration: 0.6, ease: "power3.out" }
           );
         }
-        return e.detail;
+        return name;
       });
     };
     const onScroll = () => {
