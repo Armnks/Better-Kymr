@@ -1,0 +1,49 @@
+{
+  "summary": "Second full pass on KymrStudio, focused on this round's changes (ripple teardown, archive teaser reposition, archive frame interactivity, WebP swap) plus the requested regression sweep. RIPPLE BUG IS FIXED: nav START click, repeat trigger after returning via start-logo, keyboard Enter on START, and Contact INQUIRE all show data-testid='ripple-overlay', navigate to /start, and the overlay is unmounted on arrival (0 ripple-overlay nodes; only start-arrival-veil, which fades and unmounts within ~1s). No stacked/double veil, no dead clicks — slider/CONTINUE interactions work immediately after every arrival; max z-index on /start after settle = 100. Archive teaser regression FIXED: 'the direction is about to change' stays at opacity 0 through the whole frames phase and only fades in (0.77 -> 1) after .ar-dark clip reaches ~140%, rendered low at y=844/1080 with zero overlap of 'IS JUST' (rect 420-592). WebP: all 8 /ads/*.webp return 200 image/webp (29-82KB); all 6 archive imgs and both interlude imgs have naturalWidth=900. Backend: pytest 9/9 pass, GET /api/health 200, lead POST from the real UI persisted with volume 40 / HYBRID / SPRINT / SCALE, /admin vault renders the list with no crash, no _id leakage. Regression sweep clean: 21-depth visible-text scan found no internal scene labels (only intentional 'STEP 01 — TURNAROUND' copy); Forces shows one dominant word at a time (STRATEGY -> CREATIVE -> PRODUCTION -> EDITING -> PERFORMANCE); Statement end residues are now symmetric and fade out cleanly (iteration-1 ghost complaint resolved); /start flow fully intact (slider keyboard 20->40 = SCALE, disabled CONTINUE until option chosen, EDIT preserves selections, per-field validation errors appear/clear, refresh restores stage 4 + field values, Cal.com inline embed loads real event types, SKIP THE CALL reaches RECEIVED); reduced-motion INQUIRE is an <a href='/start'> and navigates with 0 ripple overlays; mobile 390x844 has no horizontal overflow on /, archive or /start; zero console/page errors anywhere. TWO REAL DEFECTS FOUND IN THE NEW ARCHIVE INTERACTIVITY (both reproduced, root-caused).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/leads", "issue": "config.volume is stored as the raw string from the range input (\"40\") while the untouched default is the number 20 — mixed types in the same field. Coerce with int() in Start.jsx or in the Pydantic model."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ArchiveScene.jsx — headline overlay blocks all frame hover",
+        "issue": "CRITICAL for this round's feature: the headline wrapper <div className='absolute inset-0 z-10 flex flex-col items-center justify-center'> covers the entire pinned section and has no pointer-events-none, so document.elementFromPoint at the centre of archive-frame-0 returns that overlay, not the frame. Result: the new gsap hover zoom never fires (img scale stays exactly 1 after a real page.mouse.move onto the frame), the hover:border-[#050505]/70 brighten never applies (border stays rgba(5,5,5,0.25)), and data-cursor='SPEC' never reaches the custom cursor (cursor-label empty). Proof the handler itself is correct: dispatching a synthetic 'mouseenter' on the frame animates the img to scale 1.1. Fix: add pointer-events-none to the headline overlay (and to .ar-serif) and/or raise the frames above z-10.",
+        "selector": "[data-testid=\"archive-frame-0\"] / .absolute.inset-0.z-10",
+        "priority": "HIGH"
+      },
+      {
+        "component": "ArchiveScene.jsx — spec frame images reveal background on the right edge",
+        "issue": "The oversize trick does not work: Tailwind preflight sets img{max-width:100%}, which caps w-[112%] to the frame width, so computed img width = 251.578px inside a 252px frame while left is still -6%. Measured per-frame right-edge gap (local coords, transform included): frame0 +19.9px, frame1 +31.8px, frame2 +29.7px/bottom +1.8px, frame3 +22.9px, frame4 +26.8px, frame5 +37.7px — i.e. a permanent cream background sliver on the right (and bottom on frame2) of every frame, visible in both desktop and mobile 390x844 screenshots even before parallax moves. h-[112%] works (269.7px in a 241px frame) because the class beats preflight height:auto, which is why only the right edge leaks. Fix: add max-w-none to the img (keep -inset-[6%] h-[112%] w-[112%]).",
+        "selector": "[data-testid=\"archive-frame-*\"] img",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Statement scene end (~30% scroll)", "issues": ["Outline 'WATCH.' is still almost invisible against the near-black background (stroke ~rgba white low alpha) — carried over from iteration 1, confirm it is intentional."]},
+      {"screen": "Archive scene on mobile 390x844", "issues": ["Frames become tall slivers (13-22vw wide = 50-86px) so the spec ads are unreadable and the 'SPEC CONCEPT — …' label is clipped to 'SPEC C…'; consider wider min-width or fewer frames below md.", "The right-edge background gap described above is most obvious here."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results_2.xml"],
+  "action_items": [
+    "ArchiveScene.jsx: add pointer-events-none to the z-10 headline overlay (and .ar-serif) so archive-frame hover zoom / border brighten / SPEC cursor actually trigger for real pointers.",
+    "ArchiveScene.jsx: add max-w-none to the frame <img> so w-[112%] is not capped by Tailwind preflight max-width:100% — removes the permanent right-edge background reveal.",
+    "Optional: coerce slider volume to a number before POST /api/leads (currently stored as string \"40\")."
+  ],
+  "critical_code_review_comments": [
+    "Any Tailwind oversize/parallax pattern on <img> needs max-w-none — preflight max-width:100% silently defeats w-[>100%] (this exact bug).",
+    "Full-bleed absolute overlays inside interactive scenes must be pointer-events-none, otherwise every child interaction below them is dead (hover, cursor labels, clicks).",
+    "Ripple teardown is correct and idempotent: setRip(null) at 0.9s plus gsap ctx.revert() leaves no node behind and re-triggering works repeatedly."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "90%"},
+  "seed_data_creation": "One real lead submitted through the UI: TEST_QA Ripple / TEST_qa2@example.com (config 40/hybrid/sprint, tier SCALE, meeting.booked=false). Plus pytest TEST_* leads/enquiries. No Cal.com booking was completed.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin key kymr-vault-7f3a-2026 (X-Admin-Key) — verified working on /admin and GET /api/leads",
+  "context_for_next_testing_agent": "Ripple (all 4 entry paths incl. repeat + keyboard + reduced-motion), archive teaser timing, WebP delivery, Forces word sequencing, Statement end, /start end-to-end incl. Cal embed + refresh restore, mobile overflow, admin vault and the 9 pytest cases are all verified green in this iteration. Only the two archive-interactivity defects above are open. To re-verify after fix: scroll to archiveTop + 0.3*innerHeight*2.8 with window.__lenis.scrollTo(y,{immediate:true}) + 1.8s settle, then (a) assert document.elementFromPoint at frame centre resolves inside .ar-frame, (b) after page.mouse.move onto frame-0 assert DOMMatrix(getComputedStyle(img).transform).a > 1.05, (c) assert clientWidth-(img.offsetLeft+img.offsetWidth) < 0 for all 6 frames at extreme pointer positions (avoid y<60 which hits the fixed header).",
+  "rca_of_the_issue": "Archive hover dead: the section's headline layer (.absolute.inset-0.z-10) paints above the frames (z-auto) and still receives pointer events, so mouseenter/CSS :hover/data-cursor never reach .ar-frame; mousemove parallax still works only because the event bubbles up to the section. Edge reveal: Tailwind's preflight img{max-width:100%} overrides the intended 112% width (height is unaffected because h-[112%] overrides height:auto), leaving img width == frame width with a -6% left offset, hence a fixed right-side gap plus zero right headroom for the 5-13px parallax translate."
+}
