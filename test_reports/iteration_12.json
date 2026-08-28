@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 12 — verified COMPLETE removal of the VAULT admin interface plus full regression of all public flows on https://living-studio-1.preview.emergentagent.com. Backend: pytest 8/8 pass; GET /api/leads and GET /api/enquiries now return 405 (route deleted — POST still mounted on the path, so FastAPI answers 405 rather than 404, and the X-Admin-Key header no longer changes the result); POST /api/leads, POST /api/enquiries, POST /api/webhooks/calcom (BOOKING_CREATED -> matched:true/updated>=1, PING -> ignored, no-email -> matched:false), /api/ and /api/health all intact. Frontend: /admin renders a completely empty body (0 chars, no admin UI, no key input, no console crash); no VAULT string anywhere on desktop or mobile; contact footer shows only © 2026 KYMRSTUDIO / INSTAGRAM / TIKTOK / LINKEDIN / BACK TO TOP. Full /start flow passed end-to-end: slider at 5 ads -> IGNITION with rebased $500 – $1,500 (INR toggle -> ₹40K – ₹1.25L), mix=HYBRID, cadence=WEEKLY DROPS, tier reveal, details validation (empty name error shown), submit -> CALL stage with the real Cal.com embed loading live event types (Kymr Connect 15m, 15 min meeting, 30 min meeting — no booking completed), SKIP THE CALL -> POST /api/leads 200 -> RECEIVED done stage with mailto:media@kymrstudio.com. Homepage full 58k px scroll journey completed, contact scene rendered, BACK TO TOP -> scrollY 0, INQUIRE ripple -> /start. Mobile 390x844 sweep clean, no horizontal overflow on / or /start. ZERO console errors and zero page errors across every run.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "backend/.env", "issue": "Dead secret left behind: ADMIN_KEY=\"kymr-vault-7f3a-2026\" is still present in backend/.env even though all vault routes and the X-Admin-Key checks were removed. No code reads it. Should be deleted so a decommissioned credential isn't shipped in config."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Remove the now-unused ADMIN_KEY entry from backend/.env (vault decommissioned; no code references it).",
+    "Update /app/memory/test_credentials.md — it still documents the removed '/admin' vault, the 'VAULT ↗' footer link and the admin key as live. The review request claimed this file was updated; it was not."
+  ],
+  "critical_code_review_comments": [
+    "Vault removal is clean at the code level: frontend/src grep for vault|/admin|ADMIN_KEY|X-Admin-Key returns zero hits, pages/ contains only Experience.jsx and Start.jsx, App.js routes are only / and /start, and server.py exposes only GET /, GET /health, POST/GET /status, POST /enquiries, POST /leads, POST /webhooks/calcom.",
+    "Note (behavioural, acceptable): GET /api/leads and /api/enquiries return 405 Method Not Allowed rather than 404 because POST handlers remain on the same paths. This still proves the read routes are gone (identical 405 with and without the old admin key), but if a hard 404 is required the paths would need explicit method rejection.",
+    "/start persists config in localStorage (STORE_KEY 'kymr-start'); stage state survives reloads — verified harmless but worth noting for future test isolation."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Created disposable leads/enquiries prefixed TEST_ (TEST_lead_*, TEST_book_*, TEST_enq_*@example.test) via pytest, plus one TEST_ui_<ts>@example.test lead from the browser skip-flow. No read API exists to clean these up post-vault-removal; they are inert DB rows.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "None required — vault removed. /app/memory/test_credentials.md is STALE and still lists the deleted /admin vault + key kymr-vault-7f3a-2026; needs cleanup.",
+  "context_for_next_testing_agent": "Vault/admin is fully gone — do not attempt admin-key tests. GET /api/leads and /api/enquiries correctly answer 405. /admin renders an empty body by design (no catch-all route); that is the expected pass condition. Public flows verified working: /start 6-stage funnel (volume slider -> mix -> cadence -> estimate -> details -> Cal.com CALL stage -> skip posts a lead), contact scene mailto/INQUIRE/BACK TO TOP, mobile 390x844. Cal.com embed loads real event types — never complete a booking. Homepage scrollHeight ~58407 desktop / ~39986 mobile; step-scroll in ~40-60 increments with 200ms waits to let GSAP/lenis settle before asserting on the contact scene. Only open items are the stale test_credentials.md and the leftover ADMIN_KEY in backend/.env.",
+  "rca_of_the_issue": "No functional defects found. The two reported items are hygiene leftovers from the vault removal: (1) ADMIN_KEY remains in backend/.env although server.py no longer reads it, and (2) /app/memory/test_credentials.md was not updated and still advertises the deleted /admin interface, footer VAULT link and admin key — which would mislead future agents into testing a route that no longer exists."
+}
