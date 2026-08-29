@@ -424,7 +424,14 @@ export const api = {
       headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
       body: JSON.stringify({ projectId })
     });
-    const data = await res.json();
+    const contentType = res.headers.get('content-type');
+    let data;
+    if (contentType && contentType.includes('application/json')) {
+      data = await res.json();
+    } else {
+      const text = await res.text();
+      throw new Error(`Expected JSON but got ${contentType}. Status: ${res.status}. Preview: ${text.substring(0, 100)}`);
+    }
     if (!res.ok) throw new Error(data.error || 'Failed to generate invoice');
     return data.invoiceId;
   },

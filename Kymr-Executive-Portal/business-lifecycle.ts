@@ -286,9 +286,9 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
             due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             items: [
               {
-                id: \`proj-\${projectId}\`,
+                id: `proj-${projectId}`,
                 item_type: 'Service',
-                name: \`Project Deliverables: \${project.name}\`,
+                name: `Project Deliverables: ${project.name}`,
                 quantity: 1,
                 unit_price: project.budget || 0,
                 net_amount: project.budget || 0,
@@ -333,7 +333,7 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
           sourceInquiryId: project.sourceInquiryId || null,
           clientName: client.company || client.name,
           clientEmail: client.email || null,
-          lineItems: [{ name: \`Project Deliverables: \${project.name}\`, quantity: 1, rate: project.budget }],
+          lineItems: [{ name: `Project Deliverables: ${project.name}`, quantity: 1, rate: project.budget }],
           subtotal: project.budget || 0,
           tax: 0,
           total: project.budget || 0,
@@ -358,7 +358,7 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
           entityId: newInvoiceRef.id,
           relatedClientId: project.clientId,
           relatedProjectId: projectId,
-          description: \`Generated Swipe Invoice \${swipeInvoiceNumber || ''}\`,
+          description: `Generated Swipe Invoice ${swipeInvoiceNumber || ''}`,
           createdAt: FieldValue.serverTimestamp()
         });
         
