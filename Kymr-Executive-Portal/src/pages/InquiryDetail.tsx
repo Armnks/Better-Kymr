@@ -315,6 +315,83 @@ export default function InquiryDetail() {
             </div>
           </Card>
 
+          {!isNew && (
+            <Card className="flex flex-col gap-6">
+              <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent border-b border-brand-border pb-2">Scheduled Meeting</h2>
+              
+              {meetings.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 border border-brand-border/30 bg-brand-charcoal-light gap-4">
+                  <p className="font-mono text-xs text-brand-muted uppercase tracking-widest text-center">NO MEETING SCHEDULED</p>
+                </div>
+              ) : (
+                meetings.map(m => {
+                  const meetUrl = m.meetingUrl || m.meetUrl;
+                  const isReady = m.providerVerified === true && m.isSynthetic !== true && !!meetUrl;
+                  const isCancelled = m.status === 'CANCELLED';
+                  
+                  return (
+                    <div key={m.id} className="flex flex-col gap-6 p-6 border border-brand-border/30 bg-brand-charcoal-light">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Status</label>
+                          <span className={`font-sans text-sm font-bold ${isCancelled ? 'text-brand-accent-red' : 'text-brand-ivory'}`}>{m.status}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Date</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">{format(new Date(m.date), 'dd MMM yyyy').toUpperCase()}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Time</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">
+                            {format(new Date(m.startTime || m.date), 'hh:mm a')} – {format(new Date(m.endTime || new Date(new Date(m.date).getTime() + (m.durationMinutes||30)*60000)), 'hh:mm a')}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Timezone</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">{m.timezone || 'UTC'}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-brand-border/30 pt-6">
+                         <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Attendee</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">{m.attendeeName}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Email</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">{m.attendeeEmail}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Booking Provider</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">{m.externalProvider || 'CAL.COM'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Conference</label>
+                          <span className="font-sans text-sm text-brand-ivory font-bold">{m.conferenceProvider || (meetUrl ? 'GOOGLE MEET' : 'NONE')}</span>
+                        </div>
+                         <div className="flex flex-col gap-1.5 md:col-span-2">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Meeting Link</label>
+                          <span className="font-mono text-xs text-brand-accent truncate">
+                            {meetUrl ? meetUrl : 'PENDING'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 pt-4">
+                        {(!isCancelled && isReady) ? (
+                          <Button variant="primary" onClick={() => window.open(meetUrl, '_blank', 'noopener,noreferrer')}>JOIN CALL ↗</Button>
+                        ) : (!isCancelled) ? (
+                           <Button variant="outline" disabled>MEETING LINK PENDING</Button>
+                        ) : null}
+                        <Button variant="outline" onClick={() => navigate(`/admin/meetings?id=${m.id}`)}>VIEW IN MEETINGS</Button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </Card>
+          )}
+
           {inq.scopeRequest && (
             <Card className="flex flex-col gap-6">
               <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent border-b border-brand-border pb-2">Configured Scope Request</h2>
@@ -415,70 +492,7 @@ export default function InquiryDetail() {
             </div>
           </Card>
 
-          {!isNew && (
-            <Card className="flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-brand-border pb-2">
-                <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent">Meetings</h2>
-                <Button size="sm" variant="ghost" icon={Calendar} onClick={() => navigate(`/admin/meetings?create=true&inquiryId=${inq.id}`)}>Schedule Call</Button>
-              </div>
-              <div className="py-2 flex flex-col gap-4">
-                {meetings.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center p-6 border border-brand-border/30 bg-brand-charcoal-light gap-3">
-                    <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest text-center">MEETING NOT BOOKED</p>
-                    <div className="flex gap-3 mt-2">
-                      <Button size="sm" variant="outline" icon={Calendar} onClick={() => navigate(`/admin/meetings?create=true&inquiryId=${inq.id}`)}>Schedule Call</Button>
-                      <Button size="sm" variant="outline" icon={Mail} onClick={() => openComposer({ 
-                        to: inq.email || '', 
-                        subject: 'Scheduling our Introduction', 
-                        body: 'Hi ' + (inq.name.split(' ')[0] || '') + ',\n\nPlease pick a time for us to speak here: https://kymrstudio.com/start\n\nThanks,\nKymrStudio'
-                      })}>Send Booking Link</Button>
-                    </div>
-                  </div>
-                ) : (
-                  meetings.map(m => {
-                    const meetUrl = m.meetingUrl || m.meetUrl;
-                    const isReady = m.providerVerified === true && m.isSynthetic !== true && !!meetUrl;
-                    const meetStatus = isReady ? 'READY' : (m.status === 'CANCELLED' ? 'UNAVAILABLE' : 'PENDING');
-                    return (
-                      <div key={m.id} className="flex flex-col p-4 border border-brand-border/30 bg-brand-charcoal-light group gap-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex flex-col">
-                            <span className="font-sans text-sm text-brand-ivory font-bold">{m.title}</span>
-                            <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest mt-1">
-                              {format(new Date(m.date), 'MMM d, yyyy h:mm a')} • {m.durationMinutes || 30} MIN • {m.attendeeName}
-                            </span>
-                          </div>
-                          <Badge variant={m.status === 'COMPLETED' ? 'default' : m.status === 'CANCELLED' ? 'outline' : 'accent'}>
-                            {m.status}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-brand-border/30">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-mono text-[8px] text-brand-muted uppercase tracking-widest">Provider</span>
-                            <span className="font-mono text-[10px] text-brand-ivory uppercase tracking-widest">{m.externalProvider || 'GOOGLE CALENDAR'}</span>
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <span className="font-mono text-[8px] text-brand-muted uppercase tracking-widest">Meet Status</span>
-                            <span className={`font-mono text-[10px] uppercase tracking-widest ${isReady ? 'text-green-400' : 'text-brand-accent'}`}>{meetStatus}</span>
-                          </div>
-                        </div>
 
-                        <div className="flex gap-2 mt-3">
-                          {isReady && m.status !== 'CANCELLED' ? (
-                            <Button size="sm" variant="primary" className="flex-1" onClick={() => window.open(meetUrl, '_blank')}>JOIN CALL</Button>
-                          ) : (
-                            <Button size="sm" variant="outline" disabled className="flex-1 text-[10px]">MEETING LINK PENDING</Button>
-                          )}
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/admin/meetings?id=${m.id}`)}>VIEW MEETING</Button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </Card>
-          )}
 
            {!isNew && (
             <Card className="flex flex-col gap-4">
