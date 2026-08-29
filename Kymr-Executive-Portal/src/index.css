@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-brand-black: #050507;
+  --color-brand-charcoal: #0B0B0D;
+  --color-brand-charcoal-light: #121215;
+  --color-brand-surface: #08080A;
+  --color-brand-surface-highlight: #1A1A1E;
+  --color-brand-ivory: #F1EFE8;
+  --color-brand-accent: #FF2A0A;
+  --color-brand-muted: #A3A19C;
+  --color-brand-muted-dark: #63615E;
+  --color-brand-border: #1C1B1A;
+  --color-brand-border-light: #2A2826;
+
+  --font-display: "Cinzel Decorative", serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: var(--color-brand-black);
+    --foreground: var(--color-brand-ivory);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}

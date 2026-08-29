@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,500&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1350px; overflow: hidden;
+    background: #05050A; color: #F5F5F0;
+    font-family: 'Cabinet Grotesk', sans-serif;
+    position: relative;
+  }
+  .glow {
+    position: absolute; border-radius: 50%;
+    filter: blur(140px); pointer-events: none;
+  }
+  .g1 { width: 900px; height: 900px; left: -300px; top: -350px; background: radial-gradient(circle, rgba(255,42,0,0.13), transparent 70%); }
+  .g2 { width: 700px; height: 700px; right: -250px; bottom: -200px; background: radial-gradient(circle, rgba(255,42,0,0.10), transparent 70%); }
+  .frame-card {
+    position: absolute; overflow: hidden;
+    border: 1px solid rgba(245,245,240,0.18);
+    box-shadow: 0 40px 90px rgba(0,0,0,0.55);
+  }
+  .frame-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .chip {
+    position: absolute; left: 14px; top: 14px; z-index: 2;
+    background: rgba(5,5,5,0.62); padding: 6px 12px;
+    font-size: 15px; letter-spacing: 0.28em; color: rgba(245,245,240,0.85);
+  }
+  .wordmark {
+    font-family: 'Cinzel Decorative', serif; font-weight: 900;
+    font-size: 118px; letter-spacing: 0.02em; line-height: 1; color: #F5F5F0;
+  }
+  .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #FF2A00; margin-left: 10px; vertical-align: 18px; }
+  .serif {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 44px; color: rgba(245,245,240,0.62);
+  }
+  .mono {
+    font-size: 19px; letter-spacing: 0.42em; color: rgba(245,245,240,0.42);
+    text-transform: uppercase;
+  }
+  .ember { color: #FF2A00; }
+  .hairline { width: 340px; height: 1px; background: rgba(245,245,240,0.28); }
+  .vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  }
+</style>
+</head>
+<body>
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+
+  <div style="position:absolute; top:64px; left:0; right:0; display:flex; justify-content:center;">
+    <span class="mono">A living digital world</span>
+  </div>
+
+  <div class="frame-card" style="left:96px; top:220px; width:380px; height:470px; transform:rotate(-5deg);">
+    <span class="chip">SPEC CONCEPT</span>
+    <img src="/ads/fragrance.webp" alt="" />
+  </div>
+  <div class="frame-card" style="right:92px; top:300px; width:390px; height:480px; transform:rotate(4deg);">
+    <span class="chip">SPEC CONCEPT</span>
+    <img src="/ads/audio.webp" alt="" />
+  </div>
+
+  <div style="position:absolute; left:0; right:0; top:820px; display:flex; flex-direction:column; align-items:center; gap:34px;">
+    <div class="wordmark">KYMRSTUDIO<span class="dot"></span></div>
+    <div class="hairline"></div>
+    <div class="serif">we make things people watch.</div>
+  </div>
+
+  <div style="position:absolute; bottom:72px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:20px;">
+    <span class="mono ember">Ads · Motion · Systems</span>
+    <span class="mono" style="color:rgba(245,245,240,0.6);">media@kymrstudio.com</span>
+  </div>
+
+  <div class="vignette"></div>
+</body>
+</html>

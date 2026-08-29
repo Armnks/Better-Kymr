@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSystemAction() {
+      // In a real production environment, you might restrict some actions.
+      // For V1 admin, signed-in users can do all actions.
+      return isSignedIn();
+    }
+
+    // --- Users ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt']) &&
+             data.keys().size() == 3 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.role is string && data.role in ['OWNER', 'ADMIN'] &&
+             data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(userId) && userId == request.auth.uid &&
+                       isValidUser(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(userId) && userId == request.auth.uid &&
+                       isValidUser(incoming()) && incoming().createdAt == existing().createdAt;
+    }
+
+    // --- Inquiries ---
+    function isValidInquiry(data) {
+      return data.keys().hasAll(['name', 'status', 'createdAt', 'updatedAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.status is string && data.status in ["NEW", "QUALIFIED", "CONTACTED", "MEETING", "QUOTED", "WON", "LOST"] &&
+             data.createdAt is timestamp && data.updatedAt is timestamp &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 150)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+             (!('company' in data) || (data.company is string && data.company.size() <= 100)) &&
+             (!('website' in data) || (data.website is string && data.website.size() <= 200)) &&
+             (!('serviceInterest' in data) || (data.serviceInterest is string && data.serviceInterest.size() <= 100)) &&
+             (!('message' in data) || (data.message is string && data.message.size() <= 2000)) &&
+             (!('budgetRange' in data) || (data.budgetRange is string && data.budgetRange.size() <= 50)) &&
+             (!('source' in data) || (data.source is string && data.source.size() <= 50)) &&
+             (!('submissionType' in data) || (data.submissionType is string && data.submissionType.size() <= 50)) &&
+             (!('scopeRequest' in data) || data.scopeRequest is map) &&
+             (!('externalBookingId' in data) || (data.externalBookingId is string && data.externalBookingId.size() <= 100)) &&
+             (!('priority' in data) || (data.priority is string && data.priority in ["LOW", "NORMAL", "HIGH", "URGENT"])) &&
+             (!('ownerId' in data) || (data.ownerId is string && data.ownerId.size() <= 128)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 5000)) &&
+             (!('convertedClientId' in data) || (data.convertedClientId is string && data.convertedClientId.size() <= 128));
+    }
+
+    function isSafePublicInquiry(data) {
+      return isValidInquiry(data) &&
+             data.status == "NEW" &&
+             !('priority' in data) &&
+             !('ownerId' in data) &&
+             !('notes' in data) &&
+             !('convertedClientId' in data);
+    }
+
+    match /inquiries/{inquiryId} {
+      allow read: if isSignedIn();
+      allow create: if (isSignedIn() && isValidId(inquiryId) && isValidInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time) ||
+                       (!isSignedIn() && isValidId(inquiryId) && isSafePublicInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time);
+      allow update: if isSignedIn() && isValidId(inquiryId) &&
+                       isValidInquiry(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time;
+      allow delete: if isSignedIn() && isValidId(inquiryId);
+    }
+
+    // --- Clients ---
+    function isValidClient(data) {
+      return data.keys().hasAll(['name', 'createdAt', 'updatedAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.createdAt is timestamp && data.updatedAt is timestamp &&
+             (!('company' in data) || (data.company is string && data.company.size() <= 100)) &&
+             (!('primaryContact' in data) || (data.primaryContact is string && data.primaryContact.size() <= 100)) &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 150)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+             (!('website' in data) || (data.website is string && data.website.size() <= 200)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 5000));
+    }
+
+    match /clients/{clientId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(clientId) &&
+                       isValidClient(incoming()) && 
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && isValidId(clientId) &&
+                       isValidClient(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time;
+      allow delete: if isSignedIn() && isValidId(clientId);
+    }
+
+    // --- Activity ---
+    function isValidActivity(data) {
+      return data.keys().hasAll(['type', 'actorId', 'entityType', 'entityId', 'description', 'createdAt']) &&
+             data.type is string && data.type.size() <= 50 &&
+             data.actorId is string && data.actorId.size() <= 128 &&
+             data.entityType is string && data.entityType.size() <= 50 &&
+             data.entityId is string && data.entityId.size() <= 128 &&
+             data.description is string && data.description.size() <= 500 &&
+             data.createdAt is timestamp;
+    }
+
+    match /activity/{activityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(activityId) &&
+                       isValidActivity(incoming()) && 
+                       incoming().createdAt == request.time;
+      allow update: if false; // Activity logs are immutable
+      allow delete: if false; // Activity logs are immutable
+    }
+    // --- Meetings ---
+    match /meetings/{meetingId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Projects ---
+    match /projects/{projectId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Tasks ---
+    match /tasks/{taskId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Quotes ---
+    match /quotes/{quoteId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Invoices ---
+    match /invoices/{invoiceId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Catalog Services ---
+    match /catalogServices/{catalogServiceId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Service Categories ---
+    match /serviceCategories/{categoryId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Deliverables ---
+    match /deliverables/{deliverableId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Payments ---
+    match /payments/{paymentId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}
