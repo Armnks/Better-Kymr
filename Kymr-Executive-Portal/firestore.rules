@@ -47,8 +47,9 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Anyone on the team can read team members
-      allow read: if isAuthorized();
+      // Users can always read their own document to check their role.
+      // Anyone on the team can read team members.
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isAuthorized();
       
       // ONLY existing Owners/Admins can create new users, and they cannot create an OWNER.
       // Initial OWNER must be created manually in Firebase Console.
