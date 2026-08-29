@@ -17,7 +17,7 @@ export function EmailComposer({ isOpen, onClose, defaultTo = '', defaultSubject 
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState(defaultBody);
   const [isSending, setIsSending] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<string>('idle');
 
   // Reset internal state when defaults change or modal opens
   React.useEffect(() => {
@@ -46,9 +46,22 @@ export function EmailComposer({ isOpen, onClose, defaultTo = '', defaultSubject 
         setSubject('');
         setTo('');
       }, 1500);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setStatus('error');
+      let errorMsg = 'MESSAGE FAILED TO SEND';
+      if (e?.result?.error?.message) {
+        errorMsg = e.result.error.message.toUpperCase();
+      } else if (e.message) {
+        if (e.message === 'Not authorized') errorMsg = 'WORKSPACE DISCONNECTED';
+        else errorMsg = e.message.toUpperCase();
+      }
+      
+      // If we see insufficient permissions or auth errors
+      if (errorMsg.includes('PERMISSION') || errorMsg.includes('INSUFFICIENT')) {
+        errorMsg = 'PERMISSION REQUIRED - RECONNECT WORKSPACE';
+      }
+      
+      setStatus(errorMsg as any);
     } finally {
       setIsSending(false);
     }
@@ -106,7 +119,7 @@ export function EmailComposer({ isOpen, onClose, defaultTo = '', defaultSubject 
         <div className="p-4 border-t border-brand-border flex items-center justify-between bg-brand-surface">
           <div>
             {status === 'success' && <span className="text-xs text-brand-accent font-mono uppercase">Sent successfully</span>}
-            {status === 'error' && <span className="text-xs text-red-500 font-mono uppercase">Send failed</span>}
+            {status !== 'idle' && status !== 'success' && <span className="text-xs text-red-500 font-mono uppercase">{status}</span>}
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={onClose} disabled={isSending}>Discard</Button>

@@ -152,20 +152,31 @@ export default function Quotes() {
     });
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSave = async (status: Quote['status'] = 'DRAFT') => {
     if (!formState.clientId && !formState.inquiryId) return; // Need a recipient
+    if (isSaving) return;
     
-    const dataToSave = { ...formState, status } as Omit<Quote, 'id'|'createdAt'|'updatedAt'>;
-    
-    if (selectedQuote) {
-      await api.updateQuote(selectedQuote.id!, dataToSave);
-      await api.logActivity({ actorId: 'admin', entityType: 'Quote', entityId: selectedQuote.id!, type: 'QUOTE_UPDATED', description: `Updated quote: ${dataToSave.title}` });
-    } else {
-      const id = await api.createQuote(dataToSave);
-      await api.logActivity({ actorId: 'admin', entityType: 'Quote', entityId: id, type: 'QUOTE_CREATED', description: `Created quote: ${dataToSave.title}` });
+    setIsSaving(true);
+    try {
+      const dataToSave = { ...formState, status } as Omit<Quote, 'id'|'createdAt'|'updatedAt'>;
+      
+      if (selectedQuote) {
+        await api.updateQuote(selectedQuote.id!, dataToSave);
+        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: selectedQuote.id!, type: 'QUOTE_UPDATED', description: `Updated quote: ${dataToSave.title}` });
+      } else {
+        const id = await api.createQuote(dataToSave);
+        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: id, type: 'QUOTE_CREATED', description: `Created quote: ${dataToSave.title}` });
+      }
+      closeBuilder();
+      load();
+    } catch (e) {
+      console.error('Failed to save quote', e);
+      alert('Failed to save quote');
+    } finally {
+      setIsSaving(false);
     }
-    closeBuilder();
-    load();
   };
 
   const closeBuilder = () => {

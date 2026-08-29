@@ -8,6 +8,7 @@ import { Button, Input, Badge } from '../components/ui/DesignSystem';
 import { createCalendarEvent, createMeetSpace } from '../lib/google';
 import { useGoogle } from '../contexts/GoogleContext';
 import { format } from 'date-fns';
+import { getMeetingJoinState } from '../lib/meetings';
 
 export default function Meetings() {
   const [searchParams] = useSearchParams();
@@ -253,13 +254,20 @@ export default function Meetings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {m.meetUrl ? (
-                        <button className="bg-brand-ivory text-black p-2 rounded-sm hover:bg-brand-accent hover:text-white transition-colors" title="Join Call">
-                          <Video className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <span className="font-mono text-[9px] text-brand-muted-dark uppercase tracking-widest border border-brand-border px-2 py-1">Link Pending</span>
-                      )}
+                      {(() => {
+                        const { canJoin, label } = getMeetingJoinState(m);
+                        if (canJoin) {
+                          return (
+                            <button className="bg-brand-ivory text-black p-2 rounded-sm hover:bg-brand-accent hover:text-white transition-colors" title={label} onClick={(e) => { e.stopPropagation(); window.open(m.meetUrl, '_blank'); }}>
+                              <Video className="w-4 h-4" />
+                            </button>
+                          );
+                        } else {
+                          return (
+                            <span className="font-mono text-[9px] text-brand-muted-dark uppercase tracking-widest border border-brand-border px-2 py-1">{label}</span>
+                          );
+                        }
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -367,13 +375,22 @@ export default function Meetings() {
                       
                       {selectedMeeting && (
                         <div className="grid grid-cols-2 gap-2">
-                          {selectedMeeting.meetUrl ? (
-                            <Button variant="primary" onClick={() => window.open(selectedMeeting.meetUrl, '_blank')} className="text-[10px] h-8 col-span-2" icon={Video}>Join Call</Button>
-                          ) : isAuthorized ? (
-                            <Button variant="outline" onClick={handleGenerateMeet} className="text-[10px] h-8 col-span-2 border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-black" icon={Video}>Generate Instant Meet Link</Button>
-                          ) : (
-                            <div className="col-span-2 font-mono text-[9px] uppercase tracking-widest text-center border border-brand-border py-2 text-brand-muted-dark">Link Pending (Calendar Not Connected)</div>
-                          )}
+                          {(() => {
+                            const { canJoin, label } = getMeetingJoinState(selectedMeeting);
+                            if (canJoin) {
+                              return (
+                                <Button variant="primary" onClick={() => window.open(selectedMeeting.meetUrl, '_blank')} className="text-[10px] h-8 col-span-2" icon={Video}>{label}</Button>
+                              );
+                            } else if (isAuthorized && !selectedMeeting.meetUrl) {
+                              return (
+                                <Button variant="outline" onClick={handleGenerateMeet} className="text-[10px] h-8 col-span-2 border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-black" icon={Video}>Generate Instant Meet Link</Button>
+                              );
+                            } else {
+                              return (
+                                <div className="font-mono text-[9px] text-brand-muted-dark uppercase tracking-widest border border-brand-border px-3 py-2 text-center col-span-2">{label}</div>
+                              );
+                            }
+                          })()}
                           {selectedMeeting.status === 'PENDING' && (
                             <>
                               <Button variant="outline" onClick={() => updateStatus(selectedMeeting, 'COMPLETED')} className="text-[10px] h-8 border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-black">Mark Complete</Button>

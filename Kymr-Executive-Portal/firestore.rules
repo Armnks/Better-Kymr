@@ -151,8 +151,26 @@ service cloud.firestore {
       allow delete: if false; // Activity logs are immutable
     }
 
-    // --- Other CRM Collections ---
-    match /meetings/{id} { allow read, write: if isAuthorized(); }
+    // --- Meetings (Trust Boundary) ---
+    function trustFieldsUnchanged() {
+      return (!('providerVerified' in incoming()) || incoming().providerVerified == existing().providerVerified) &&
+             (!('isSynthetic' in incoming()) || incoming().isSynthetic == existing().isSynthetic) &&
+             (!('source' in incoming()) || incoming().source == existing().source) &&
+             (!('externalProvider' in incoming()) || incoming().externalProvider == existing().externalProvider) &&
+             (!('externalBookingId' in incoming()) || incoming().externalBookingId == existing().externalBookingId);
+    }
+    
+    function isValidMeetingCreate() {
+      return (!('providerVerified' in incoming()) || incoming().providerVerified == false) &&
+             (!('isSynthetic' in incoming()) || incoming().isSynthetic == false);
+    }
+
+    match /meetings/{id} { 
+      allow read: if isAuthorized();
+      allow create: if isAuthorized() && isValidMeetingCreate();
+      allow update: if isAuthorized() && trustFieldsUnchanged();
+      allow delete: if isAuthorized();
+    }
     match /projects/{id} { allow read, write: if isAuthorized(); }
     match /tasks/{id} { allow read, write: if isAuthorized(); }
     match /quotes/{id} { allow read, write: if isAuthorized(); }

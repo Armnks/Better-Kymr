@@ -324,11 +324,36 @@ app.post('/api/webhooks/calcom', async (req, res) => {
         externalProvider: 'CAL.COM',
         inquiryId: relatedInquiryId,
         clientId: relatedClientId,
+        providerVerified: true,
+        source: 'CAL.COM',
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       };
 
       await db.collection('meetings').add(meetingData);
+    } else if (eventType === 'BOOKING_CANCELLED') {
+      const externalId = payload.uid || payload.id;
+      if (externalId) {
+        const existingMeeting = await db.collection('meetings').where('externalBookingId', '==', externalId).get();
+        if (!existingMeeting.empty) {
+          await existingMeeting.docs[0].ref.update({
+            status: 'CANCELLED',
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+      }
+    } else if (eventType === 'BOOKING_RESCHEDULED') {
+      const externalId = payload.uid || payload.id;
+      if (externalId) {
+        const existingMeeting = await db.collection('meetings').where('externalBookingId', '==', externalId).get();
+        if (!existingMeeting.empty) {
+          await existingMeeting.docs[0].ref.update({
+            date: Timestamp.fromDate(new Date(payload.startTime)),
+            meetUrl: payload.metadata?.videoCallUrl || payload.videoCallData?.url || existingMeeting.docs[0].data().meetUrl,
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+      }
     }
 
     return res.status(200).json({ success: true });

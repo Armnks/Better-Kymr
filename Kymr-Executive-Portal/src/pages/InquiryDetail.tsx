@@ -187,7 +187,20 @@ export default function InquiryDetail() {
             <Button 
               variant="outline" 
               icon={Mail} 
-              onClick={() => openComposer({ to: inq.email })}
+              onClick={() => openComposer({ 
+                to: inq.email,
+                onSuccess: async () => {
+                  try {
+                    await api.logActivity({
+                      type: 'EMAIL_SENT',
+                      actorId: 'system',
+                      entityType: 'INQUIRY',
+                      entityId: inq.id!,
+                      description: `Sent email to ${inq.email}`
+                    });
+                  } catch (e) { console.error(e); }
+                }
+              })}
             >
               Email
             </Button>

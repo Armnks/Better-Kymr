@@ -67,6 +67,9 @@ export interface Meeting {
   calendarEventId?: string;
   relatedId?: string; // inquiryId or clientId
   relatedType?: "INQUIRY" | "CLIENT" | "PROJECT";
+  isSynthetic?: boolean;
+  providerVerified?: boolean;
+  source?: string;
   createdAt: Date;
   updatedAt: Date;
 }
