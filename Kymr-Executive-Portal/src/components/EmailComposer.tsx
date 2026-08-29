@@ -38,7 +38,7 @@ export function EmailComposer({ isOpen, onClose, defaultTo = '', defaultSubject 
     try {
       await sendEmail(to, subject, body);
       setStatus('success');
-      if (onSuccess) onSuccess();
+      if (onSuccess) await onSuccess();
       setTimeout(() => {
         onClose();
         setStatus('idle');

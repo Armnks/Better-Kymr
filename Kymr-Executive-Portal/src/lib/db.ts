@@ -5,6 +5,24 @@ import { handleFirestoreError, OperationType } from './errors';
 
 const toDate = (timestamp: any) => timestamp?.toDate() || new Date();
 
+export const cleanFirestorePayload = (obj: any): any => {
+  if (obj === null || obj === undefined) return obj;
+  if (obj instanceof Date || obj instanceof Timestamp) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanFirestorePayload(item));
+  }
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const key of Object.keys(obj)) {
+      if (obj[key] !== undefined) {
+        cleaned[key] = cleanFirestorePayload(obj[key]);
+      }
+    }
+    return cleaned;
+  }
+  return obj;
+};
+
 export const api = {
   // --- INQUIRIES ---
   getInquiries: async (): Promise<Inquiry[]> => {
@@ -279,8 +297,9 @@ export const api = {
   createQuote: async (data: Omit<any, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
     try {
       const newRef = doc(collection(db, 'quotes'));
+      const safeData = cleanFirestorePayload(data);
       await setDoc(newRef, {
-        ...data,
+        ...safeData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -293,8 +312,9 @@ export const api = {
 
   updateQuote: async (id: string, data: Partial<any>): Promise<void> => {
     try {
+      const safeData = cleanFirestorePayload(data);
       await updateDoc(doc(db, 'quotes', id), {
-        ...data,
+        ...safeData,
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
