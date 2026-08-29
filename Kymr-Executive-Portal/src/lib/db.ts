@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp, DocumentData, writeBatch } from 'firebase/firestore';
 import { Inquiry, Client, ActivityEvent, InquiryStatus } from '../types';
 import { handleFirestoreError, OperationType } from './errors';
