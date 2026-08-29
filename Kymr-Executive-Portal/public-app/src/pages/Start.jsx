@@ -228,7 +228,7 @@ export default function Start() {
         meeting,
         message: details.message || "",
         source: "website",
-        submissionType: meeting ? "BOOKING" : "CONFIGURED_SCOPE"
+        submissionType: meeting?.booked ? "BOOKING" : "CONFIGURED_SCOPE"
       }, {
         headers: {
           "Idempotency-Key": idempotencyKeyRef.current
@@ -240,7 +240,11 @@ export default function Start() {
         setBookingState("rate-limited");
         alert("Too many requests. Please try again shortly.");
       } else {
-        setBookingState("submit-failed");
+        if (meeting?.booked) {
+          setBookingState("crm-failed");
+        } else {
+          setBookingState("submit-failed");
+        }
       }
       submittedRef.current = false;
     } finally {
@@ -621,6 +625,11 @@ export default function Start() {
               {bookingState === "submit-failed" && (
                 <p data-testid="submit-error" className="mt-4 font-mono text-[10px] tracking-[0.3em] text-ember">
                   TRANSMISSION FAILED — TRY AGAIN OR EMAIL media@kymrstudio.com
+                </p>
+              )}
+              {bookingState === "crm-failed" && (
+                <p data-testid="crm-warning" className="mt-4 font-mono text-[10px] tracking-[0.3em] text-white/70">
+                  MEETING CONFIRMED. INTERNAL SCOPE TRANSMISSION DELAYED — WE HAVE YOUR MEETING ON CALENDAR.
                 </p>
               )}
               <div className="mt-10 flex flex-wrap items-center gap-8">
