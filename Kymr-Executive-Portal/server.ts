@@ -9,20 +9,43 @@ import { getFirestore, Firestore, FieldValue, Timestamp } from 'firebase-admin/f
 // Initialize Firebase Admin
 let db: Firestore | null = null;
 try {
+  let hasCredentials = false;
+  let initConfig: any = {
+    projectId: 'gen-lang-client-0467065981'
+  };
+
+  // 1. Explicit Service Account (Primary for Vercel/Local)
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-    initializeApp({
-      credential: cert(serviceAccount)
-    });
-  } else {
-    initializeApp({
-      projectId: 'gen-lang-client-0467065981'
-    });
+    try {
+      // Safely parse JSON and handle newlines in private key
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      }
+      initConfig.credential = cert(serviceAccount);
+      hasCredentials = true;
+    } catch (e) {
+      console.warn('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Ensure it is valid JSON.');
+    }
+  } 
+  // 2. Explicit ADC File Path (Standard Local GCP Tooling)
+  else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    hasCredentials = true;
   }
-  // FIX: Prompt 4A Correction - Using canonical named database as instructed
-  db = getFirestore('ai-studio-remixremixkymrst-beeda92b-77a0-4bfa-a083-53618ab3416e');
+  // 3. Managed Google Cloud Environment (Cloud Run, Functions, App Engine)
+  else if (process.env.K_SERVICE || process.env.FUNCTION_TARGET || process.env.GOOGLE_CLOUD_PROJECT) {
+    hasCredentials = true;
+  }
+
+  if (hasCredentials) {
+    initializeApp(initConfig);
+    // Use canonical named database as instructed
+    db = getFirestore('ai-studio-remixremixkymrst-beeda92b-77a0-4bfa-a083-53618ab3416e');
+  } else {
+    console.warn('Firebase Admin init skipped: No valid server credentials found (ADC missing and FIREBASE_SERVICE_ACCOUNT_KEY not set). Backend CRM features will return 500.');
+  }
 } catch (e) {
-  console.warn('Firebase Admin init warning:', e);
+  console.warn('Firebase Admin init error:', e);
 }
 
 const app = express();
