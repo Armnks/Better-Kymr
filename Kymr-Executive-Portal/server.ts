@@ -247,6 +247,29 @@ app.post('/api/public/inquiries', rateLimiter, async (req, res) => {
 
     const docRef = await db.collection('inquiries').add(payload);
 
+    // FIX: Race condition where webhook arrives before inquiry creation
+    if (externalBookingId && typeof externalBookingId === 'string') {
+      const existingMeetingSnapshot = await db.collection('meetings').where('externalBookingId', '==', externalBookingId).limit(1).get();
+      if (!existingMeetingSnapshot.empty) {
+        const meetingDoc = existingMeetingSnapshot.docs[0];
+        const meetingData = meetingDoc.data();
+        
+        await docRef.update({
+          status: 'MEETING',
+          meetingStatus: 'BOOKED',
+          meetingDate: meetingData.date || meetingData.startTime,
+          meetingProvider: 'CAL.COM',
+          meetingMeetUrl: meetingData.meetUrl || null,
+          updatedAt: FieldValue.serverTimestamp()
+        });
+
+        await meetingDoc.ref.update({
+          inquiryId: docRef.id,
+          updatedAt: FieldValue.serverTimestamp()
+        });
+      }
+    }
+
     if (idempotencyKey && db) {
       await db.collection('idempotency_keys').doc(idempotencyKey).update({
         inquiryId: docRef.id,

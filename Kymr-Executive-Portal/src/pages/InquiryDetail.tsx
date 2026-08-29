@@ -437,7 +437,7 @@ export default function InquiryDetail() {
                 ) : (
                   meetings.map(m => {
                     const meetUrl = m.meetingUrl || m.meetUrl;
-                    const isReady = m.providerVerified && meetUrl;
+                    const isReady = m.providerVerified === true && m.isSynthetic !== true && !!meetUrl;
                     const meetStatus = isReady ? 'READY' : (m.status === 'CANCELLED' ? 'UNAVAILABLE' : 'PENDING');
                     return (
                       <div key={m.id} className="flex flex-col p-4 border border-brand-border/30 bg-brand-charcoal-light group gap-3">
