@@ -1,6 +1,6 @@
 export type InquiryStatus = "NEW" | "QUALIFIED" | "CONTACTED" | "MEETING" | "QUOTED" | "WON" | "LOST";
 export type Priority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
-export type MeetingStatus = "PENDING" | "COMPLETED" | "CANCELLED";
+export type MeetingStatus = "PENDING" | "SCHEDULED" | "RESCHEDULED" | "COMPLETED" | "CANCELLED";
 export type QuoteStatus = "DRAFT" | "READY" | "SENT" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "VOID";
 export type ProjectStatus = "PLANNING" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD";
 export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
@@ -61,16 +61,34 @@ export interface Meeting {
   id?: string;
   title: string;
   date: Date;
+  startTime?: Date;
+  endTime?: Date;
   durationMinutes: number;
+  timezone?: string;
   attendeeName: string;
   attendeeEmail: string;
+  attendeePhone?: string;
   attendeeCompany?: string;
+  hostName?: string;
+  hostEmail?: string;
+  description?: string;
+  location?: string;
   status: MeetingStatus;
   notes?: string;
   meetUrl?: string;
+  meetingUrl?: string; // Standardized link field
+  conferenceProvider?: string;
   calendarEventId?: string;
-  relatedId?: string; // inquiryId or clientId
+  inquiryId?: string;
+  clientId?: string;
+  projectId?: string;
+  relatedId?: string; // legacy fallback
   relatedType?: "INQUIRY" | "CLIENT" | "PROJECT";
+  externalProvider?: string;
+  externalBookingId?: string;
+  bookingUid?: string;
+  eventTypeId?: string | number;
+  eventTypeTitle?: string;
   isSynthetic?: boolean;
   providerVerified?: boolean;
   source?: string;

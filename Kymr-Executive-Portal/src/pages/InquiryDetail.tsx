@@ -419,23 +419,62 @@ export default function InquiryDetail() {
             <Card className="flex flex-col gap-4">
               <div className="flex items-center justify-between border-b border-brand-border pb-2">
                 <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent">Meetings</h2>
-                <Button size="sm" variant="ghost" icon={Calendar} onClick={() => navigate(`/admin/meetings?create=true&inquiryId=${inq.id}`)}>Schedule</Button>
+                <Button size="sm" variant="ghost" icon={Calendar} onClick={() => navigate(`/admin/meetings?create=true&inquiryId=${inq.id}`)}>Schedule Call</Button>
               </div>
-              <div className="py-2 flex flex-col gap-2">
+              <div className="py-2 flex flex-col gap-4">
                 {meetings.length === 0 ? (
-                  <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest text-center">No meetings scheduled</p>
-                ) : (
-                  meetings.map(m => (
-                    <div key={m.id} className="flex justify-between items-center p-3 border border-brand-border/30 bg-brand-charcoal-light group cursor-pointer hover:border-brand-accent transition-colors" onClick={() => navigate(`/admin/meetings?id=${m.id}`)}>
-                      <div className="flex flex-col">
-                        <span className="font-sans text-sm text-brand-ivory font-bold">{m.title}</span>
-                        <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{format(new Date(m.date), 'MMM d, yyyy h:mm a')}</span>
-                      </div>
-                      <Badge variant={m.status === 'COMPLETED' ? 'default' : m.status === 'CANCELED' ? 'outline' : 'accent'}>
-                        {m.status}
-                      </Badge>
+                  <div className="flex flex-col items-center justify-center p-6 border border-brand-border/30 bg-brand-charcoal-light gap-3">
+                    <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest text-center">MEETING NOT BOOKED</p>
+                    <div className="flex gap-3 mt-2">
+                      <Button size="sm" variant="outline" icon={Calendar} onClick={() => navigate(`/admin/meetings?create=true&inquiryId=${inq.id}`)}>Schedule Call</Button>
+                      <Button size="sm" variant="outline" icon={Mail} onClick={() => openComposer({ 
+                        to: inq.email || '', 
+                        subject: 'Scheduling our Introduction', 
+                        body: 'Hi ' + (inq.name.split(' ')[0] || '') + ',\n\nPlease pick a time for us to speak here: https://kymrstudio.com/start\n\nThanks,\nKymrStudio'
+                      })}>Send Booking Link</Button>
                     </div>
-                  ))
+                  </div>
+                ) : (
+                  meetings.map(m => {
+                    const meetUrl = m.meetingUrl || m.meetUrl;
+                    const isReady = m.providerVerified && meetUrl;
+                    const meetStatus = isReady ? 'READY' : (m.status === 'CANCELLED' ? 'UNAVAILABLE' : 'PENDING');
+                    return (
+                      <div key={m.id} className="flex flex-col p-4 border border-brand-border/30 bg-brand-charcoal-light group gap-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex flex-col">
+                            <span className="font-sans text-sm text-brand-ivory font-bold">{m.title}</span>
+                            <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest mt-1">
+                              {format(new Date(m.date), 'MMM d, yyyy h:mm a')} • {m.durationMinutes || 30} MIN • {m.attendeeName}
+                            </span>
+                          </div>
+                          <Badge variant={m.status === 'COMPLETED' ? 'default' : m.status === 'CANCELLED' ? 'outline' : 'accent'}>
+                            {m.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-brand-border/30">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[8px] text-brand-muted uppercase tracking-widest">Provider</span>
+                            <span className="font-mono text-[10px] text-brand-ivory uppercase tracking-widest">{m.externalProvider || 'GOOGLE CALENDAR'}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[8px] text-brand-muted uppercase tracking-widest">Meet Status</span>
+                            <span className={`font-mono text-[10px] uppercase tracking-widest ${isReady ? 'text-green-400' : 'text-brand-accent'}`}>{meetStatus}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-3">
+                          {isReady && m.status !== 'CANCELLED' ? (
+                            <Button size="sm" variant="primary" className="flex-1" onClick={() => window.open(meetUrl, '_blank')}>JOIN CALL</Button>
+                          ) : (
+                            <Button size="sm" variant="outline" disabled className="flex-1 text-[10px]">MEETING LINK PENDING</Button>
+                          )}
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/admin/meetings?id=${m.id}`)}>VIEW MEETING</Button>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </Card>

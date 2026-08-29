@@ -9,6 +9,8 @@ import { createCalendarEvent, createMeetSpace } from '../lib/google';
 import { useGoogle } from '../contexts/GoogleContext';
 import { format } from 'date-fns';
 import { getMeetingJoinState } from '../lib/meetings';
+import { db } from '../lib/firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 export default function Meetings() {
   const [searchParams] = useSearchParams();
@@ -41,7 +43,45 @@ export default function Meetings() {
   });
 
   useEffect(() => {
+    let unsubscribe = () => {};
+    async function load() {
+      setLoading(true);
+      
+      // Subscribe to real-time meetings
+      const q = query(collection(db, 'meetings'), orderBy('date', 'asc'));
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const meets = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            date: data.date?.toDate ? data.date.toDate() : new Date(data.date),
+            startTime: data.startTime?.toDate ? data.startTime.toDate() : undefined,
+            endTime: data.endTime?.toDate ? data.endTime.toDate() : undefined,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
+          } as Meeting;
+        });
+        setMeetings(meets);
+        setLoading(false);
+      });
+
+      const [cls, inqs, qs, projs, invs] = await Promise.all([
+        api.getClients(),
+        api.getInquiries(),
+        api.getQuotes(),
+        api.getProjects(),
+        api.getInvoices()
+      ]);
+      
+      setClients(cls || []);
+      setInquiries(inqs || []);
+      setQuotes(qs || []);
+      setProjects(projs || []);
+      setInvoices(invs || []);
+    }
     load();
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -51,25 +91,6 @@ export default function Meetings() {
       handlePrefill();
     }
   }, [isCreating, prefillInquiryId, prefillClientId]);
-
-  async function load() {
-    setLoading(true);
-    const [meets, cls, inqs, qs, projs, invs] = await Promise.all([
-      api.getMeetings(),
-      api.getClients(),
-      api.getInquiries(),
-      api.getQuotes(),
-      api.getProjects(),
-      api.getInvoices()
-    ]);
-    setMeetings(meets || []);
-    setClients(cls || []);
-    setInquiries(inqs || []);
-    setQuotes(qs || []);
-    setProjects(projs || []);
-    setInvoices(invs || []);
-    setLoading(false);
-  }
 
   async function handlePrefill() {
     if (prefillInquiryId) {
@@ -253,25 +274,51 @@ export default function Meetings() {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-sans text-sm font-bold text-brand-ivory group-hover:text-brand-accent transition-colors">{m.title}</span>
                       </div>
-                      <div className="font-mono text-[10px] text-brand-muted uppercase tracking-widest">
-                        {m.date.toLocaleDateString()} at {m.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {m.durationMinutes} min
+                      <div className="font-mono text-[10px] text-brand-muted uppercase tracking-widest flex items-center gap-2">
+                        <span>{m.date.toLocaleDateString()}</span>
+                        <span>•</span>
+                        <span>
+                          {m.startTime ? m.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : m.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {m.endTime ? ` - ${m.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+                        </span>
+                        <span>•</span>
+                        <span>{m.durationMinutes} min</span>
+                        {m.timezone && (
+                          <>
+                            <span>•</span>
+                            <span>{m.timezone}</span>
+                          </>
+                        )}
+                        {m.externalProvider === 'CAL.COM' && (
+                          <>
+                            <span>•</span>
+                            <span className="text-brand-accent">Cal.com</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="font-mono text-[10px] text-brand-muted uppercase tracking-widest mt-1">
+                        Attendee: {m.attendeeName} ({m.attendeeEmail}) {m.attendeePhone ? `• ${m.attendeePhone}` : ''}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {(() => {
-                        const { canJoin, label } = getMeetingJoinState(m);
-                        if (canJoin) {
-                          return (
-                            <button className="bg-brand-ivory text-black p-2 rounded-sm hover:bg-brand-accent hover:text-white transition-colors" title={label} onClick={(e) => { e.stopPropagation(); window.open(m.meetUrl, '_blank'); }}>
-                              <Video className="w-4 h-4" />
-                            </button>
-                          );
-                        } else {
-                          return (
-                            <span className="font-mono text-[9px] text-brand-muted-dark uppercase tracking-widest border border-brand-border px-2 py-1">{label}</span>
-                          );
-                        }
-                      })()}
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant={m.status === 'RESCHEDULED' ? 'warning' : 'default'}>{m.status}</Badge>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const { canJoin, label } = getMeetingJoinState(m);
+                          if (canJoin && m.status !== 'CANCELLED') {
+                            return (
+                              <button className="bg-brand-ivory text-black px-3 py-1.5 rounded-sm hover:bg-brand-accent hover:text-white transition-colors flex items-center gap-2" title={label} onClick={(e) => { e.stopPropagation(); window.open(m.meetingUrl || m.meetUrl, '_blank'); }}>
+                                <Video className="w-3 h-3" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest">JOIN CALL</span>
+                              </button>
+                            );
+                          } else {
+                            return (
+                              <span className="font-mono text-[9px] text-brand-muted-dark uppercase tracking-widest border border-brand-border px-2 py-1">MEETING LINK PENDING</span>
+                            );
+                          }
+                        })()}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -445,6 +492,30 @@ export default function Meetings() {
                           <label className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-2">Notes</label>
                           <textarea value={formState.notes || ''} onChange={e => setFormState({...formState, notes: e.target.value})} className="w-full bg-brand-black border border-brand-border text-brand-ivory px-3 py-2 text-sm focus:outline-none focus:border-brand-accent min-h-[120px]" placeholder="Agenda, talking points..." />
                         </div>
+                        
+                        {formState.externalProvider === 'CAL.COM' && (
+                          <div className="mt-4 p-4 border border-brand-border bg-brand-surface">
+                            <h3 className="font-mono text-[10px] uppercase tracking-widest text-brand-muted mb-3">Booking Provider Details</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <span className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-1">Provider</span>
+                                <span className="font-sans text-sm text-brand-ivory">{formState.externalProvider}</span>
+                              </div>
+                              {formState.bookingUid && (
+                                <div>
+                                  <span className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-1">Booking UID</span>
+                                  <span className="font-sans text-sm text-brand-ivory">{formState.bookingUid}</span>
+                                </div>
+                              )}
+                              {formState.conferenceProvider && (
+                                <div className="col-span-2">
+                                  <span className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-1">Conference Provider</span>
+                                  <span className="font-sans text-sm text-brand-ivory">{formState.conferenceProvider}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

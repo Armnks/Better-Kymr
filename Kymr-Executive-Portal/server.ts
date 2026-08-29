@@ -302,6 +302,7 @@ app.post('/api/webhooks/calcom', async (req, res) => {
     if (eventType === 'BOOKING_CREATED') {
       const attendeeEmail = payload.attendees?.[0]?.email?.toLowerCase();
       const attendeeName = payload.attendees?.[0]?.name;
+      const attendeePhone = payload.responses?.phone || payload.attendees?.[0]?.timeZone || null; // usually in responses or metadata, but let's grab if available
       const externalId = payload.uid || payload.id;
       
       const existingMeeting = await db.collection('meetings').where('externalBookingId', '==', externalId).get();
@@ -312,7 +313,16 @@ app.post('/api/webhooks/calcom', async (req, res) => {
       let relatedInquiryId = null;
       let relatedClientId = null;
 
-      if (attendeeEmail) {
+      // Primary linkage: Use externalBookingId matching
+      if (externalId) {
+        const inquiryByUid = await db.collection('inquiries').where('externalBookingId', '==', externalId).limit(1).get();
+        if (!inquiryByUid.empty) {
+          relatedInquiryId = inquiryByUid.docs[0].id;
+        }
+      }
+
+      // Fallback linkage: Email
+      if (!relatedInquiryId && attendeeEmail) {
         const clientsSnapshot = await db.collection('clients').where('email', '==', attendeeEmail).limit(1).get();
         if (!clientsSnapshot.empty) {
           relatedClientId = clientsSnapshot.docs[0].id;
@@ -324,19 +334,36 @@ app.post('/api/webhooks/calcom', async (req, res) => {
         }
       }
 
+      // Safe meeting URL extraction
+      const meetingUrl = payload.metadata?.videoCallUrl || payload.videoCallUrl || payload.location || '';
+      
       const meetingData = {
         title: payload.title || 'Scheduled Meeting',
+        description: payload.description || '',
         date: Timestamp.fromDate(new Date(payload.startTime)),
+        startTime: Timestamp.fromDate(new Date(payload.startTime)),
+        endTime: Timestamp.fromDate(new Date(payload.endTime)),
         durationMinutes: payload.duration || 30,
+        timezone: payload.metadata?.timezone || payload.attendees?.[0]?.timeZone || 'UTC',
         attendeeName: attendeeName || 'Guest',
         attendeeEmail: attendeeEmail || '',
+        attendeePhone: payload.responses?.phone || '',
+        hostName: payload.user?.name || payload.organizer?.name || '',
+        hostEmail: payload.user?.email || payload.organizer?.email || '',
         status: 'SCHEDULED',
-        meetUrl: payload.metadata?.videoCallUrl || payload.videoCallData?.url || '',
+        meetUrl: meetingUrl,
+        meetingUrl: meetingUrl,
+        location: payload.location || '',
+        conferenceProvider: payload.metadata?.videoCallUrl ? 'Google Meet / Cal Video' : '',
         externalBookingId: externalId,
+        bookingUid: payload.uid,
+        eventTypeId: payload.eventTypeId,
+        eventTypeTitle: payload.type || '',
         externalProvider: 'CAL.COM',
         inquiryId: relatedInquiryId,
         clientId: relatedClientId,
         providerVerified: true,
+        isSynthetic: false,
         source: 'CAL.COM',
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
@@ -350,7 +377,7 @@ app.post('/api/webhooks/calcom', async (req, res) => {
           meetingStatus: 'BOOKED',
           meetingDate: meetingData.date,
           meetingProvider: 'CAL.COM',
-          meetingMeetUrl: meetingData.meetUrl || null,
+          meetingMeetUrl: meetingUrl || null,
           updatedAt: FieldValue.serverTimestamp()
         });
         
@@ -396,6 +423,10 @@ app.post('/api/webhooks/calcom', async (req, res) => {
               description: 'Meeting cancelled via Cal.com',
               timestamp: FieldValue.serverTimestamp()
             });
+            await db.collection('inquiries').doc(data.inquiryId).update({
+              meetingStatus: 'CANCELLED',
+              updatedAt: FieldValue.serverTimestamp()
+            });
           }
         }
       }
@@ -405,9 +436,15 @@ app.post('/api/webhooks/calcom', async (req, res) => {
         const existingMeeting = await db.collection('meetings').where('externalBookingId', '==', externalId).get();
         if (!existingMeeting.empty) {
           const doc = existingMeeting.docs[0];
+          const meetingUrl = payload.metadata?.videoCallUrl || payload.videoCallUrl || payload.location || doc.data().meetUrl;
           await doc.ref.update({
+            status: 'RESCHEDULED',
             date: Timestamp.fromDate(new Date(payload.startTime)),
-            meetUrl: payload.metadata?.videoCallUrl || payload.videoCallData?.url || doc.data().meetUrl,
+            startTime: Timestamp.fromDate(new Date(payload.startTime)),
+            endTime: Timestamp.fromDate(new Date(payload.endTime)),
+            timezone: payload.metadata?.timezone || payload.attendees?.[0]?.timeZone || doc.data().timezone || 'UTC',
+            meetUrl: meetingUrl,
+            meetingUrl: meetingUrl,
             updatedAt: FieldValue.serverTimestamp()
           });
           const data = doc.data();
