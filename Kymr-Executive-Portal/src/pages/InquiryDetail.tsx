@@ -103,37 +103,16 @@ export default function InquiryDetail() {
 
   const convertToClient = async () => {
     if (!inq || !inq.id) return;
+    if (saving) return; // Prevent double-click
     if (!window.confirm("Convert this inquiry to a persistent Client record?")) return;
     
     setSaving(true);
     try {
-      const clientId = await api.createClient({
-        name: inq.company || inq.name,
-        primaryContact: inq.name,
-        company: inq.company,
-        email: inq.email,
-        phone: inq.phone,
-        website: inq.website,
-        notes: `Converted from Inquiry: ${inq.id}`
-      });
-
-      await api.updateInquiry(inq.id, { 
-        status: 'WON',
-        convertedClientId: clientId
-      });
-
-      await api.logActivity({
-        type: 'INQUIRY_CONVERTED',
-        actorId: 'system',
-        entityType: 'CLIENT',
-        entityId: clientId,
-        description: `Converted inquiry ${inq.name} to new client`
-      });
-
+      const clientId = await api.convertInquiryToClient(inq);
       navigate(`/admin/clients/${clientId}`);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Conversion failed.");
+      alert(`Conversion failed: ${e.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }

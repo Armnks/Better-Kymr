@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp, DocumentData } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp, DocumentData, writeBatch } from 'firebase/firestore';
 import { Inquiry, Client, ActivityEvent, InquiryStatus } from '../types';
 import { handleFirestoreError, OperationType } from './errors';
 
@@ -115,6 +115,74 @@ export const api = {
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `clients/${id}`);
+    }
+  },
+
+  convertInquiryToClient: async (inq: Inquiry): Promise<string> => {
+    try {
+      if (inq.convertedClientId) {
+        return inq.convertedClientId;
+      }
+      
+      const clientsQ = query(collection(db, 'clients'), where('sourceInquiryId', '==', inq.id));
+      const existingClients = await getDocs(clientsQ);
+      if (!existingClients.empty) {
+        const existingClientId = existingClients.docs[0].id;
+        await updateDoc(doc(db, 'inquiries', inq.id!), { 
+          status: 'WON', 
+          convertedClientId: existingClientId,
+          updatedAt: serverTimestamp()
+        });
+        return existingClientId;
+      }
+
+      const payload: any = {
+        name: inq.company || inq.name,
+        primaryContact: inq.name,
+        company: inq.company,
+        email: inq.email,
+        phone: inq.phone,
+        website: inq.website,
+        sourceInquiryId: inq.id,
+        notes: `Converted from Inquiry: ${inq.id}`,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) {
+          delete payload[key];
+        }
+      });
+
+      const batch = writeBatch(db);
+      
+      const newClientRef = doc(collection(db, 'clients'));
+      batch.set(newClientRef, payload);
+      
+      const inquiryRef = doc(db, 'inquiries', inq.id!);
+      batch.update(inquiryRef, {
+        status: 'WON',
+        convertedClientId: newClientRef.id,
+        updatedAt: serverTimestamp(),
+      });
+      
+      const activityRef = doc(collection(db, 'activity'));
+      batch.set(activityRef, {
+        type: 'INQUIRY_CONVERTED',
+        actorId: 'system',
+        entityType: 'CLIENT',
+        entityId: newClientRef.id,
+        description: `Converted inquiry ${inq.name} to new client`,
+        createdAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+      
+      return newClientRef.id;
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   },
 
