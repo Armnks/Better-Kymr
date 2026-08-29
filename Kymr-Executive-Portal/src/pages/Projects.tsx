@@ -51,40 +51,55 @@ export default function Projects() {
     setLoading(false);
   }
 
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+
   const generateInvoice = async (project: Project) => {
-    // Convert to Invoice
-    const invoiceId = await api.createInvoice({
-      projectId: project.id!,
-      clientId: project.clientId,
-      title: `Invoice for ${project.name}`,
-      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-      items: [{
-        id: `item-${Date.now()}`,
-        name: 'Project Work',
-        description: `Deliverables for ${project.name}`,
-        quantity: 1,
-        rate: project.budget || 0,
-        type: 'service'
-      }],
-      subtotal: project.budget || 0,
-      discount: 0,
-      tax: 0,
-      total: project.budget || 0,
-      currency: project.currency || 'USD',
-      status: 'DRAFT',
-      issueDate: new Date(),
-      dueDate: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
-    });
+    if (isGeneratingInvoice) return;
+    setIsGeneratingInvoice(true);
+    try {
+      const payload = {
+        projectId: project.id!,
+        clientId: project.clientId,
+        title: `Invoice for ${project.name}`,
+        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+        items: [{
+          id: `item-${Date.now()}`,
+          name: 'Project Work',
+          description: `Deliverables for ${project.name}`,
+          quantity: 1,
+          rate: project.budget || 0,
+          type: 'service'
+        }],
+        subtotal: project.budget || 0,
+        discount: 0,
+        tax: 0,
+        total: project.budget || 0,
+        currency: project.currency || 'USD',
+        status: 'DRAFT',
+        issueDate: new Date(),
+        dueDate: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
+      };
 
-    await api.logActivity({
-      actorId: 'admin',
-      entityType: 'Invoice',
-      entityId: invoiceId,
-      type: 'INVOICE_CREATED',
-      description: `Generated invoice from project: ${project.name}`
-    });
+      // Strip any undefined values that crash Firestore
+      const cleanedPayload = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
 
-    navigate(`/admin/invoices?id=${invoiceId}`);
+      const invoiceId = await api.createInvoice(cleanedPayload);
+
+      await api.logActivity({
+        actorId: 'admin',
+        entityType: 'Invoice',
+        entityId: invoiceId,
+        type: 'INVOICE_CREATED',
+        description: `Generated invoice from project: ${project.name}`
+      });
+
+      navigate(`/admin/invoices?id=${invoiceId}`);
+    } catch (e: any) {
+      console.error('Invoice generation failed:', e);
+      alert(`Failed to generate invoice: ${e.message}`);
+    } finally {
+      setIsGeneratingInvoice(false);
+    }
   };
 
   const updateStatus = async (p: Project, status: Project['status']) => {
@@ -286,7 +301,9 @@ export default function Projects() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="primary" onClick={() => generateInvoice(selectedProject)} className="text-[10px] h-8 col-span-2 bg-brand-accent text-black border-none" icon={FileText}>Generate Invoice</Button>
+                    <Button variant="primary" onClick={() => generateInvoice(selectedProject)} disabled={isGeneratingInvoice} className="text-[10px] h-8 col-span-2 bg-brand-accent text-black border-none" icon={FileText}>
+                      {isGeneratingInvoice ? 'Generating...' : 'Generate Invoice'}
+                    </Button>
                     {selectedProject.status === 'PLANNING' && (
                       <Button variant="outline" onClick={() => updateStatus(selectedProject, 'IN_PROGRESS')} className="text-[10px] h-8" icon={Clock}>Mark Active</Button>
                     )}
