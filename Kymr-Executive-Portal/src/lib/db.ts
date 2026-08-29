@@ -417,6 +417,18 @@ export const api = {
     }
   },
 
+  generateSwipeInvoice: async (projectId: string) => {
+    const token = await auth.currentUser?.getIdToken();
+    const res = await fetch('/api/admin/invoices/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ projectId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to generate invoice');
+    return data.invoiceId;
+  },
+
   updateInvoice: async (id: string, data: Partial<any>): Promise<void> => {
     try {
       await updateDoc(doc(db, 'invoices', id), {
@@ -578,3 +590,4 @@ export const api = {
     }
   }
 };
+

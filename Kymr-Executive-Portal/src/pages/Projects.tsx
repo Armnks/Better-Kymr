@@ -57,42 +57,7 @@ export default function Projects() {
     if (isGeneratingInvoice) return;
     setIsGeneratingInvoice(true);
     try {
-      const payload = {
-        projectId: project.id!,
-        clientId: project.clientId,
-        title: `Invoice for ${project.name}`,
-        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-        items: [{
-          id: `item-${Date.now()}`,
-          name: 'Project Work',
-          description: `Deliverables for ${project.name}`,
-          quantity: 1,
-          rate: project.budget || 0,
-          type: 'service'
-        }],
-        subtotal: project.budget || 0,
-        discount: 0,
-        tax: 0,
-        total: project.budget || 0,
-        currency: project.currency || 'USD',
-        status: 'DRAFT',
-        issueDate: new Date(),
-        dueDate: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
-      };
-
-      // Strip any undefined values that crash Firestore
-      const cleanedPayload = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
-
-      const invoiceId = await api.createInvoice(cleanedPayload);
-
-      await api.logActivity({
-        actorId: 'admin',
-        entityType: 'Invoice',
-        entityId: invoiceId,
-        type: 'INVOICE_CREATED',
-        description: `Generated invoice from project: ${project.name}`
-      });
-
+      const invoiceId = await api.generateSwipeInvoice(project.id!);
       navigate(`/admin/invoices?id=${invoiceId}`);
     } catch (e: any) {
       console.error('Invoice generation failed:', e);
@@ -336,8 +301,10 @@ export default function Projects() {
                 
                 <section>
                   <h3 className="font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-3">Tasks</h3>
-                  <div className="border border-dashed border-brand-border p-6 text-center">
-                    <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest">Tasks module coming soon</p>
+                  <div className="bg-brand-surface border border-brand-border p-4 flex flex-col gap-3 items-center justify-center text-center">
+                    <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest">Manage project deliverables</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/admin/tasks?projectId=${selectedProject.id}&create=true`)}>Create Task</Button>
+                    <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/tasks?projectId=${selectedProject.id}`)}>View All Tasks</Button>
                   </div>
                 </section>
               </div>

@@ -265,7 +265,11 @@ export default function Invoices() {
                     Invoice Paid in Full
                   </div>
                 )}
-                <Button variant="outline" icon={Download}>PDF</Button>
+                {selectedInvoice.documentUrl ? (
+                  <Button variant="outline" icon={Download} onClick={() => window.open(selectedInvoice.documentUrl, '_blank')}>View in Swipe</Button>
+                ) : (
+                  <Button variant="outline" icon={Download}>PDF</Button>
+                )}
               </div>
             </motion.div>
           </>
