@@ -89,21 +89,14 @@ service cloud.firestore {
              (!('convertedClientId' in data) || (data.convertedClientId is string && data.convertedClientId.size() <= 128));
     }
 
-    function isSafePublicInquiry(data) {
-      return isValidInquiry(data) &&
-             data.status == "NEW" &&
-             !('priority' in data) &&
-             !('ownerId' in data) &&
-             !('notes' in data) &&
-             !('convertedClientId' in data);
-    }
+
 
     match /inquiries/{inquiryId} {
       allow read: if isAuthorized();
       
-      // Authorized CRM users can create full inquiries. Anyone (including unauth or random logged-in users) can submit a public inquiry.
-      allow create: if (isAuthorized() && isValidId(inquiryId) && isValidInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time) ||
-                       (isValidId(inquiryId) && isSafePublicInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time);
+      // Authorized CRM users can create full inquiries. 
+      // Public submissions are handled through the backend API using the Admin SDK.
+      allow create: if isAuthorized() && isValidId(inquiryId) && isValidInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
                        
       allow update: if isAuthorized() && isValidId(inquiryId) &&
                        isValidInquiry(incoming()) &&
