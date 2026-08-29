@@ -225,7 +225,7 @@ export default function Start() {
         phone: details.phone || "",
         config: { volume: config.volume, mix: config.mix, cadence: config.cadence },
         tier,
-        meeting,
+        externalBookingId: meeting?.uid || undefined,
         message: details.message || "",
         source: "website",
         submissionType: meeting?.booked ? "BOOKING" : "CONFIGURED_SCOPE"

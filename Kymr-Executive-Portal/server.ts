@@ -127,6 +127,7 @@ app.use(express.json({
 const allowedOrigins = [
   'https://kymrstudio.com', 
   'https://www.kymrstudio.com',
+  'http://localhost:8000',
   'http://localhost:5173', // Vite dev client
   'http://localhost:3000'
 ];
@@ -140,6 +141,7 @@ app.use('/api', cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('CORS rejected origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   }
