@@ -3,6 +3,21 @@ import { Firestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import crypto from 'crypto';
 
+function formatSwipeDate(date: Date): string {
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  const parts = formatter.formatToParts(date);
+  const day = parts.find(p => p.type === 'day')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const year = parts.find(p => p.type === 'year')?.value;
+  
+  return `${day}-${month}-${year}`;
+}
+
 export function createBusinessLifecycleRouter(db: Firestore | null) {
   const router = express.Router();
 
@@ -279,11 +294,19 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
           const customerData = await customerRes.json();
           // We don't block if customer creation fails or says already exists, we will attempt doc anyway.
 
+          const swipeDocumentDate = formatSwipeDate(new Date());
+          const swipeDueDate = formatSwipeDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000));
+          
+          const swipeDateRegex = /^\d{2}-\d{2}-\d{4}$/;
+          if (!swipeDateRegex.test(swipeDocumentDate) || !swipeDateRegex.test(swipeDueDate)) {
+            throw new Error(`SWIPE_DATE_FORMAT_INVALID: ${swipeDocumentDate}, ${swipeDueDate}`);
+          }
+
           const swipePayload = {
             document_type: 'invoice',
             customer_id: clientRef.id,
-            document_date: new Date().toISOString().split('T')[0],
-            due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            document_date: swipeDocumentDate,
+            due_date: swipeDueDate,
             items: [
               {
                 id: `proj-${projectId}`,
@@ -336,10 +359,13 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
           lineItems: [{ name: `Project Deliverables: ${project.name}`, quantity: 1, rate: project.budget }],
           subtotal: project.budget || 0,
           tax: 0,
+          amount: project.budget || 0,
           total: project.budget || 0,
           currency: project.currency || 'USD',
           status: 'DRAFT',
           documentUrl: swipePdfUrl,
+          documentDate: swipeDocumentDate,
+          dueDate: swipeDueDate,
           issueDate: FieldValue.serverTimestamp(),
           createdAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp()
