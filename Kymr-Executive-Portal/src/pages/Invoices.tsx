@@ -151,7 +151,7 @@ export default function Invoices() {
                   
                     <div className="pt-4 border-t border-brand-border flex items-center justify-between">
                       <span className="font-mono text-[10px] text-brand-muted uppercase tracking-widest">Total</span>
-                      <span className="font-sans font-bold text-brand-ivory">${inv.total.toLocaleString()} {inv.currency}</span>
+                      <span className="font-sans font-bold text-brand-ivory">${(inv.total || 0).toLocaleString()} {inv.currency || 'USD'}</span>
                     </div>
                 </div>
               )
@@ -199,7 +199,7 @@ export default function Invoices() {
                     </div>
                     <div className="text-right">
                       <h2 className="font-sans font-bold text-lg">Amount Due</h2>
-                      <p className="font-sans font-bold text-xl text-brand-accent mt-1">${selectedInvoice.total.toLocaleString()} {selectedInvoice.currency}</p>
+                      <p className="font-sans font-bold text-xl text-brand-accent mt-1">${(selectedInvoice.total || 0).toLocaleString()} {selectedInvoice.currency || 'USD'}</p>
                     </div>
                   </div>
                   
@@ -212,7 +212,7 @@ export default function Invoices() {
                       <h3 className="font-mono text-[9px] uppercase tracking-widest text-brand-muted-dark mb-2">Issue Date:</h3>
                       <p className="font-sans font-bold text-sm">{selectedInvoice.createdAt.toLocaleDateString()}</p>
                       <h3 className="font-mono text-[9px] uppercase tracking-widest text-brand-muted-dark mb-2 mt-4">Due Date:</h3>
-                      <p className="font-sans font-bold text-sm">{selectedInvoice.dueDate.toLocaleDateString()}</p>
+                      <p className="font-sans font-bold text-sm">{selectedInvoice.dueDate?.toLocaleDateString() || selectedInvoice.createdAt.toLocaleDateString()}</p>
                     </div>
                   </div>
 
@@ -224,10 +224,19 @@ export default function Invoices() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-brand-border-light/50">
-                        <td className="py-3 font-medium">Project Delivery: {projects.find(p => p.id === selectedInvoice.projectId)?.name || 'Custom Work'}</td>
-                        <td className="py-3 text-right">${selectedInvoice.total.toLocaleString()}</td>
-                      </tr>
+                      {selectedInvoice.items?.length > 0 ? (
+                        selectedInvoice.items.map((item, i) => (
+                          <tr key={i} className="border-b border-brand-border-light/50">
+                            <td className="py-3 font-medium">{item.name}</td>
+                            <td className="py-3 text-right">${((item.quantity || 1) * (item.rate || 0)).toLocaleString()}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr className="border-b border-brand-border-light/50">
+                          <td className="py-3 font-medium">Project Delivery: {projects.find(p => p.id === selectedInvoice.projectId)?.name || 'Custom Work'}</td>
+                          <td className="py-3 text-right">${(selectedInvoice.total || 0).toLocaleString()}</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
 
@@ -235,7 +244,7 @@ export default function Invoices() {
                     <div className="w-64">
                       <div className="flex justify-between font-bold text-base pt-2 border-t-2 border-brand-border-light">
                         <span>Total Due</span>
-                        <span>${selectedInvoice.total.toLocaleString()} {selectedInvoice.currency}</span>
+                        <span>${(selectedInvoice.total || 0).toLocaleString()} {selectedInvoice.currency || 'USD'}</span>
                       </div>
                     </div>
                   </div>

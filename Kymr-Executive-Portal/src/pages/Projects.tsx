@@ -56,9 +56,23 @@ export default function Projects() {
     const invoiceId = await api.createInvoice({
       projectId: project.id!,
       clientId: project.clientId,
-      amount: project.budget || 0,
+      title: `Invoice for ${project.name}`,
+      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+      items: [{
+        id: `item-${Date.now()}`,
+        name: 'Project Work',
+        description: `Deliverables for ${project.name}`,
+        quantity: 1,
+        rate: project.budget || 0,
+        type: 'service'
+      }],
+      subtotal: project.budget || 0,
+      discount: 0,
+      tax: 0,
+      total: project.budget || 0,
       currency: project.currency || 'USD',
       status: 'DRAFT',
+      issueDate: new Date(),
       dueDate: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
     });
 
