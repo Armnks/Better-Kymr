@@ -36,27 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsAuthorized(true);
             setUser(firebaseUser);
           } else {
-            // Check if there are no users at all (bootstrap mode)
-            // For safety, we will just deny access if not in users collection,
-            // but if you are the owner and there's no user, you can't get in.
-            // Let's create the first user if they match the support email or if we assume bootstrap.
-            // Wait, we'll try to create it if it fails we are unauthorized.
-            try {
-               await setDoc(userDocRef, {
-                 email: firebaseUser.email,
-                 role: 'OWNER',
-                 createdAt: serverTimestamp()
-               });
-               setIsAuthorized(true);
-               setUser(firebaseUser);
-            } catch (e) {
-               console.warn("Could not bootstrap user:", e);
-               // Access Denied
-               setIsAuthorized(false);
-               setUser(null); // Clear user state to prevent access
-               await signOut(auth); // Sign them out
-               setAuthError('ACCESS_DENIED');
-            }
+            // Access Denied: User is authenticated via Firebase but NOT authorized in KymrStudio
+            console.warn("Access Denied: User not found in users collection.");
+            setIsAuthorized(false);
+            setUser(null);
+            await signOut(auth);
+            setAuthError('ACCESS_DENIED');
           }
         } catch (error) {
           console.error("Authorization check failed:", error);

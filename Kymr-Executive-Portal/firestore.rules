@@ -9,6 +9,22 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAuthorized() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isOwner() {
+      return isAuthorized() && getUserDoc().data.role == 'OWNER';
+    }
+
+    function isOwnerOrAdmin() {
+      return isAuthorized() && getUserDoc().data.role in ['OWNER', 'ADMIN'];
+    }
+
     function incoming() {
       return request.resource.data;
     }
@@ -21,27 +37,32 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function isSystemAction() {
-      // In a real production environment, you might restrict some actions.
-      // For V1 admin, signed-in users can do all actions.
-      return isSignedIn();
-    }
-
     // --- Users ---
     function isValidUser(data) {
       return data.keys().hasAll(['email', 'role', 'createdAt']) &&
              data.keys().size() == 3 &&
              data.email is string && data.email.size() <= 100 &&
-             data.role is string && data.role in ['OWNER', 'ADMIN'] &&
+             data.role is string && data.role in ['OWNER', 'ADMIN', 'MEMBER'] &&
              data.createdAt is timestamp;
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(userId) && userId == request.auth.uid &&
-                       isValidUser(incoming()) && incoming().createdAt == request.time;
-      allow update: if isSignedIn() && isValidId(userId) && userId == request.auth.uid &&
-                       isValidUser(incoming()) && incoming().createdAt == existing().createdAt;
+      // Anyone on the team can read team members
+      allow read: if isAuthorized();
+      
+      // ONLY existing Owners/Admins can create new users, and they cannot create an OWNER.
+      // Initial OWNER must be created manually in Firebase Console.
+      allow create: if isOwnerOrAdmin() && isValidId(userId) &&
+                       isValidUser(incoming()) && incoming().createdAt == request.time &&
+                       (isOwner() || incoming().role != 'OWNER');
+                       
+      // Owner can update anything. Users can update themselves but CANNOT change their role.
+      allow update: if isAuthorized() && isValidId(userId) &&
+                       isValidUser(incoming()) && incoming().createdAt == existing().createdAt &&
+                       (isOwner() || (userId == request.auth.uid && incoming().role == existing().role));
+                       
+      // Only Owner can delete users
+      allow delete: if isOwner();
     }
 
     // --- Inquiries ---
@@ -77,14 +98,17 @@ service cloud.firestore {
     }
 
     match /inquiries/{inquiryId} {
-      allow read: if isSignedIn();
-      allow create: if (isSignedIn() && isValidId(inquiryId) && isValidInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time) ||
-                       (!isSignedIn() && isValidId(inquiryId) && isSafePublicInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time);
-      allow update: if isSignedIn() && isValidId(inquiryId) &&
+      allow read: if isAuthorized();
+      
+      // Authorized CRM users can create full inquiries. Anyone (including unauth or random logged-in users) can submit a public inquiry.
+      allow create: if (isAuthorized() && isValidId(inquiryId) && isValidInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time) ||
+                       (isValidId(inquiryId) && isSafePublicInquiry(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time);
+                       
+      allow update: if isAuthorized() && isValidId(inquiryId) &&
                        isValidInquiry(incoming()) &&
                        incoming().createdAt == existing().createdAt &&
                        incoming().updatedAt == request.time;
-      allow delete: if isSignedIn() && isValidId(inquiryId);
+      allow delete: if isAuthorized() && isValidId(inquiryId);
     }
 
     // --- Clients ---
@@ -101,16 +125,16 @@ service cloud.firestore {
     }
 
     match /clients/{clientId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(clientId) &&
+      allow read: if isAuthorized();
+      allow create: if isAuthorized() && isValidId(clientId) &&
                        isValidClient(incoming()) && 
                        incoming().createdAt == request.time &&
                        incoming().updatedAt == request.time;
-      allow update: if isSignedIn() && isValidId(clientId) &&
+      allow update: if isAuthorized() && isValidId(clientId) &&
                        isValidClient(incoming()) &&
                        incoming().createdAt == existing().createdAt &&
                        incoming().updatedAt == request.time;
-      allow delete: if isSignedIn() && isValidId(clientId);
+      allow delete: if isOwnerOrAdmin() && isValidId(clientId);
     }
 
     // --- Activity ---
@@ -125,56 +149,23 @@ service cloud.firestore {
     }
 
     match /activity/{activityId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(activityId) &&
+      allow read: if isAuthorized();
+      allow create: if isAuthorized() && isValidId(activityId) &&
                        isValidActivity(incoming()) && 
                        incoming().createdAt == request.time;
       allow update: if false; // Activity logs are immutable
       allow delete: if false; // Activity logs are immutable
     }
-    // --- Meetings ---
-    match /meetings/{meetingId} {
-      allow read, write: if isSignedIn();
-    }
 
-    // --- Projects ---
-    match /projects/{projectId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Tasks ---
-    match /tasks/{taskId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Quotes ---
-    match /quotes/{quoteId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Invoices ---
-    match /invoices/{invoiceId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Catalog Services ---
-    match /catalogServices/{catalogServiceId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Service Categories ---
-    match /serviceCategories/{categoryId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Deliverables ---
-    match /deliverables/{deliverableId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- Payments ---
-    match /payments/{paymentId} {
-      allow read, write: if isSignedIn();
-    }
+    // --- Other CRM Collections ---
+    match /meetings/{id} { allow read, write: if isAuthorized(); }
+    match /projects/{id} { allow read, write: if isAuthorized(); }
+    match /tasks/{id} { allow read, write: if isAuthorized(); }
+    match /quotes/{id} { allow read, write: if isAuthorized(); }
+    match /invoices/{id} { allow read, write: if isAuthorized(); }
+    match /catalogServices/{id} { allow read, write: if isAuthorized(); }
+    match /serviceCategories/{id} { allow read, write: if isAuthorized(); }
+    match /deliverables/{id} { allow read, write: if isAuthorized(); }
+    match /payments/{id} { allow read, write: if isAuthorized(); }
   }
 }
