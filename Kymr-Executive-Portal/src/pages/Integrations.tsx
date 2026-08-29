@@ -42,6 +42,31 @@ export function Integrations() {
           </div>
         </Card>
 
+        {/* Cal.com Block */}
+        <Card className="flex flex-col gap-6">
+          <div className="flex items-start justify-between border-b border-brand-border pb-4">
+            <div>
+              <h2 className="text-lg font-display mb-1">Cal.com Scheduling</h2>
+              <p className="text-sm text-brand-muted">Automated meeting synchronization and Google Meet generation.</p>
+            </div>
+            <div className="flex items-center gap-2 bg-brand-charcoal-light border border-brand-accent/30 text-brand-accent px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest">
+              <CheckCircle2 className="w-3 h-3" />
+              Configured
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+             <div className="bg-brand-black border border-brand-border p-4">
+                <h3 className="font-mono text-[10px] uppercase tracking-widest text-brand-muted mb-2">Webhook Status</h3>
+                <div className="font-sans text-xs text-brand-ivory space-y-2">
+                  <p>✓ Endpoint `/api/webhooks/calcom` is ready.</p>
+                  <p>✓ `BOOKING_CREATED` parsing and Google Meet URL extraction enabled.</p>
+                  <p>✓ Idempotent Meeting document mapping active.</p>
+                  <p className="text-brand-muted mt-2">Production URL must be configured in Cal.com dashboard.</p>
+                </div>
+             </div>
+          </div>
+        </Card>
+
         {/* Google Workspace Block */}
         <Card className="flex flex-col gap-6">
           <div className="flex items-start justify-between border-b border-brand-border pb-4">

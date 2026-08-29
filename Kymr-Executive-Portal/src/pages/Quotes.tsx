@@ -85,7 +85,7 @@ export default function Quotes() {
         
         // Attempt to pre-fill from scope request
         if (inquiry.scopeRequest) {
-          const { serviceId, serviceName, estimatedBudget, notes } = inquiry.scopeRequest;
+          const { serviceId, serviceName, estimatedBudget, notes, volume, tier, mix } = inquiry.scopeRequest;
           let matchedService = availableCatalogServices.find(s => s.id === serviceId || s.name === serviceName);
           
           if (matchedService) {
@@ -100,13 +100,13 @@ export default function Quotes() {
               quantity: matchedService.defaultQuantity || 1,
               currency: matchedService.defaultCurrency || 'USD'
             });
-          } else if (serviceName) {
+          } else if (serviceName || volume !== undefined) {
             // Create custom line item based on scope
             initialItems.push({
               id: Math.random().toString(36).substring(7),
-              name: serviceName,
+              name: serviceName || `${volume} ADS / MO (${mix} MIX)`,
               description: notes || '',
-              rate: estimatedBudget ? parseInt(estimatedBudget.replace(/[^0-9]/g, ''), 10) || 0 : 0,
+              rate: estimatedBudget ? parseInt(estimatedBudget.replace(/[^0-9]/g, ''), 10) || 0 : (tier ? parseInt(tier.replace(/[^0-9]/g, ''), 10) || 0 : 0),
               billingType: 'FIXED',
               quantity: 1,
               currency: 'USD'

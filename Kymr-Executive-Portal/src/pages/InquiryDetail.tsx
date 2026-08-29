@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/db';
-import { Inquiry, InquiryStatus, Priority } from '../types';
+import { Inquiry, InquiryStatus, Priority, Meeting, Quote } from '../types';
 import { Button, Badge, Card } from '../components/ui/DesignSystem';
 import { ArrowLeft, Save, Briefcase, Mail, Phone, Globe, Calendar, FileText, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -14,6 +14,8 @@ export default function InquiryDetail() {
   const [inq, setInq] = useState<Inquiry | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   
   // Editable fields
   const [status, setStatus] = useState<InquiryStatus>('NEW');
@@ -36,13 +38,29 @@ export default function InquiryDetail() {
 
     async function load() {
       if (!id) return;
-      const data = await api.getInquiry(id);
+      
+      const [data, allMeetings, allQuotes] = await Promise.all([
+        api.getInquiry(id),
+        api.getMeetings(),
+        api.getQuotes()
+      ]);
+      
       if (data) {
         setInq(data);
         setStatus(data.status);
         setPriority(data.priority || 'NORMAL');
         setNotes(data.notes || '');
       }
+      
+      if (allMeetings) {
+        // Find meetings linked to this inquiry (either explicitly or via externalBookingId)
+        setMeetings(allMeetings.filter(m => m.inquiryId === id || (data?.externalBookingId && m.externalBookingId === data.externalBookingId)));
+      }
+      
+      if (allQuotes) {
+        setQuotes(allQuotes.filter(q => q.inquiryId === id));
+      }
+      
       setLoading(false);
     }
     load();
@@ -165,20 +183,31 @@ export default function InquiryDetail() {
 
       {!isNew && (
         <div className="flex flex-wrap items-center gap-3 py-4 border-y border-brand-border/50">
-          <Button 
-            variant="outline" 
-            icon={Mail} 
-            onClick={() => openComposer({ to: inq.email })}
-          >
-            Email
-          </Button>
-          <Button 
-            variant="outline" 
-            icon={Calendar} 
-            onClick={() => navigate('/admin/meetings')}
-          >
-            Call
-          </Button>
+          {inq.email ? (
+            <Button 
+              variant="outline" 
+              icon={Mail} 
+              onClick={() => openComposer({ to: inq.email })}
+            >
+              Email
+            </Button>
+          ) : (
+            <Button variant="outline" icon={Mail} disabled title="No email provided">
+              Email
+            </Button>
+          )}
+          {inq.phone ? (
+            <a 
+              href={`tel:${inq.phone}`} 
+              className="flex items-center gap-2 h-9 px-4 text-xs font-mono tracking-widest text-brand-ivory uppercase bg-transparent border border-brand-border hover:border-brand-accent hover:text-brand-accent transition-colors"
+            >
+              <Phone className="w-4 h-4" /> Call
+            </a>
+          ) : (
+            <Button variant="outline" icon={Phone} disabled title="No phone provided">
+              Call
+            </Button>
+          )}
           <Button 
             variant="outline" 
             icon={FileText} 
@@ -299,29 +328,35 @@ export default function InquiryDetail() {
               <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent border-b border-brand-border pb-2">Configured Scope Request</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {inq.scopeRequest.serviceName && (
+                {(inq.scopeRequest.serviceName || inq.scopeRequest.volume !== undefined) && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Target Service</label>
-                    <div className="font-sans text-sm text-brand-ivory p-3 bg-brand-charcoal-light border border-brand-border/50">{inq.scopeRequest.serviceName}</div>
+                    <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Target Service / Volume</label>
+                    <div className="font-sans text-sm text-brand-ivory p-3 bg-brand-charcoal-light border border-brand-border/50">
+                      {inq.scopeRequest.serviceName || `${inq.scopeRequest.volume} ADS / MO`}
+                    </div>
                   </div>
                 )}
-                {inq.scopeRequest.estimatedBudget && (
+                {(inq.scopeRequest.estimatedBudget || inq.scopeRequest.tier) && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Provided Budget</label>
-                    <div className="font-sans text-sm text-brand-ivory p-3 bg-brand-charcoal-light border border-brand-border/50">{inq.scopeRequest.estimatedBudget}</div>
+                    <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Provided Budget / Tier</label>
+                    <div className="font-sans text-sm text-brand-ivory p-3 bg-brand-charcoal-light border border-brand-border/50">
+                      {inq.scopeRequest.estimatedBudget || inq.scopeRequest.tier}
+                    </div>
                   </div>
                 )}
-                {inq.scopeRequest.timeline && (
+                {(inq.scopeRequest.timeline || inq.scopeRequest.cadence !== undefined) && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Timeline Expectation</label>
-                    <div className="font-sans text-sm text-brand-ivory p-3 bg-brand-charcoal-light border border-brand-border/50">{inq.scopeRequest.timeline}</div>
+                    <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Timeline / Cadence</label>
+                    <div className="font-sans text-sm text-brand-ivory p-3 bg-brand-charcoal-light border border-brand-border/50">
+                      {inq.scopeRequest.timeline || `Mix: ${inq.scopeRequest.mix}, Cadence: ${inq.scopeRequest.cadence}`}
+                    </div>
                   </div>
                 )}
                 {inq.scopeRequest.deliverables && inq.scopeRequest.deliverables.length > 0 && (
                   <div className="flex flex-col gap-1.5 md:col-span-2">
                     <label className="font-mono text-[9px] uppercase tracking-widest text-brand-muted">Requested Items</label>
                     <ul className="list-disc pl-5 font-sans text-sm text-brand-ivory space-y-1 p-3 bg-brand-charcoal-light border border-brand-border/50">
-                      {inq.scopeRequest.deliverables.map((item, i) => (
+                      {inq.scopeRequest.deliverables.map((item: string, i: number) => (
                         <li key={i}>{item}</li>
                       ))}
                     </ul>
@@ -394,8 +429,22 @@ export default function InquiryDetail() {
                 <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent">Meetings</h2>
                 <Button size="sm" variant="ghost" icon={Calendar} onClick={() => navigate(`/admin/meetings?create=true&inquiryId=${inq.id}`)}>Schedule</Button>
               </div>
-              <div className="text-center py-4">
-                <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest">No meetings scheduled</p>
+              <div className="py-2 flex flex-col gap-2">
+                {meetings.length === 0 ? (
+                  <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest text-center">No meetings scheduled</p>
+                ) : (
+                  meetings.map(m => (
+                    <div key={m.id} className="flex justify-between items-center p-3 border border-brand-border/30 bg-brand-charcoal-light group cursor-pointer hover:border-brand-accent transition-colors" onClick={() => navigate(`/admin/meetings?id=${m.id}`)}>
+                      <div className="flex flex-col">
+                        <span className="font-sans text-sm text-brand-ivory font-bold">{m.title}</span>
+                        <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{format(new Date(m.date), 'MMM d, yyyy h:mm a')}</span>
+                      </div>
+                      <Badge variant={m.status === 'COMPLETED' ? 'default' : m.status === 'CANCELED' ? 'outline' : 'accent'}>
+                        {m.status}
+                      </Badge>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           )}
@@ -406,8 +455,22 @@ export default function InquiryDetail() {
                 <h2 className="font-mono text-xs uppercase tracking-widest text-brand-accent">Quotes</h2>
                 <Button size="sm" variant="ghost" icon={FileText} onClick={() => navigate(`/admin/quotes?create=true&inquiryId=${inq.id}`)}>Create</Button>
               </div>
-              <div className="text-center py-4">
-                <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest">No active quotes</p>
+              <div className="py-2 flex flex-col gap-2">
+                {quotes.length === 0 ? (
+                  <p className="font-mono text-[10px] text-brand-muted uppercase tracking-widest text-center">No active quotes</p>
+                ) : (
+                  quotes.map(q => (
+                    <div key={q.id} className="flex justify-between items-center p-3 border border-brand-border/30 bg-brand-charcoal-light group cursor-pointer hover:border-brand-accent transition-colors" onClick={() => navigate(`/admin/quotes?id=${q.id}`)}>
+                      <div className="flex flex-col">
+                        <span className="font-sans text-sm text-brand-ivory font-bold">{q.title}</span>
+                        <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{format(new Date(q.createdAt), 'MMM d, yyyy')}</span>
+                      </div>
+                      <Badge variant={q.status === 'ACCEPTED' ? 'default' : q.status === 'REJECTED' ? 'outline' : 'accent'}>
+                        {q.status}
+                      </Badge>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           )}
