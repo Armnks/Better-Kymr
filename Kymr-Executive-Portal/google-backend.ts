@@ -92,21 +92,65 @@ export function createGoogleRouter(db: Firestore | null) {
     return client;
   };
 
+  // Init Auth Flow securely
+  router.post('/auth/init', authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(500).json({ error: 'DB_MISSING' });
+      const userId = (req as any).user.uid;
+      const initId = crypto.randomBytes(32).toString('hex');
+      
+      await db.collection('oauth_state').doc(initId).set({
+        userId,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      
+      res.json({ initId });
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).json({ error: 'FAILED_TO_INIT' });
+    }
+  });
+
   // Start Auth Flow
-  router.get('/auth/start', (req, res) => {
+  router.get('/auth/start', async (req, res) => {
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return res.status(500).json({ error: 'CONFIG_MISSING', message: 'Google Client ID and Secret must be configured' });
     }
-    const client = getOAuthClient(req);
-    // CSRF protection: Pass the user token or redirect destination in the state
-    const state = req.query.token as string || ''; 
-    const authorizeUrl = client.generateAuthUrl({
-      access_type: 'offline',
-      scope: SCOPES,
-      prompt: 'consent',
-      state: state
-    });
-    res.redirect(authorizeUrl);
+    const initId = req.query.init as string;
+    if (!initId) return res.status(400).send('Missing init parameter');
+
+    try {
+      if (!db) return res.status(500).send('Database missing');
+      
+      const docRef = db.collection('oauth_state').doc(initId);
+      const doc = await docRef.get();
+      
+      if (!doc.exists) {
+        return res.status(400).send('Invalid or expired initiation request');
+      }
+      
+      const data = doc.data()!;
+      if (!data.createdAt) {
+         return res.status(400).send('Invalid initiation request');
+      }
+      const createdAt = data.createdAt.toDate();
+      if (Date.now() - createdAt.getTime() > 5 * 60 * 1000) {
+        await docRef.delete();
+        return res.status(400).send('Initiation request expired');
+      }
+
+      const client = getOAuthClient(req);
+      const authorizeUrl = client.generateAuthUrl({
+        access_type: 'offline',
+        scope: SCOPES,
+        prompt: 'consent',
+        state: initId
+      });
+      res.redirect(authorizeUrl);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send('Error initiating OAuth');
+    }
   });
 
   // Auth Callback
@@ -115,16 +159,33 @@ export function createGoogleRouter(db: Firestore | null) {
     const state = req.query.state as string;
     
     if (!code) return res.status(400).send('No code provided');
-    if (!state) return res.status(400).send('Missing state (Firebase Token)');
+    if (!state) return res.status(400).send('Missing state parameter');
     
     try {
-      const decodedToken = await getAuth().verifyIdToken(state);
-      const userId = decodedToken.uid;
+      if (!db) return res.status(500).send('Database missing');
       
+      const docRef = db.collection('oauth_state').doc(state);
+      const doc = await docRef.get();
+      
+      if (!doc.exists) {
+        return res.status(400).send('Invalid or expired state parameter');
+      }
+      
+      const data = doc.data()!;
+      const userId = data.userId;
+      
+      // Single use - consume the state immediately
+      await docRef.delete();
+      
+      if (data.createdAt) {
+        const createdAt = data.createdAt.toDate();
+        if (Date.now() - createdAt.getTime() > 10 * 60 * 1000) {
+           return res.status(400).send('OAuth request expired');
+        }
+      }
+
       const client = getOAuthClient(req);
       const { tokens } = await client.getToken(code);
-      
-      if (!db) return res.status(500).send('Database missing');
       
       const encryptedData = encrypt(JSON.stringify(tokens));
       
@@ -135,6 +196,7 @@ export function createGoogleRouter(db: Firestore | null) {
         updatedAt: FieldValue.serverTimestamp()
       });
       
+      // Ensure popup securely completes and closes
       res.send('<script>window.opener.postMessage("GOOGLE_AUTH_SUCCESS", "*"); window.close();</script>');
     } catch (e: any) {
       console.error(e);
