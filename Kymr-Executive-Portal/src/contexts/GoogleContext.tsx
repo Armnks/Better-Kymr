@@ -65,39 +65,40 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
 
   const authorize = async () => {
     try {
-      const auth = getAuth();
-      if (!auth.currentUser) throw new Error("Not logged in");
-      const token = await auth.currentUser.getIdToken();
-      
       const width = 600;
       const height = 700;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       
       // Open popup synchronously to prevent browser blocking
-      const popup = window.open('', 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
+      const popup = window.open('about:blank', 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
       
-      if (popup) {
-         popup.document.write('Initializing secure connection...');
+      if (!popup) {
+        alert("Popup blocked. Allow popups for this site and try again.");
+        return;
       }
+      
+      popup.document.write('Initializing secure connection...');
 
+      const auth = getAuth();
+      if (!auth.currentUser) {
+        popup.close();
+        throw new Error("Not logged in");
+      }
+      const token = await auth.currentUser.getIdToken();
+      
       const initRes = await fetch('/api/google/auth/init', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (!initRes.ok) {
-        if (popup) popup.close();
+        popup.close();
         throw new Error('Failed to initiate OAuth');
       }
       const { initId } = await initRes.json();
       
-      if (popup) {
-        popup.location.href = `/api/google/auth/start?init=${initId}`;
-      } else {
-        // Fallback if popup was blocked initially
-        window.open(`/api/google/auth/start?init=${initId}`, 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
-      }
+      popup.location.href = `/api/google/auth/start?init=${initId}`;
     } catch (e) {
       console.error("Authorization failed", e);
       throw e;
