@@ -1,3 +1,4 @@
+import { getAuth } from 'firebase/auth';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -171,6 +172,26 @@ export default function Quotes() {
 
     setIsSaving(true);
     try {
+      if (status === 'ACCEPTED' && formState.id) {
+        const auth = getAuth();
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch(`/api/admin/quotes/${formState.id}/accept`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to accept quote');
+        }
+        
+        if (!returnId) {
+          closeBuilder();
+          load();
+        }
+        return formState.id;
+      }
+
       const dataToSave: any = { ...formState, status };
       
       // Remove undefined values

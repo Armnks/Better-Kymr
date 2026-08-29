@@ -122,6 +122,7 @@ export interface Quote {
   clientId?: string;
   inquiryId?: string;
   projectId?: string;
+  invoiceId?: string;
   status: QuoteStatus;
   items: ServiceItem[];
   subtotal: number;

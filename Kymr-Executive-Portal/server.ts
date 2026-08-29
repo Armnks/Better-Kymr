@@ -124,6 +124,7 @@ app.use(express.json({
 }));
 
 import { createGoogleRouter } from './google-backend';
+import { createBusinessLifecycleRouter } from './business-lifecycle';
 
 // CORS Configuration for the API
 const allowedOrigins = [
@@ -151,6 +152,9 @@ app.use('/api', cors({
 
 // Mount Google Backend API
 app.use('/api/google', createGoogleRouter(db));
+
+// Mount Business Lifecycle API
+app.use('/api/admin', createBusinessLifecycleRouter(db));
 
 // ==========================================
 // PUBLIC API ENDPOINTS
