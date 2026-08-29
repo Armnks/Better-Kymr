@@ -72,3 +72,40 @@ Configure these strictly in the Vercel Dashboard (Settings > Environment Variabl
 3. Update Cal.com to point to the production domain webhook URL.
 4. Verify OAuth origins and Firebase Authorized domains include the production domain.
 5. Deploy to Production.
+
+## Keyless Firebase Authentication (Workload Identity Federation)
+
+Due to Google Cloud organizational policies (`iam.managed.disableServiceAccountKeyCreation`), long-lived Service Account JSON keys cannot be generated for this project.
+
+Instead, the backend uses **Vercel OIDC + Google Cloud Workload Identity Federation (WIF)**.
+This securely exchanges short-lived Vercel deployment tokens for Google Cloud credentials without storing private keys in environment variables.
+
+### Google Cloud Setup
+
+1. **Service Account**: 
+   Create a dedicated runtime service account (e.g., `kymr-vercel-backend@gen-lang-client-0467065981.iam.gserviceaccount.com`).
+   Grant it `roles/datastore.user` (Cloud Datastore User).
+   
+2. **Workload Identity Pool & Provider**:
+   - Create a WIF Pool named `vercel-pool`.
+   - Add an OIDC Provider named `vercel-oidc` with Issuer: `https://oidc.vercel.com`.
+   - **Attribute Mapping**: `google.subject` = `assertion.sub`.
+   - **Attribute Condition**: `assertion.sub.contains("project:YOUR_VERCEL_PROJECT_ID")` to restrict access strictly to this specific Vercel project.
+
+3. **Service Account Impersonation**:
+   Grant the Workload Identity Principal (`principalSet://iam.googleapis.com/projects/[PROJECT_NUMBER]/locations/global/workloadIdentityPools/vercel-pool/*`) the role `roles/iam.workloadIdentityUser` on your dedicated service account.
+
+### Vercel Environment Variables
+
+Set these in your Vercel Project (Production, Preview, and Development):
+- `GCP_PROJECT_NUMBER`
+- `GCP_SERVICE_ACCOUNT_EMAIL`
+- `GCP_WORKLOAD_IDENTITY_POOL_ID` (e.g., `vercel-pool`)
+- `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` (e.g., `vercel-oidc`)
+
+### Local Development Authentication
+
+Locally, you should use Google Application Default Credentials via `gcloud` instead of downloading keys.
+Run:
+`gcloud auth application-default login`
+Then set `export GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json` before starting the backend.

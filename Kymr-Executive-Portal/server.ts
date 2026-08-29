@@ -5,6 +5,8 @@ import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, Firestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getVercelOidcToken } from '@vercel/functions/oidc';
+import { ExternalAccountClient } from 'google-auth-library';
 
 // Initialize Firebase Admin
 let db: Firestore | null = null;
@@ -14,8 +16,36 @@ try {
     projectId: 'gen-lang-client-0467065981'
   };
 
-  // 1. Explicit Service Account (Primary for Vercel/Local)
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  // 1. Vercel Workload Identity Federation (Keyless OIDC)
+  if (process.env.GCP_WORKLOAD_IDENTITY_POOL_ID && process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID && process.env.GCP_PROJECT_NUMBER && process.env.GCP_SERVICE_ACCOUNT_EMAIL) {
+    try {
+      const authClient = ExternalAccountClient.fromJSON({
+        type: 'external_account',
+        audience: `//iam.googleapis.com/projects/${process.env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${process.env.GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+        token_url: 'https://sts.googleapis.com/v1/token',
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+        subject_token_supplier: {
+          getSubjectToken: async () => await getVercelOidcToken(),
+        },
+      });
+
+      initConfig.credential = {
+        getAccessToken: async () => {
+          const token = await authClient.getAccessToken();
+          return {
+            access_token: token.token!,
+            expires_in: 3600
+          };
+        }
+      };
+      hasCredentials = true;
+    } catch (e) {
+      console.warn('Failed to configure Vercel OIDC Workload Identity Federation:', e);
+    }
+  }
+  // 2. Explicit Service Account (Legacy/Fallback)
+  else if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     try {
       // Safely parse JSON and handle newlines in private key
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
@@ -28,11 +58,11 @@ try {
       console.warn('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Ensure it is valid JSON.');
     }
   } 
-  // 2. Explicit ADC File Path (Standard Local GCP Tooling)
+  // 3. Explicit ADC File Path (Standard Local GCP Tooling)
   else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     hasCredentials = true;
   }
-  // 3. Managed Google Cloud Environment (Cloud Run, Functions, App Engine)
+  // 4. Managed Google Cloud Environment (Cloud Run, Functions, App Engine)
   else if (process.env.K_SERVICE || process.env.FUNCTION_TARGET || process.env.GOOGLE_CLOUD_PROJECT) {
     hasCredentials = true;
   }
@@ -42,7 +72,7 @@ try {
     // Use canonical named database as instructed
     db = getFirestore('ai-studio-remixremixkymrst-beeda92b-77a0-4bfa-a083-53618ab3416e');
   } else {
-    console.warn('Firebase Admin init skipped: No valid server credentials found (ADC missing and FIREBASE_SERVICE_ACCOUNT_KEY not set). Backend CRM features will return 500.');
+    console.warn('Firebase Admin init skipped: No keyless OIDC config, no ADC, and no FIREBASE_SERVICE_ACCOUNT_KEY found. Backend CRM features will return 500.');
   }
 } catch (e) {
   console.warn('Firebase Admin init error:', e);
