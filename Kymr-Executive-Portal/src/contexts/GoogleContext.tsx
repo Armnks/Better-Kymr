@@ -64,6 +64,7 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const authorize = async () => {
+    let popup: Window | null = null;
     try {
       const width = 600;
       const height = 700;
@@ -71,7 +72,7 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
       const top = window.screenY + (window.outerHeight - height) / 2;
       
       // Open popup synchronously to prevent browser blocking
-      const popup = window.open('about:blank', 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
+      popup = window.open('about:blank', 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
       
       if (!popup) {
         alert("Popup blocked. Allow popups for this site and try again.");
@@ -82,7 +83,7 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
 
       const auth = getAuth();
       if (!auth.currentUser) {
-        popup.close();
+        popup.document.body.innerHTML = `<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_INIT</p><p>ERROR: Not logged in</p>`;
         throw new Error("Not logged in");
       }
       const token = await auth.currentUser.getIdToken();
@@ -93,14 +94,19 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (!initRes.ok) {
-        popup.close();
+        let errStr = "Unknown init error";
+        try { errStr = await initRes.text(); } catch(e){}
+        popup.document.body.innerHTML = `<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_INIT</p><p>ERROR: ${initRes.status} ${errStr.substring(0, 100)}</p>`;
         throw new Error('Failed to initiate OAuth');
       }
       const { initId } = await initRes.json();
       
       popup.location.href = `/api/google/auth/start?init=${initId}`;
-    } catch (e) {
+    } catch (e: any) {
       console.error("Authorization failed", e);
+      if (popup && popup.document) {
+        popup.document.body.innerHTML = `<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_INIT</p><p>ERROR: ${e.message}</p>`;
+      }
       throw e;
     }
   };

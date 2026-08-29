@@ -126,17 +126,17 @@ export function createGoogleRouter(db: Firestore | null) {
       const doc = await docRef.get();
       
       if (!doc.exists) {
-        return res.status(400).send('Invalid or expired initiation request');
+        return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_START</p><p>ERROR: Invalid or expired initiation request</p>`);
       }
       
       const data = doc.data()!;
       if (!data.createdAt) {
-         return res.status(400).send('Invalid initiation request');
+         return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_START</p><p>ERROR: Invalid initiation request</p>`);
       }
       const createdAt = data.createdAt.toDate();
       if (Date.now() - createdAt.getTime() > 5 * 60 * 1000) {
         await docRef.delete();
-        return res.status(400).send('Initiation request expired');
+        return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_START</p><p>ERROR: Initiation request expired</p>`);
       }
 
       const client = getOAuthClient(req);
@@ -158,17 +158,17 @@ export function createGoogleRouter(db: Firestore | null) {
     const code = req.query.code as string;
     const state = req.query.state as string;
     
-    if (!code) return res.status(400).send('No code provided');
-    if (!state) return res.status(400).send('Missing state parameter');
+    if (!code) return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: CALLBACK_RECEIVED</p><p>ERROR: No code provided</p>`);
+    if (!state) return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: CALLBACK_RECEIVED</p><p>ERROR: Missing state parameter</p>`);
     
     try {
-      if (!db) return res.status(500).send('Database missing');
+      if (!db) return res.status(500).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: STATE_VALIDATED</p><p>ERROR: Database missing</p>`);
       
       const docRef = db.collection('oauth_state').doc(state);
       const doc = await docRef.get();
       
       if (!doc.exists) {
-        return res.status(400).send('Invalid or expired state parameter');
+        return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: STATE_VALIDATED</p><p>ERROR: Invalid or expired state parameter</p>`);
       }
       
       const data = doc.data()!;
@@ -180,7 +180,7 @@ export function createGoogleRouter(db: Firestore | null) {
       if (data.createdAt) {
         const createdAt = data.createdAt.toDate();
         if (Date.now() - createdAt.getTime() > 10 * 60 * 1000) {
-           return res.status(400).send('OAuth request expired');
+           return res.status(400).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: STATE_VALIDATED</p><p>ERROR: OAuth request expired</p>`);
         }
       }
 
@@ -196,11 +196,11 @@ export function createGoogleRouter(db: Firestore | null) {
         updatedAt: FieldValue.serverTimestamp()
       });
       
-      // Ensure popup securely completes and closes
-      res.send('<script>window.opener.postMessage("GOOGLE_AUTH_SUCCESS", "*"); window.close();</script>');
+      // Send success but DO NOT close the window (Debug Mode)
+      res.send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: SUCCESS</p><script>window.opener.postMessage("GOOGLE_AUTH_SUCCESS", "*");</script>`);
     } catch (e: any) {
       console.error(e);
-      res.status(500).send(`Auth Failed: ${e.message}`);
+      res.status(500).send(`<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: TOKEN_EXCHANGE_OR_STORAGE</p><p>ERROR: ${e.message}</p>`);
     }
   });
 
@@ -269,6 +269,7 @@ export function createGoogleRouter(db: Firestore | null) {
       const result = await calendar.events.insert({
         calendarId: 'primary',
         conferenceDataVersion: 1,
+        sendUpdates: 'all',
         requestBody: req.body
       });
       res.json(result.data);
