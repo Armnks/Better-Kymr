@@ -28,7 +28,7 @@ try {
         token_url: 'https://sts.googleapis.com/v1/token',
         service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
         subject_token_supplier: {
-          getSubjectToken: async () => await getVercelOidcToken({ audience }),
+          getSubjectToken: async () => await getVercelOidcToken(),
         },
       });
 
