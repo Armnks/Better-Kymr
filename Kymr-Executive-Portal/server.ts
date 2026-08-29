@@ -259,7 +259,13 @@ app.post('/api/webhooks/calcom', async (req, res) => {
     const signature = req.headers['x-cal-signature-256'] as string;
     const secret = process.env.CALCOM_WEBHOOK_SECRET;
     
-    if (secret) {
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('CRITICAL: CALCOM_WEBHOOK_SECRET is not configured in production.');
+        return res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Server misconfiguration' });
+      }
+      console.warn('WARNING: CALCOM_WEBHOOK_SECRET not set. Bypassing signature verification in development.');
+    } else {
       if (!signature) {
         return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Missing webhook signature' });
       }

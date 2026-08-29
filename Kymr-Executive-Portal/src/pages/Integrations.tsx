@@ -26,17 +26,16 @@ export function Integrations() {
             </div>
             <div className="flex items-center gap-2 bg-brand-charcoal-light border border-brand-accent/30 text-brand-accent px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest">
               <CheckCircle2 className="w-3 h-3" />
-              Ready For Integration
+              Connected
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4">
              <div className="bg-brand-black border border-brand-border p-4">
                 <h3 className="font-mono text-[10px] uppercase tracking-widest text-brand-muted mb-2">Endpoint Status</h3>
                 <div className="font-sans text-xs text-brand-ivory space-y-2">
-                  <p>✓ Firestore Security Rules configured for public writes.</p>
+                  <p>✓ Public → API → Firestore pipeline verified.</p>
                   <p>✓ Inquiry Data Model updated for Scope Requests.</p>
                   <p>✓ Quote Builder prefill mapping established.</p>
-                  <p className="text-brand-muted mt-2">Awaiting connection from public front-end implementation.</p>
                 </div>
              </div>
           </div>
@@ -49,9 +48,9 @@ export function Integrations() {
               <h2 className="text-lg font-display mb-1">Cal.com Scheduling</h2>
               <p className="text-sm text-brand-muted">Automated meeting synchronization and Google Meet generation.</p>
             </div>
-            <div className="flex items-center gap-2 bg-brand-charcoal-light border border-brand-accent/30 text-brand-accent px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest">
-              <CheckCircle2 className="w-3 h-3" />
-              Configured
+            <div className="flex items-center gap-2 bg-brand-charcoal-light border border-yellow-500/30 text-yellow-400 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest">
+              <AlertCircle className="w-3 h-3" />
+              Local Handler Ready
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4">
