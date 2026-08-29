@@ -154,26 +154,54 @@ export default function Quotes() {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async (status: Quote['status'] = 'DRAFT') => {
-    if (!formState.clientId && !formState.inquiryId) return; // Need a recipient
-    if (isSaving) return;
+  const handleSave = async (status: Quote['status'] = 'DRAFT', returnId = false): Promise<string | undefined> => {
+    if (!formState.clientId && !formState.inquiryId) return undefined;
+    if (isSaving) return undefined;
     
+    // Validate financial data
+    if (
+      !Number.isFinite(formState.total) || 
+      !Number.isFinite(formState.subtotal) || 
+      (formState.discount !== undefined && !Number.isFinite(formState.discount)) ||
+      (formState.items?.some(i => !Number.isFinite(i.rate) || !Number.isFinite(i.quantity) || i.rate < 0 || i.quantity < 0))
+    ) {
+      alert("Invalid financial data. Please check item rates, quantities, and discounts.");
+      return undefined;
+    }
+
     setIsSaving(true);
     try {
-      const dataToSave = { ...formState, status } as Omit<Quote, 'id'|'createdAt'|'updatedAt'>;
+      const dataToSave: any = { ...formState, status };
       
-      if (selectedQuote) {
-        await api.updateQuote(selectedQuote.id!, dataToSave);
-        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: selectedQuote.id!, type: 'QUOTE_UPDATED', description: `Updated quote: ${dataToSave.title}` });
+      // Remove undefined values
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) {
+          delete dataToSave[key];
+        }
+      });
+      
+      let savedId = selectedQuote?.id;
+      if (savedId) {
+        await api.updateQuote(savedId, dataToSave);
+        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: savedId, type: 'QUOTE_UPDATED', description: `Updated quote: ${dataToSave.title}` });
       } else {
-        const id = await api.createQuote(dataToSave);
-        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: id, type: 'QUOTE_CREATED', description: `Created quote: ${dataToSave.title}` });
+        savedId = await api.createQuote(dataToSave as any);
+        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: savedId, type: 'QUOTE_CREATED', description: `Created quote: ${dataToSave.title}` });
       }
-      closeBuilder();
-      load();
-    } catch (e) {
+      
+      // Update form state and selected quote to reflect the saved state so subsequent saves are updates
+      setSelectedQuote({ ...dataToSave, id: savedId });
+      
+      // If we aren't returning the ID (like for Save Draft), we close the builder
+      if (!returnId) {
+        closeBuilder();
+        load();
+      }
+      return savedId;
+    } catch (e: any) {
       console.error('Failed to save quote', e);
-      alert('Failed to save quote');
+      alert(`Quote save failed: ${e.message || 'Unknown error'}`);
+      return undefined;
     } finally {
       setIsSaving(false);
     }
@@ -194,14 +222,34 @@ export default function Quotes() {
     setIsBuilderOpen(true);
   };
 
-  const handleSendQuoteEmail = (q: Quote) => {
-    const client = clients.find(c => c.id === q.clientId);
+  const initiateSendQuote = async () => {
+    // 1. Save quote as PENDING_SEND before emailing
+    const savedId = await handleSave('PENDING_SEND', true);
+    if (!savedId) return; // Save failed, stop email flow
+    
+    // Refresh list in background
+    load();
+    
+    const client = clients.find(c => c.id === formState.clientId);
     openComposer({
       to: client?.email || '',
-      subject: `Proposal: ${q.title}`,
-      body: `Hi ${client?.primaryContact || 'there'},\n\nPlease find the attached proposal for ${q.title}.\n\nTotal value: $${q.total.toLocaleString()} ${q.currency}\n\nLet me know if you have any questions.\n\nBest,\nKYMRSTUDIO`,
-      onSuccess: () => {
-        handleSave('SENT');
+      subject: `Proposal: ${formState.title}`,
+      body: `Hi ${client?.primaryContact || 'there'},\n\nPlease find the attached proposal for ${formState.title}.\n\nTotal value: $${formState.total?.toLocaleString()} ${formState.currency}\n\nLet me know if you have any questions.\n\nBest,\nKYMRSTUDIO`,
+      onSuccess: async () => {
+        // Mark SENT only after Google confirms
+        await api.updateQuote(savedId, { status: 'SENT' });
+        await api.logActivity({ actorId: 'system', entityType: 'QUOTE', entityId: savedId, type: 'QUOTE_SENT', description: `Sent quote: ${formState.title}` });
+        
+        // Link inquiry if we had one
+        if (formState.inquiryId) {
+          const inq = await api.getInquiry(formState.inquiryId);
+          if (inq && inq.status !== 'QUOTED' && inq.status !== 'WON') {
+            await api.updateInquiry(formState.inquiryId, { status: 'QUOTED' });
+          }
+        }
+        
+        closeBuilder();
+        load();
       }
     });
   };
@@ -450,7 +498,7 @@ export default function Quotes() {
                 {selectedQuote && (
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 pt-6 border-t border-brand-border">
                     {selectedQuote.status === 'DRAFT' && (
-                      <Button variant="primary" onClick={() => handleSendQuoteEmail(selectedQuote)} icon={Mail}>Send Quote</Button>
+                      <Button variant="primary" onClick={initiateSendQuote} icon={Mail} disabled={isSaving}>Send Quote</Button>
                     )}
                     {selectedQuote.status === 'SENT' && (
                       <Button variant="success" onClick={() => handleSave('ACCEPTED')} icon={CheckCircle}>Mark Accepted</Button>
@@ -463,13 +511,14 @@ export default function Quotes() {
               </div>
 
               {/* FOOTER NAV */}
-              {!selectedQuote && (
+              {!selectedQuote?.id && (
                 <div className="p-6 border-t border-brand-border bg-brand-charcoal flex justify-end gap-2 shrink-0">
-                  <Button variant="outline" onClick={() => handleSave('DRAFT')} icon={Save} disabled={!formState.clientId || !formState.items?.length}>Save Draft</Button>
-                  <Button variant="primary" disabled={!formState.clientId || !formState.items?.length} onClick={() => {
-                    const tempQuote = { ...formState, id: 'temp' } as Quote; 
-                    handleSendQuoteEmail(tempQuote);
-                  }}>Send Quote</Button>
+                  <Button variant="outline" onClick={() => handleSave('DRAFT', false)} icon={Save} disabled={!formState.clientId || !formState.items?.length || isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Draft'}
+                  </Button>
+                  <Button variant="primary" disabled={!formState.clientId || !formState.items?.length || isSaving} onClick={initiateSendQuote}>
+                    {isSaving ? 'Saving...' : 'Send Quote'}
+                  </Button>
                 </div>
               )}
             </motion.div>
