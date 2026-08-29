@@ -69,22 +69,35 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
       if (!auth.currentUser) throw new Error("Not logged in");
       const token = await auth.currentUser.getIdToken();
       
+      const width = 600;
+      const height = 700;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      // Open popup synchronously to prevent browser blocking
+      const popup = window.open('', 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
+      
+      if (popup) {
+         popup.document.write('Initializing secure connection...');
+      }
+
       const initRes = await fetch('/api/google/auth/init', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (!initRes.ok) {
+        if (popup) popup.close();
         throw new Error('Failed to initiate OAuth');
       }
       const { initId } = await initRes.json();
       
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-      
-      window.open(`/api/google/auth/start?init=${initId}`, 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
+      if (popup) {
+        popup.location.href = `/api/google/auth/start?init=${initId}`;
+      } else {
+        // Fallback if popup was blocked initially
+        window.open(`/api/google/auth/start?init=${initId}`, 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
+      }
     } catch (e) {
       console.error("Authorization failed", e);
       throw e;
