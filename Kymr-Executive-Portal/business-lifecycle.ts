@@ -245,105 +245,117 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
     if (!projectId) return res.status(400).json({ error: 'PROJECT_ID_REQUIRED' });
 
     try {
+      // 1. Initial Idempotency / Duplicate Check (Outside Transaction)
+      const invoicesRef = db.collection('invoices');
+      const q = invoicesRef.where('projectId', '==', projectId).limit(1);
+      const existingDocs = await q.get();
+      
+      if (!existingDocs.empty) {
+        const existing = existingDocs.docs[0];
+        return res.json({ success: true, message: 'ALREADY_GENERATED', invoiceId: existing.id });
+      }
+
+      // 2. Fetch required data
+      const projRef = db.collection('projects').doc(projectId);
+      const projDoc = await projRef.get();
+      if (!projDoc.exists) throw new Error('PROJECT_NOT_FOUND');
+      const project = projDoc.data()!;
+
+      const clientRef = db.collection('clients').doc(project.clientId);
+      const clientDoc = await clientRef.get();
+      if (!clientDoc.exists) throw new Error('CLIENT_NOT_FOUND');
+      const client = clientDoc.data()!;
+
+      // Check required fields
+      if (!client.company && !client.name) throw new Error('CLIENT_NAME_MISSING');
+      if (!project.budget) throw new Error('PROJECT_BUDGET_MISSING');
+
+      // 3. Network Calls to Swipe (Outside Transaction to prevent retry-duplicates)
+      let swipeInvoiceId = null;
+      let swipeInvoiceNumber = null;
+      let swipePdfUrl = null;
+      
+      if (!process.env.SWIPE_API_KEY) {
+        throw new Error('SWIPE_CREDENTIALS_MISSING');
+      }
+
+      // First ensure customer exists/is updated
+      const customerPayload: any = {
+        customer_id: clientRef.id,
+        name: client.company || client.name,
+      };
+      if (client.email) customerPayload.email = client.email;
+      if (client.phone) customerPayload.phone = client.phone;
+
+      const customerRes = await fetch('https://app.getswipe.in/api/partner/v2/customer', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + process.env.SWIPE_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(customerPayload)
+      });
+      const customerData = await customerRes.json();
+      // We don't block if customer creation fails or says already exists, we will attempt doc anyway.
+
+      const swipeDocumentDate = formatSwipeDate(new Date());
+      const swipeDueDate = formatSwipeDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000));
+      
+      const swipeDateRegex = /^\d{2}-\d{2}-\d{4}$/;
+      if (!swipeDateRegex.test(swipeDocumentDate) || !swipeDateRegex.test(swipeDueDate)) {
+        throw new Error(`SWIPE_DATE_FORMAT_INVALID: ${swipeDocumentDate}, ${swipeDueDate}`);
+      }
+
+      const swipePayload = {
+        document_type: 'invoice',
+        party: {
+          id: clientRef.id,
+          type: "customer",
+          name: client.company || client.name
+        },
+        document_date: swipeDocumentDate,
+        due_date: swipeDueDate,
+        items: [
+          {
+            id: `proj-${projectId}`,
+            item_type: 'Service',
+            name: `Project Deliverables: ${project.name}`,
+            quantity: 1,
+            unit_price: project.budget || 0,
+            net_amount: project.budget || 0,
+            price_with_tax: project.budget || 0,
+            total_amount: project.budget || 0
+          }
+        ]
+      };
+      
+      const swipeRes = await fetch('https://app.getswipe.in/api/partner/v2/doc', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + process.env.SWIPE_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(swipePayload)
+      });
+      const swipeData = await swipeRes.json();
+      
+      if (swipeData.success && swipeData.data) {
+          swipeInvoiceId = swipeData.data.hash_id || swipeData.data.id || null;
+          swipeInvoiceNumber = swipeData.data.serial_number || null;
+          swipePdfUrl = swipeData.data.pdf_url || swipeData.data.document_url || null;
+      } else {
+          console.error('Swipe API Error during generation:', swipeData);
+          throw new Error('SWIPE_API_FAIL: ' + JSON.stringify(swipeData.errors || swipeData.message));
+      }
+
+      // 4. Safely Commit to Firestore (Using Transaction for final concurrency check)
       const result = await db.runTransaction(async (t) => {
-        // Idempotency / Duplicate Check
-        const invoicesRef = db.collection('invoices');
-        const q = invoicesRef.where('projectId', '==', projectId).limit(1);
-        const existingDocs = await t.get(q);
-        
-        if (!existingDocs.empty) {
-          const existing = existingDocs.docs[0];
-          return { success: true, message: 'ALREADY_GENERATED', invoiceId: existing.id };
+        // Double-check someone didn't generate one while we were waiting on Swipe
+        const existingDocsDoubleCheck = await t.get(q);
+        if (!existingDocsDoubleCheck.empty) {
+          return { success: true, message: 'ALREADY_GENERATED', invoiceId: existingDocsDoubleCheck.docs[0].id };
         }
 
-        const projRef = db.collection('projects').doc(projectId);
-        const projDoc = await t.get(projRef);
-        if (!projDoc.exists) throw new Error('PROJECT_NOT_FOUND');
-        const project = projDoc.data()!;
-
-        const clientRef = db.collection('clients').doc(project.clientId);
-        const clientDoc = await t.get(clientRef);
-        if (!clientDoc.exists) throw new Error('CLIENT_NOT_FOUND');
-        const client = clientDoc.data()!;
-
-        // Check required fields
-        if (!client.company && !client.name) throw new Error('CLIENT_NAME_MISSING');
-        if (!project.budget) throw new Error('PROJECT_BUDGET_MISSING');
-
-        // Try Swipe API
-        let swipeInvoiceId = null;
-        let swipeInvoiceNumber = null;
-        let swipePdfUrl = null;
-        
-        if (process.env.SWIPE_API_KEY) {
-          
-          // First ensure customer exists/is updated
-          const customerRes = await fetch('https://app.getswipe.in/api/partner/v2/customer', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + process.env.SWIPE_API_KEY,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              customer_id: clientRef.id,
-              name: client.company || client.name,
-              email: client.email || '',
-              phone_number: client.phone || ''
-            })
-          });
-          const customerData = await customerRes.json();
-          // We don't block if customer creation fails or says already exists, we will attempt doc anyway.
-
-          const swipeDocumentDate = formatSwipeDate(new Date());
-          const swipeDueDate = formatSwipeDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000));
-          
-          const swipeDateRegex = /^\d{2}-\d{2}-\d{4}$/;
-          if (!swipeDateRegex.test(swipeDocumentDate) || !swipeDateRegex.test(swipeDueDate)) {
-            throw new Error(`SWIPE_DATE_FORMAT_INVALID: ${swipeDocumentDate}, ${swipeDueDate}`);
-          }
-
-          const swipePayload = {
-            document_type: 'invoice',
-            customer_id: clientRef.id,
-            document_date: swipeDocumentDate,
-            due_date: swipeDueDate,
-            items: [
-              {
-                id: `proj-${projectId}`,
-                item_type: 'Service',
-                name: `Project Deliverables: ${project.name}`,
-                quantity: 1,
-                unit_price: project.budget || 0,
-                net_amount: project.budget || 0,
-                price_with_tax: project.budget || 0,
-                total_amount: project.budget || 0
-              }
-            ]
-          };
-          
-          const swipeRes = await fetch('https://app.getswipe.in/api/partner/v2/doc', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + process.env.SWIPE_API_KEY,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(swipePayload)
-          });
-          const swipeData = await swipeRes.json();
-          
-          if (swipeData.success && swipeData.data) {
-             swipeInvoiceId = swipeData.data.hash_id || swipeData.data.id || null;
-             swipeInvoiceNumber = swipeData.data.serial_number || null;
-             swipePdfUrl = swipeData.data.pdf_url || swipeData.data.document_url || null;
-          } else {
-             console.error('Swipe API Error during generation:', swipeData);
-             throw new Error('SWIPE_API_FAIL: ' + JSON.stringify(swipeData.errors || swipeData.message));
-          }
-        } else {
-           throw new Error('SWIPE_CREDENTIALS_MISSING');
-        }
-
-        // Persist Normalized Invoice to Firestore
         const newInvoiceRef = db.collection('invoices').doc();
         const invoiceData = {
           invoiceNumber: swipeInvoiceNumber,
@@ -371,11 +383,9 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
           updatedAt: FieldValue.serverTimestamp()
         };
         
-        // Clean undefined (we already do this cleanly in firestore or with cleanUndefined)
         const cleanPayload = cleanUndefined(invoiceData);
         t.set(newInvoiceRef, cleanPayload);
 
-        // Activity
         const actRef = db.collection('activity').doc();
         t.set(actRef, {
           type: 'INVOICE_CREATED',
