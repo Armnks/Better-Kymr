@@ -123,6 +123,8 @@ app.use(express.json({
   }
 }));
 
+import { createGoogleRouter } from './google-backend';
+
 // CORS Configuration for the API
 const allowedOrigins = [
   'https://kymrstudio.com', 
@@ -146,6 +148,9 @@ app.use('/api', cors({
     }
   }
 }));
+
+// Mount Google Backend API
+app.use('/api/google', createGoogleRouter(db));
 
 // ==========================================
 // PUBLIC API ENDPOINTS

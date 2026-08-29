@@ -179,5 +179,10 @@ service cloud.firestore {
     match /serviceCategories/{id} { allow read, write: if isAuthorized(); }
     match /deliverables/{id} { allow read, write: if isAuthorized(); }
     match /payments/{id} { allow read, write: if isAuthorized(); }
+    
+    // --- Secure Backend Integration Credentials ---
+    match /integration_credentials/{id} {
+      allow read, write: if false; // Only accessible via Firebase Admin SDK
+    }
   }
 }

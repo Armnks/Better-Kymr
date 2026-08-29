@@ -1,60 +1,99 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { initGoogleWorkspace, requestGoogleAuthorization, isGoogleAuthorized, revokeGoogleToken } from '../lib/google';
+import { getAuth } from 'firebase/auth';
 
 interface GoogleContextType {
   isReady: boolean;
   isAuthorized: boolean;
   authorize: () => Promise<void>;
-  revoke: () => void;
+  revoke: () => Promise<void>;
 }
 
 const GoogleContext = createContext<GoogleContextType>({
   isReady: false,
   isAuthorized: false,
   authorize: async () => {},
-  revoke: () => {},
+  revoke: async () => {},
 });
 
 export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
+  const checkStatus = async () => {
+    try {
+      const auth = getAuth();
+      if (!auth.currentUser) return;
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/google/status', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsAuthorized(data.isAuthorized);
+      }
+    } catch (e) {
+      console.error("Failed to check Google status", e);
+    } finally {
+      setIsReady(true);
+    }
+  };
+
   useEffect(() => {
-    // Attempt to load GAPI scripts if not already loaded
-    const loadGapi = async () => {
-      try {
-        await initGoogleWorkspace();
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        checkStatus();
+      } else {
+        setIsAuthorized(false);
         setIsReady(true);
-        setIsAuthorized(isGoogleAuthorized());
-      } catch (e) {
-        console.error("Failed to initialize Google Workspace", e);
+      }
+    });
+    
+    // Also listen for OAuth popup success message
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === "GOOGLE_AUTH_SUCCESS") {
+        checkStatus();
       }
     };
+    window.addEventListener("message", handleMessage);
     
-    // GAPI scripts are loaded async in index.html, we should wait for them to be available on window
-    const checkGapi = setInterval(() => {
-      if (window.gapi && window.google) {
-        clearInterval(checkGapi);
-        loadGapi();
-      }
-    }, 100);
-
-    return () => clearInterval(checkGapi);
+    return () => {
+      unsubscribe();
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   const authorize = async () => {
     try {
-      await requestGoogleAuthorization();
-      setIsAuthorized(true);
+      const auth = getAuth();
+      if (!auth.currentUser) throw new Error("Not logged in");
+      const token = await auth.currentUser.getIdToken();
+      
+      const width = 600;
+      const height = 700;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      window.open(`/api/google/auth/start?token=${token}`, 'GoogleAuth', `width=${width},height=${height},left=${left},top=${top}`);
     } catch (e) {
       console.error("Authorization failed", e);
       throw e;
     }
   };
 
-  const revoke = () => {
-    revokeGoogleToken();
-    setIsAuthorized(false);
+  const revoke = async () => {
+    try {
+      const auth = getAuth();
+      if (!auth.currentUser) return;
+      const token = await auth.currentUser.getIdToken();
+      await fetch('/api/google/disconnect', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setIsAuthorized(false);
+    } catch (e) {
+      console.error("Revocation failed", e);
+    }
   };
 
   return (

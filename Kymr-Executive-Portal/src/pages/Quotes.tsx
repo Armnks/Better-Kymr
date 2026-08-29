@@ -223,8 +223,8 @@ export default function Quotes() {
   };
 
   const initiateSendQuote = async () => {
-    // 1. Save quote as PENDING_SEND before emailing
-    const savedId = await handleSave('PENDING_SEND', true);
+    // 1. Save quote as READY before emailing
+    const savedId = await handleSave('READY', true);
     if (!savedId) return; // Save failed, stop email flow
     
     // Refresh list in background

@@ -15,6 +15,10 @@ export interface ScopeRequest {
   deliverables?: string[];
   notes?: string;
   rawPayload?: any;
+  volume?: number | null;
+  mix?: string | null;
+  cadence?: string | null;
+  tier?: string | null;
 }
 
 export interface Inquiry {
