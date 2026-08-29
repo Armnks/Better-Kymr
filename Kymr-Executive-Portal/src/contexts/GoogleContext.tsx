@@ -94,10 +94,19 @@ export const GoogleProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (!initRes.ok) {
-        let errStr = "Unknown init error";
-        try { errStr = await initRes.text(); } catch(e){}
-        popup.document.body.innerHTML = `<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_INIT</p><p>ERROR: ${initRes.status} ${errStr.substring(0, 100)}</p>`;
-        throw new Error('Failed to initiate OAuth');
+        let errCode = "SERVER_ERROR";
+        try {
+          const errData = await initRes.json();
+          if (errData.error) errCode = errData.error;
+        } catch (e) {
+          try {
+            const errText = await initRes.text();
+            if (errText) errCode = "UNKNOWN_ERROR";
+          } catch(e2) {}
+        }
+        const fullErr = `AUTH_INIT_${errCode}`;
+        popup.document.body.innerHTML = `<h1>KYMRSTUDIO GOOGLE OAUTH</h1><p>STATUS: FAILED</p><p>STAGE: AUTH_INIT</p><p>ERROR: ${fullErr}</p>`;
+        throw new Error(fullErr);
       }
       const { initId } = await initRes.json();
       

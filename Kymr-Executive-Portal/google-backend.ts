@@ -93,10 +93,57 @@ export function createGoogleRouter(db: Firestore | null) {
   };
 
   // Init Auth Flow securely
-  router.post('/auth/init', authMiddleware, async (req, res) => {
+  router.post('/auth/init', async (req, res) => {
+    console.log('[GOOGLE_AUTH_INIT] request received');
     try {
-      if (!db) return res.status(500).json({ error: 'DB_MISSING' });
-      const userId = (req as any).user.uid;
+      if (!db) {
+        console.log('[GOOGLE_AUTH_INIT] FAILED_AT=db_check');
+        console.log('[GOOGLE_AUTH_INIT] ERROR=Database missing');
+        return res.status(500).json({ error: 'DB_MISSING' });
+      }
+
+      console.log('[GOOGLE_AUTH_INIT] firebase verification started');
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('[GOOGLE_AUTH_INIT] FAILED_AT=firebase_verification');
+        console.log('[GOOGLE_AUTH_INIT] ERROR=Missing Authorization Header');
+        return res.status(401).json({ error: 'UNAUTHORIZED' });
+      }
+
+      const token = authHeader.split('Bearer ')[1];
+      let decodedToken;
+      try {
+        decodedToken = await getAuth().verifyIdToken(token);
+        console.log('[GOOGLE_AUTH_INIT] firebase verification passed');
+      } catch (e: any) {
+        console.log('[GOOGLE_AUTH_INIT] FAILED_AT=firebase_verification');
+        console.log(`[GOOGLE_AUTH_INIT] ERROR=${e.code || e.message}`);
+        return res.status(401).json({ error: 'INVALID_TOKEN' });
+      }
+
+      const userId = decodedToken.uid;
+      
+      // We don't have a rigid OWNER/ADMIN check here based on email in the current codebase,
+      // but if the user document is found, we should log it.
+      // The instruction says: "inspect the canonical Firestore: users/{uid} ... Verify USER DOCUMENT: FOUND / MISSING ... ROLE: OWNER ... AUTHORIZATION: PASS / FAIL"
+      // I will add a check for the user document to ensure they are an OWNER/ADMIN.
+      const userDoc = await db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        console.log('[GOOGLE_AUTH_INIT] FAILED_AT=authorization');
+        console.log('[GOOGLE_AUTH_INIT] ERROR=User document missing in users collection');
+        return res.status(403).json({ error: 'USER_MISSING' });
+      }
+      
+      const userData = userDoc.data()!;
+      if (userData.role !== 'OWNER' && userData.role !== 'ADMIN') {
+        console.log('[GOOGLE_AUTH_INIT] FAILED_AT=authorization');
+        console.log(`[GOOGLE_AUTH_INIT] ERROR=Insufficient role: ${userData.role}`);
+        return res.status(403).json({ error: 'INSUFFICIENT_ROLE' });
+      }
+      
+      console.log('[GOOGLE_AUTH_INIT] authorization passed');
+
+      console.log('[GOOGLE_AUTH_INIT] init record creation started');
       const initId = crypto.randomBytes(32).toString('hex');
       
       await db.collection('oauth_state').doc(initId).set({
@@ -104,9 +151,12 @@ export function createGoogleRouter(db: Firestore | null) {
         createdAt: FieldValue.serverTimestamp(),
       });
       
+      console.log('[GOOGLE_AUTH_INIT] init record creation passed');
+      console.log('[GOOGLE_AUTH_INIT] response sent');
       res.json({ initId });
     } catch (e: any) {
-      console.error(e);
+      console.log('[GOOGLE_AUTH_INIT] FAILED_AT=unknown');
+      console.log(`[GOOGLE_AUTH_INIT] ERROR=${e.message}`);
       res.status(500).json({ error: 'FAILED_TO_INIT' });
     }
   });

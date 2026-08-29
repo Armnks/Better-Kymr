@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'fs';
+import os from 'os';
 import { createServer as createViteServer } from 'vite';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, Firestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
@@ -62,7 +64,7 @@ try {
     }
   } 
   // 3. Explicit ADC File Path (Standard Local GCP Tooling)
-  else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  else if (process.env.GOOGLE_APPLICATION_CREDENTIALS || fs.existsSync(path.join(os.homedir(), '.config/gcloud/application_default_credentials.json'))) {
     hasCredentials = true;
   }
   // 4. Managed Google Cloud Environment (Cloud Run, Functions, App Engine)
@@ -340,16 +342,61 @@ app.post('/api/webhooks/calcom', async (req, res) => {
         updatedAt: FieldValue.serverTimestamp()
       };
 
-      await db.collection('meetings').add(meetingData);
+      const meetingDoc = await db.collection('meetings').add(meetingData);
+
+      if (relatedInquiryId) {
+        await db.collection('inquiries').doc(relatedInquiryId).update({
+          status: 'MEETING',
+          meetingStatus: 'BOOKED',
+          meetingDate: meetingData.date,
+          meetingProvider: 'CAL.COM',
+          meetingMeetUrl: meetingData.meetUrl || null,
+          updatedAt: FieldValue.serverTimestamp()
+        });
+        
+        await db.collection('activity').add({
+          type: 'MEETING_BOOKED',
+          actorId: 'system',
+          entityType: 'INQUIRY',
+          entityId: relatedInquiryId,
+          meetingId: meetingDoc.id,
+          description: `Meeting booked via Cal.com for ${meetingData.date.toDate().toLocaleDateString()}`,
+          timestamp: FieldValue.serverTimestamp()
+        });
+      } else if (relatedClientId) {
+        await db.collection('activity').add({
+          type: 'MEETING_BOOKED',
+          actorId: 'system',
+          entityType: 'CLIENT',
+          entityId: relatedClientId,
+          meetingId: meetingDoc.id,
+          description: `Meeting booked via Cal.com for ${meetingData.date.toDate().toLocaleDateString()}`,
+          timestamp: FieldValue.serverTimestamp()
+        });
+      }
+
     } else if (eventType === 'BOOKING_CANCELLED') {
       const externalId = payload.uid || payload.id;
       if (externalId) {
         const existingMeeting = await db.collection('meetings').where('externalBookingId', '==', externalId).get();
         if (!existingMeeting.empty) {
-          await existingMeeting.docs[0].ref.update({
+          const doc = existingMeeting.docs[0];
+          await doc.ref.update({
             status: 'CANCELLED',
             updatedAt: FieldValue.serverTimestamp()
           });
+          const data = doc.data();
+          if (data.inquiryId) {
+            await db.collection('activity').add({
+              type: 'MEETING_CANCELLED',
+              actorId: 'system',
+              entityType: 'INQUIRY',
+              entityId: data.inquiryId,
+              meetingId: doc.id,
+              description: 'Meeting cancelled via Cal.com',
+              timestamp: FieldValue.serverTimestamp()
+            });
+          }
         }
       }
     } else if (eventType === 'BOOKING_RESCHEDULED') {
@@ -357,11 +404,28 @@ app.post('/api/webhooks/calcom', async (req, res) => {
       if (externalId) {
         const existingMeeting = await db.collection('meetings').where('externalBookingId', '==', externalId).get();
         if (!existingMeeting.empty) {
-          await existingMeeting.docs[0].ref.update({
+          const doc = existingMeeting.docs[0];
+          await doc.ref.update({
             date: Timestamp.fromDate(new Date(payload.startTime)),
-            meetUrl: payload.metadata?.videoCallUrl || payload.videoCallData?.url || existingMeeting.docs[0].data().meetUrl,
+            meetUrl: payload.metadata?.videoCallUrl || payload.videoCallData?.url || doc.data().meetUrl,
             updatedAt: FieldValue.serverTimestamp()
           });
+          const data = doc.data();
+          if (data.inquiryId) {
+            await db.collection('activity').add({
+              type: 'MEETING_RESCHEDULED',
+              actorId: 'system',
+              entityType: 'INQUIRY',
+              entityId: data.inquiryId,
+              meetingId: doc.id,
+              description: `Meeting rescheduled via Cal.com to ${new Date(payload.startTime).toLocaleDateString()}`,
+              timestamp: FieldValue.serverTimestamp()
+            });
+            await db.collection('inquiries').doc(data.inquiryId).update({
+              meetingDate: Timestamp.fromDate(new Date(payload.startTime)),
+              updatedAt: FieldValue.serverTimestamp()
+            });
+          }
         }
       }
     }
