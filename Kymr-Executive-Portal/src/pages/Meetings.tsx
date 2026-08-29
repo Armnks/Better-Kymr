@@ -103,6 +103,13 @@ export default function Meetings() {
 
   const handleSave = async () => {
     if (!formState.title || !formState.attendeeName || !formState.date) return;
+    
+    // Email validation if required
+    if (formState.attendeeEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.attendeeEmail)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
     try {
       let meetUrl = formState.meetUrl;
       let eventId = formState.calendarEventId;
@@ -121,26 +128,39 @@ export default function Meetings() {
           if (event.hangoutLink) {
             meetUrl = event.hangoutLink;
           }
-        } catch (calendarError) {
+        } catch (calendarError: any) {
           console.error("Failed to create calendar event", calendarError);
+          alert(`Failed to schedule with Google Calendar: ${calendarError.message}`);
+          return; // Stop if calendar creation fails to prevent partial/fake state
         }
       }
 
-      const finalFormState = {
+      const rawFormState = {
         ...formState,
         meetUrl,
         calendarEventId: eventId
       };
+      
+      // Clean undefined fields to prevent Firestore crashes
+      const finalFormState = Object.fromEntries(Object.entries(rawFormState).filter(([_, v]) => v !== undefined));
 
       if (selectedMeeting) {
         await api.updateMeeting(selectedMeeting.id!, finalFormState);
       } else {
-        await api.createMeeting(finalFormState as any);
+        const newMeetId = await api.createMeeting(finalFormState as any);
+        await api.logActivity({
+          actorId: 'admin',
+          entityType: 'Meeting',
+          entityId: newMeetId,
+          type: 'MEETING_CREATED',
+          description: `Scheduled call: ${formState.title}`
+        });
       }
       closeDrawer();
       load();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      alert(`Failed to save meeting: ${e.message}`);
     }
   };
 
@@ -165,22 +185,6 @@ export default function Meetings() {
     if (status === 'COMPLETED') {
       // If we mark it complete, leave drawer open so they can add notes and next actions
       return; 
-    }
-  };
-
-  const handleGenerateMeet = async () => {
-    try {
-      const space = await createMeetSpace();
-      if (space && space.meetingUri) {
-        if (selectedMeeting) {
-          await api.updateMeeting(selectedMeeting.id!, { meetUrl: space.meetingUri });
-          setMeetings(prev => prev.map(m => m.id === selectedMeeting.id ? { ...m, meetUrl: space.meetingUri } : m));
-        }
-        setFormState(prev => ({ ...prev, meetUrl: space.meetingUri }));
-      }
-    } catch (e) {
-      console.error('Failed to generate meet link', e);
-      alert('Failed to create Meet space. Make sure you have authorized Google Meet.');
     }
   };
 
@@ -381,10 +385,6 @@ export default function Meetings() {
                               return (
                                 <Button variant="primary" onClick={() => window.open(selectedMeeting.meetUrl, '_blank')} className="text-[10px] h-8 col-span-2" icon={Video}>{label}</Button>
                               );
-                            } else if (isAuthorized && !selectedMeeting.meetUrl) {
-                              return (
-                                <Button variant="outline" onClick={handleGenerateMeet} className="text-[10px] h-8 col-span-2 border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-black" icon={Video}>Generate Instant Meet Link</Button>
-                              );
                             } else {
                               return (
                                 <div className="font-mono text-[9px] text-brand-muted-dark uppercase tracking-widest border border-brand-border px-3 py-2 text-center col-span-2">{label}</div>
@@ -400,12 +400,6 @@ export default function Meetings() {
                         </div>
                       )}
 
-                      {!selectedMeeting && isAuthorized && !formState.meetUrl && (
-                        <Button variant="outline" onClick={handleGenerateMeet} className="text-[10px] h-8 w-full border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-black mb-4" icon={Video}>
-                          Add Instant Meet Link
-                        </Button>
-                      )}
-                      
                       {!selectedMeeting && formState.meetUrl && (
                         <div className="font-mono text-[10px] uppercase tracking-widest p-3 border mb-4 bg-brand-surface border-brand-accent/30 text-brand-ivory flex items-center justify-between">
                           <span>✓ Meet Link Added</span>
@@ -436,9 +430,15 @@ export default function Meetings() {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-2">Attendee Name</label>
-                          <Input value={formState.attendeeName} onChange={e => setFormState({...formState, attendeeName: e.target.value})} placeholder="Jane Doe" />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-2">Attendee Name</label>
+                            <Input value={formState.attendeeName} onChange={e => setFormState({...formState, attendeeName: e.target.value})} placeholder="Jane Doe" />
+                          </div>
+                          <div>
+                            <label className="block font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-2">Attendee Email</label>
+                            <Input type="email" value={formState.attendeeEmail || ''} onChange={e => setFormState({...formState, attendeeEmail: e.target.value.trim()})} placeholder="jane@example.com" />
+                          </div>
                         </div>
 
                         <div>
