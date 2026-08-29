@@ -19,8 +19,8 @@ try {
       projectId: 'gen-lang-client-0467065981'
     });
   }
-  // FIX: Prompt 4A - Removed hardcoded database ID to align with frontend (default)
-  db = getFirestore();
+  // FIX: Prompt 4A Correction - Using canonical named database as instructed
+  db = getFirestore('ai-studio-remixremixkymrst-beeda92b-77a0-4bfa-a083-53618ab3416e');
 } catch (e) {
   console.warn('Firebase Admin init warning:', e);
 }
