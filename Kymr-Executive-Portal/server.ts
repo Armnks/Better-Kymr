@@ -191,7 +191,7 @@ app.post('/api/public/inquiries', rateLimiter, async (req, res) => {
     const { 
       name, email, phone, company, website, 
       message, serviceInterest, budgetRange, 
-      source, submissionType, scopeRequest, externalBookingId 
+      source, submissionType, scopeRequest, externalBookingId, scope_line
     } = req.body;
 
     // Strict validation logic
@@ -236,12 +236,13 @@ app.post('/api/public/inquiries', rateLimiter, async (req, res) => {
     
     const reqConfig = req.body.config;
     const reqTier = req.body.tier;
-    if (reqConfig || scopeRequest) {
+    if (reqConfig || scopeRequest || scope_line) {
       payload.scopeRequest = {
         volume: reqConfig?.volume || scopeRequest?.volume || null,
         mix: reqConfig?.mix || scopeRequest?.mix || null,
         cadence: reqConfig?.cadence || scopeRequest?.cadence || null,
-        tier: reqTier || scopeRequest?.tier || null
+        tier: reqTier || scopeRequest?.tier || null,
+        serviceName: scope_line || scopeRequest?.serviceName || null
       };
     }
 
@@ -336,8 +337,13 @@ app.post('/api/webhooks/calcom', async (req, res) => {
       let relatedInquiryId = null;
       let relatedClientId = null;
 
-      // Primary linkage: Use externalBookingId matching
-      if (externalId) {
+      // Primary linkage: Explicit inquiryId passed via metadata from Kymr frontend
+      if (payload.metadata?.inquiryId) {
+         relatedInquiryId = payload.metadata.inquiryId;
+      }
+
+      // Secondary linkage: Use externalBookingId matching
+      if (!relatedInquiryId && externalId) {
         const inquiryByUid = await db.collection('inquiries').where('externalBookingId', '==', externalId).limit(1).get();
         if (!inquiryByUid.empty) {
           relatedInquiryId = inquiryByUid.docs[0].id;
@@ -378,13 +384,13 @@ app.post('/api/webhooks/calcom', async (req, res) => {
         meetingUrl: meetingUrl,
         location: payload.location || '',
         conferenceProvider: payload.metadata?.videoCallUrl ? 'Google Meet / Cal Video' : '',
-        externalBookingId: externalId,
-        bookingUid: payload.uid,
-        eventTypeId: payload.eventTypeId,
+        externalBookingId: externalId || null,
+        bookingUid: payload.uid || null,
+        eventTypeId: payload.eventTypeId || null,
         eventTypeTitle: payload.type || '',
         externalProvider: 'CAL.COM',
-        inquiryId: relatedInquiryId,
-        clientId: relatedClientId,
+        inquiryId: relatedInquiryId || null,
+        clientId: relatedClientId || null,
         providerVerified: true,
         isSynthetic: false,
         source: 'CAL.COM',
