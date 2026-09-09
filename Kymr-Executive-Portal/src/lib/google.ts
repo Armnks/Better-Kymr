@@ -32,9 +32,7 @@ export const isGoogleAuthorized = (): boolean => {
 
 // --- GMAIL ---
 export const searchEmails = async (query: string, maxResults = 10) => {
-  // Implement via backend if needed, for now we only support sending emails 
-  // as per prompt "At minimum ensure persistent authorization can support: Gmail, Calendar, Drive, Sheets"
-  throw new Error("searchEmails is not implemented in backend yet");
+  return await apiCall(`/gmail/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`, 'GET');
 };
 
 export const sendEmail = async (to: string, subject: string, message: string) => {

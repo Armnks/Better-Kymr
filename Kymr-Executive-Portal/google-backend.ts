@@ -256,27 +256,75 @@ export function createGoogleRouter(db: Firestore | null) {
 
   // Status Check
   router.get('/status', authMiddleware, async (req, res) => {
-    if (!db) return res.status(500).json({ error: 'DB_MISSING' });
-    const userId = (req as any).user.uid;
-    const doc = await db.collection('integration_credentials').doc(userId).get();
-    res.json({ isAuthorized: doc.exists });
+    try {
+      if (!db) return res.status(500).json({ error: 'DB_MISSING' });
+      const userId = (req as any).user.uid;
+      const doc = await db.collection('integration_credentials').doc(userId).get();
+      res.json({ isAuthorized: doc.exists });
+    } catch (e: any) {
+      console.error("Status check failed", e);
+      res.status(500).json({ error: 'DB_ERROR' });
+    }
   });
 
   // Disconnect
   router.post('/disconnect', authMiddleware, async (req, res) => {
-    if (!db) return res.status(500).json({ error: 'DB_MISSING' });
-    const userId = (req as any).user.uid;
-    
     try {
-       const client = await getAuthenticatedClient(userId);
-       const token = (await client.getAccessToken()).token;
-       if (token) await client.revokeToken(token);
-    } catch (e) {
-       console.error("Failed to revoke token, but deleting from db anyway", e);
+      if (!db) return res.status(500).json({ error: 'DB_MISSING' });
+      const userId = (req as any).user.uid;
+      
+      try {
+         const client = await getAuthenticatedClient(userId);
+         const token = (await client.getAccessToken()).token;
+         if (token) await client.revokeToken(token);
+      } catch (e) {
+         console.error("Failed to revoke token, but deleting from db anyway", e);
+      }
+      
+      await db.collection('integration_credentials').doc(userId).delete();
+      res.json({ success: true });
+    } catch (e: any) {
+      console.error("Disconnect failed", e);
+      res.status(500).json({ error: 'DB_ERROR' });
     }
-    
-    await db.collection('integration_credentials').doc(userId).delete();
-    res.json({ success: true });
+  });
+
+  // API Proxy - Gmail Search
+  router.get('/gmail/search', authMiddleware, async (req, res) => {
+    try {
+      const q = req.query.q as string || 'in:inbox';
+      const maxResults = parseInt(req.query.maxResults as string) || 20;
+      
+      const client = await getAuthenticatedClient((req as any).user.uid);
+      const gmail = google.gmail({ version: 'v1', auth: client as any as any });
+      
+      const listRes = await gmail.users.messages.list({
+        userId: 'me',
+        q,
+        maxResults,
+      });
+      
+      if (!listRes.data.messages || listRes.data.messages.length === 0) {
+        return res.json([]);
+      }
+      
+      const messages = await Promise.all(
+        listRes.data.messages.map(async (msg) => {
+          const msgRes = await gmail.users.messages.get({
+            userId: 'me',
+            id: msg.id!,
+            format: 'metadata',
+            metadataHeaders: ['From', 'Subject', 'Date']
+          });
+          return msgRes.data;
+        })
+      );
+      
+      res.json(messages);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).json({ error: 'GMAIL_ERROR', message: e.message });
+    }
   });
 
   // API Proxy - Gmail Send
