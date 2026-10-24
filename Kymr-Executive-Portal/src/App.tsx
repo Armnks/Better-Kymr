@@ -23,7 +23,10 @@ import Meetings from './pages/Meetings';
 import Quotes from './pages/Quotes';
 import Projects from './pages/Projects';
 import Invoices from './pages/Invoices';
+import Tasks from './pages/Tasks';
+import Activity from './pages/Activity';
 import { SettingsServices } from './pages/SettingsServices';
+import Treasury from './pages/Treasury';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading, isAuthorized } = useAuth();
@@ -84,9 +87,11 @@ export default function App() {
             <Route path="meetings" element={<Meetings />} />
             <Route path="quotes" element={<Quotes />} />
             <Route path="projects" element={<Projects />} />
-            <Route path="tasks" element={<ComingSoon title="Tasks" />} />
+            <Route path="tasks" element={<Tasks />} />
             <Route path="invoices" element={<Invoices />} />
-            <Route path="activity" element={<ComingSoon title="Activity Stream" />} />
+            <Route path="treasury" element={<Treasury />} />
+            <Route path="finance" element={<Navigate to="treasury" replace />} />
+            <Route path="activity" element={<Activity />} />
             
             {/* SETTINGS */}
             <Route path="settings" element={<ComingSoon title="Settings" />} />

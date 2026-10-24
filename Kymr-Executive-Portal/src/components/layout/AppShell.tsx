@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { 
   Command, Inbox as InboxIcon, GitMerge, Calendar, Users, FileText, 
-  Briefcase, CheckSquare, Receipt, Activity, Settings, 
+  Briefcase, CheckSquare, Receipt, Activity, Settings, TrendingUp,
   Search, LogOut, Menu, X, Mail, Folder, HardDrive, Plus, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -48,6 +48,7 @@ export function AppShell() {
   ];
 
   const financeItems = [
+    { label: 'Treasury Bento', path: '/admin/treasury', icon: TrendingUp },
     { label: 'Invoices', path: '/admin/invoices', icon: Receipt },
   ];
 
@@ -63,7 +64,7 @@ export function AppShell() {
 
   const NavGroup = ({ title, items }: { title: string, items: any[] }) => (
     <>
-      {(!isSidebarCollapsed || isMobileMenuOpen) && <div className="text-[10px] uppercase tracking-widest text-brand-muted-dark px-3 mb-2 mt-6 font-semibold whitespace-nowrap overflow-hidden">{title}</div>}
+      {(!isSidebarCollapsed || isMobileMenuOpen) && <div className="text-[10px] uppercase tracking-widest text-brand-muted-dark px-3 mb-2 mt-6 font-mono font-bold whitespace-nowrap overflow-hidden">{title}</div>}
       {isSidebarCollapsed && !isMobileMenuOpen && <div className="my-3 border-t border-brand-border/50"></div>}
       {items.map((item) => (
         <NavLink

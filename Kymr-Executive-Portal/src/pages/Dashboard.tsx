@@ -5,7 +5,8 @@ import { Inquiry, ActivityEvent, Client, Meeting, Quote, Project, Task, Invoice,
 import { Button, Badge } from '../components/ui/DesignSystem';
 import { 
   Inbox, Calendar, FileText, Briefcase, CheckSquare, Receipt, 
-  ArrowRight, Plus, Phone, Users, CheckCircle, Search, AlertCircle, Clock
+  ArrowRight, Plus, Phone, Users, CheckCircle, Search, AlertCircle, Clock,
+  TrendingUp, Sparkles, ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -315,6 +316,7 @@ export default function Dashboard() {
                 { label: 'Quote', icon: FileText, path: '/admin/quotes?create=true' },
                 { label: 'Project', icon: Briefcase, path: '/admin/projects?create=true' },
                 { label: 'Invoice', icon: Receipt, path: '/admin/invoices?create=true' },
+                { label: 'Treasury Bento', icon: TrendingUp, path: '/admin/treasury' },
                 { label: 'Task', icon: CheckSquare, path: '/admin/tasks?create=true' },
               ].map(action => (
                 <button 
@@ -329,9 +331,46 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* MONEY */}
+          {/* MONEY & TREASURY */}
           <section>
-             <h2 className="font-mono text-[10px] uppercase tracking-widest text-brand-muted font-bold mb-4">Money Outstanding</h2>
+             <div className="flex items-center justify-between mb-4">
+               <h2 className="font-mono text-[10px] uppercase tracking-widest text-brand-muted font-bold flex items-center gap-2">
+                 <span>Money & Studio Treasury</span>
+               </h2>
+               <button 
+                 onClick={() => navigate('/admin/treasury')}
+                 className="flex items-center gap-1.5 text-brand-accent hover:text-white transition-colors font-mono text-[10px] uppercase tracking-widest font-bold group"
+               >
+                 <span>Open Full Bento Radar</span>
+                 <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+               </button>
+             </div>
+
+             {/* Bento Radar Preview Banner */}
+             <div 
+               onClick={() => navigate('/admin/treasury')}
+               className="mb-4 p-4 bg-gradient-to-r from-brand-charcoal via-brand-surface to-[#0a0a0f] border border-brand-border hover:border-[#E8FF1F]/50 transition-all cursor-pointer group rounded-sm flex items-center justify-between"
+             >
+               <div className="flex items-center gap-3">
+                 <div className="w-9 h-9 rounded-full bg-[#E8FF1F]/10 border border-[#E8FF1F]/30 flex items-center justify-center text-[#E8FF1F] shadow-[0_0_12px_rgba(232,255,31,0.2)]">
+                   <TrendingUp className="w-4 h-4" />
+                 </div>
+                 <div>
+                   <div className="flex items-center gap-2">
+                     <span className="font-sans font-bold text-xs text-white">Active Financial Bento Radar</span>
+                     <span className="bg-[#E8FF1F] text-black text-[9px] font-mono font-bold px-1.5 py-0.2 rounded">LIVE</span>
+                   </div>
+                   <p className="font-mono text-[10px] text-brand-muted mt-0.5">
+                     Allocation Stream · Multi-Asset Candles · Runway Ticks · Cash Flow Waves
+                   </p>
+                 </div>
+               </div>
+               <div className="hidden sm:flex items-center gap-2 text-brand-muted group-hover:text-white transition-colors text-xs font-mono">
+                 <span>Launch Radar</span>
+                 <ArrowRight className="w-4 h-4 text-brand-accent group-hover:translate-x-1 transition-transform" />
+               </div>
+             </div>
+
              {Object.keys(curGroups).length > 0 ? (
                <div className="grid grid-cols-1 gap-6">
                  {Object.entries(curGroups).map(([cur, data]: [string, { outstanding: number, overdue: number, paid: number }]) => (

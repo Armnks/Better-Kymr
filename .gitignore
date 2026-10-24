@@ -27,8 +27,11 @@ next-env.d.ts
 
 # Production builds
 /build
+**/build
 dist/
 dist
+**/.vercel-output
+.vercel-output/
 
 # Environment files (comprehensive coverage)
 
@@ -88,3 +91,4 @@ android-sdk/.env
 credentials.json
 *.key
 .credentials
+Kymr-Final/

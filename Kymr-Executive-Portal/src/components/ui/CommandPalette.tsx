@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, FileText, Users, Inbox, X, Mail, HardDrive, Calendar, Phone, CheckSquare, MessageSquare, ArrowRight, Briefcase, Receipt, Plus, GitMerge } from 'lucide-react';
+import { Search, FileText, Users, Inbox, X, Mail, HardDrive, Calendar, Phone, CheckSquare, MessageSquare, ArrowRight, Briefcase, Receipt, Plus, GitMerge, TrendingUp } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEmail } from '../../contexts/EmailContext';
@@ -98,6 +98,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     { id: 'inquiries', label: 'Go to Inquiries', icon: Inbox, action: () => executeAndClose(() => navigate('/admin/inquiries')) },
     { id: 'clients', label: 'Go to Clients', icon: Users, action: () => executeAndClose(() => navigate('/admin/clients')) },
     { id: 'pipeline', label: 'Go to Pipeline', icon: GitMerge, action: () => executeAndClose(() => navigate('/admin/pipeline')) },
+    { id: 'treasury', label: 'Treasury & Finance Bento', icon: TrendingUp, action: () => executeAndClose(() => navigate('/admin/treasury')) },
   ];
 
   // Universal Search Logic
