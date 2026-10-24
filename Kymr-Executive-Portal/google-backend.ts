@@ -23,7 +23,10 @@ export function createGoogleRouter(db: Firestore | null) {
   const getOAuthClient = (req: express.Request) => {
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
     const host = req.headers.host || 'localhost:8000';
-    const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${protocol}://${host}/api/google/auth/callback`;
+    let REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+    if (!REDIRECT_URI || (host !== 'localhost:8000' && REDIRECT_URI.includes('localhost'))) {
+      REDIRECT_URI = `${protocol}://${host}/api/google/auth/callback`;
+    }
     return new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
