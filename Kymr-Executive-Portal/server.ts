@@ -84,6 +84,7 @@ try {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Rate Limiting (Firestore-backed for serverless consistency)
 const rateLimiter = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
