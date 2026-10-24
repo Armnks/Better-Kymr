@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/db';
 import { Project, Client, Quote } from '../types';
-import { Briefcase, FileText, CheckCircle, Search, Clock, ArrowRight, X, Mail, Folder, Calendar, Download, Upload } from 'lucide-react';
+import { Briefcase, FileText, CheckCircle, Search, Clock, ArrowRight, X, Mail, Folder, Calendar, Download, Upload, Trash2 } from 'lucide-react';
 import { Button, Badge } from '../components/ui/DesignSystem';
 import { useEmail } from '../contexts/EmailContext';
 import { createSpreadsheet, uploadFileToDrive } from '../lib/google';
@@ -23,6 +23,7 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -72,6 +73,34 @@ export default function Projects() {
     setProjects(prev => prev.map(x => x.id === p.id ? { ...x, status } : x));
     if (selectedProject?.id === p.id) {
       setSelectedProject({ ...selectedProject, status });
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL projects? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      const res = await api.deleteAllDocuments('projects');
+      alert(`Successfully deleted ${res.deletedCount} projects.`);
+      load();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete projects");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this project?")) return;
+    try {
+      await api.deleteDocument('projects', id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+      if (selectedProject?.id === id) setSelectedProject(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete project");
     }
   };
 
@@ -137,9 +166,14 @@ export default function Projects() {
           <h1 className="text-3xl font-display uppercase tracking-widest text-brand-ivory mb-2">Projects</h1>
           <p className="font-mono text-[10px] text-brand-muted uppercase tracking-[0.2em]">Active Delivery</p>
         </div>
-        <Button icon={Download} variant="outline" onClick={handleExport} disabled={exporting}>
-          {exporting ? 'Exporting...' : 'Export'}
-        </Button>
+        <div className="flex gap-3">
+          <Button icon={Trash2} variant="danger" onClick={handleClearAll} disabled={clearing || projects.length === 0}>
+            {clearing ? 'Clearing...' : 'Clear All'}
+          </Button>
+          <Button icon={Download} variant="outline" onClick={handleExport} disabled={exporting}>
+            {exporting ? 'Exporting...' : 'Export'}
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -163,7 +197,16 @@ export default function Projects() {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <Badge variant={p.status === 'IN_PROGRESS' ? 'success' : p.status === 'COMPLETED' ? 'default' : 'info'}>{p.status}</Badge>
-                      <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{p.createdAt.toLocaleDateString()}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{p.createdAt.toLocaleDateString()}</span>
+                        <button 
+                          onClick={(e) => handleDelete(e, p.id!)}
+                          className="p-1 text-brand-muted hover:text-brand-accent-red hover:bg-brand-accent-red/10 rounded transition-colors"
+                          title="Delete Project"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <h3 className="font-sans text-lg font-bold text-brand-ivory group-hover:text-brand-accent transition-colors mb-1">{p.name}</h3>
                     <div className="font-mono text-[10px] text-brand-muted uppercase tracking-wider mb-4">

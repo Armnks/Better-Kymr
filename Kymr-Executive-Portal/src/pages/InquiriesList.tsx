@@ -4,7 +4,7 @@ import { Inquiry } from '../types';
 import { Button, Badge } from '../components/ui/DesignSystem';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Search, Plus, Download } from 'lucide-react';
+import { Search, Plus, Download, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { createSpreadsheet } from '../lib/google';
 import { useGoogle } from '../contexts/GoogleContext';
@@ -13,9 +13,38 @@ export default function InquiriesList() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { isAuthorized } = useGoogle();
+
+  const handleClearAll = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL inquiries? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      const res = await api.deleteAllDocuments('inquiries');
+      alert(`Successfully deleted ${res.deletedCount} inquiries.`);
+      const data = await api.getInquiries();
+      setInquiries(data || []);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete inquiries");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this inquiry?")) return;
+    try {
+      await api.deleteDocument('inquiries', id);
+      setInquiries(prev => prev.filter(i => i.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete inquiry");
+    }
+  };
 
   useEffect(() => {
     async function load() {
@@ -84,6 +113,9 @@ export default function InquiriesList() {
           <Button icon={Download} variant="outline" onClick={handleExport} disabled={exporting}>
             {exporting ? 'Exporting...' : 'Export'}
           </Button>
+          <Button icon={Trash2} variant="danger" onClick={handleClearAll} disabled={clearing || inquiries.length === 0}>
+            {clearing ? 'Clearing...' : 'Clear All'}
+          </Button>
           <Button icon={Plus} onClick={() => navigate('/admin/inquiries/new')}>New Inquiry</Button>
         </div>
       </div>
@@ -109,6 +141,7 @@ export default function InquiriesList() {
                 <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal">Status</th>
                 <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal">Priority</th>
                 <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal">Received</th>
+                <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -143,6 +176,15 @@ export default function InquiriesList() {
                   </td>
                   <td className="px-4 py-4 font-mono text-xs text-brand-muted">
                     {format(inq.createdAt, 'MMM d, yyyy')}
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <button 
+                      onClick={(e) => handleDelete(e, inq.id!)}
+                      className="p-1.5 text-brand-muted hover:text-brand-accent-red hover:bg-brand-accent-red/10 rounded transition-colors"
+                      title="Delete Inquiry"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </td>
                 </motion.tr>
               ))}

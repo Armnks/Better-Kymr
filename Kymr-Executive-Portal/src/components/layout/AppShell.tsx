@@ -59,8 +59,9 @@ export function AppShell() {
 
   const systemItems = [
     { label: 'Activity', path: '/admin/activity', icon: Activity },
-    { label: 'Settings', path: '/admin/settings/services', icon: Settings },
+    { label: 'Settings', path: '/admin/settings/integrations', icon: Settings },
   ];
+
 
   const NavGroup = ({ title, items }: { title: string, items: any[] }) => (
     <>

@@ -94,10 +94,12 @@ export default function App() {
             <Route path="activity" element={<Activity />} />
             
             {/* SETTINGS */}
-            <Route path="settings" element={<ComingSoon title="Settings" />} />
+            <Route path="settings" element={<Navigate to="/admin/settings/integrations" replace />} />
             <Route path="settings/services" element={<SettingsServices />} />
             <Route path="settings/integrations" element={<Integrations />} />
+            <Route path="settings/connectors" element={<Navigate to="/admin/settings/integrations" replace />} />
           </Route>
+
             </Routes>
           </BrowserRouter>
         </EmailProvider>

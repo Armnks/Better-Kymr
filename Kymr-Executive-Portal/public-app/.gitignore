@@ -1,18 +1,20 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# dependencies - TRACKED at the owner's instruction, see the root
+# .gitignore for the trade-off and for how to reverse it.
 /.pnp
 .pnp.js
 
 # testing
 /coverage
 
-# production
-/build
+# production - /build is tracked too, same note.
 
 # misc
 .DS_Store
+# .env is tracked - see the root .gitignore for the condition that makes
+# that safe. The per-developer overrides below still are not: they are
+# local to one machine by definition.
 .env.local
 .env.development.local
 .env.test.local
@@ -21,3 +23,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+node_modules/
+build/
+dist/
+.vercel-output/
+

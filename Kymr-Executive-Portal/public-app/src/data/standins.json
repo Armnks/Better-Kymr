@@ -1,0 +1,220 @@
+{
+  "/ads/fragrance.webp": {
+    "base": "fragrance",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      928
+    ]
+  },
+  "/ads/automotive.webp": {
+    "base": "automotive",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      928
+    ]
+  },
+  "/ads/beverage.webp": {
+    "base": "beverage",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      960,
+      1264
+    ]
+  },
+  "/ads/audio.webp": {
+    "base": "audio",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      928
+    ]
+  },
+  "/ads/home-lowlight.jpg": {
+    "base": "home-lowlight",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/food-dal.jpg": {
+    "base": "food-dal",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/tech.webp": {
+    "base": "tech",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      928
+    ]
+  },
+  "/ads/beverage-cold.jpg": {
+    "base": "beverage-cold",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/watch-wrist.jpg": {
+    "base": "watch-wrist",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      960,
+      1120,
+      1400
+    ]
+  },
+  "/ads/beauty-lip.jpg": {
+    "base": "beauty-lip",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      960,
+      1280
+    ]
+  },
+  "/ads/eyewear-daylight.jpg": {
+    "base": "eyewear-daylight",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/haircare-routine.jpg": {
+    "base": "haircare-routine",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/fashion-denim.jpg": {
+    "base": "fashion-denim",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1031
+    ]
+  },
+  "/ads/jewellery-chains.jpg": {
+    "base": "jewellery-chains",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/home-armchair.jpg": {
+    "base": "home-armchair",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/food-croissant.jpg": {
+    "base": "food-croissant",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      960,
+      1280
+    ]
+  },
+  "/ads/jewellery-ring.jpg": {
+    "base": "jewellery-ring",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/leather-tote.jpg": {
+    "base": "leather-tote",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/jewellery-hoops.jpg": {
+    "base": "jewellery-hoops",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      960,
+      1120,
+      1400
+    ]
+  },
+  "/ads/footwear-sneaker.jpg": {
+    "base": "footwear-sneaker",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      1127
+    ]
+  },
+  "/ads/textile-knit.jpg": {
+    "base": "textile-knit",
+    "widths": [
+      320,
+      480,
+      640,
+      768,
+      960,
+      1280
+    ]
+  }
+}

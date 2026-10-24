@@ -1,434 +1,457 @@
-import { useLayoutEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion, useTransform } from "framer-motion";
+import useChapterScroll from "@/hooks/useChapterScroll";
+import ArchiveOrbit from "@/components/archive/ArchiveOrbit";
+import ConceptViewer from "@/components/scenes/v2/ConceptViewer";
+import { useNavigate, useParams } from "react-router-dom";
+import { CONCEPTS, conceptBySlug, slugFor } from "@/data/concepts";
+import { FlowButton } from "@/components/ui/flow-button";
 
-gsap.registerPlugin(ScrollTrigger);
+// ============================================================
+// CHAPTER 2 - SELECTED WORK
+//
+// One chamber, one viewport, three layers: an editorial header that
+// frames the work instead of competing with it, the orbit itself,
+// and a single dock holding everything the visitor needs to know and
+// everything they can do about it. The dock used to be three
+// unrelated objects below the fold. It is now one object, on screen,
+// beside the work it describes.
+//
+// The work leads the page, so it sits directly under the hero and
+// the first thing a visitor sees after the promise is a campaign.
+//
+// The orbit turns endlessly. Nothing incidental stops it: a pointer
+// resting on the work, a cursor crossing it, keyboard focus landing
+// inside it and a step button being pressed all leave it turning, and
+// a step hands motion straight back to the drift as the camera lands.
+// Only two things take the wheel, and both are the visitor physically
+// holding the work still: a hand dragging a plane, and an open dossier
+// covering it. The Pause control remains the one deliberate way to
+// stop it, and reduced motion switches autoplay off entirely and
+// leaves every manual route working.
+//
+// The chapter captures no vertical input and pins nothing: the page
+// scrolls past it at any point, without waiting for twelve concepts.
+// ============================================================
+const EASE = [0.23, 1, 0.32, 1];
 
-// THE ARCHIVE — a scroll-scrubbed title sequence.
-// Planes: z-1 distant (monumental letterforms) / z-10 camera (hero, aperture, slit)
-// z-20 mid (metadata, rails, crop marks) / z-30 typography front / z-40 splice / z-50 exit.
-// Images: FR.001 fragrance (hero dolly) · FR.002 home (aperture projection) · FR.003 skincare (slit).
-const HERO = { img: "/ads/fragrance.webp", id: "FRAME 001" };
-const PROJ = { img: "/ads/home.webp", id: "FRAME 002" };
-const REEL = [
-  { img: "/ads/food.webp", id: "FRAME 003" },
-  { img: "/ads/tech.webp", id: "FRAME 004" },
-  { img: "/ads/beverage.webp", id: "FRAME 005" },
-  { img: "/ads/watch.webp", id: "FRAME 006" },
-  { img: "/ads/automotive.webp", id: "FRAME 007" },
-  { img: "/ads/beauty.webp", id: "FRAME 008" },
-  { img: "/ads/eyewear.webp", id: "FRAME 009" },
-];
-const SLIT = { img: "/ads/skincare.webp", id: "FRAME 010" };
-const TRAV = { img: "/ads/audio.webp" };
-const TRAV2 = { img: "/ads/fashion.webp" };
+
+const N = CONCEPTS.length;
+const mod = (n) => ((n % N) + N) % N;
+
+// The visitor pressing Pause is a decision about how they want the site
+// to behave, so it outlives the page. Absent means autoplay; "off" means
+// they turned it off. Only the control writes here: holding a plane or
+// opening a dossier are transient and must not be mistaken for a
+// preference.
+const AUTOPLAY_KEY = "kymr-archive-autoplay";
+
+const readAutoplay = () => {
+  try {
+    return window.localStorage.getItem(AUTOPLAY_KEY) !== "off";
+  } catch {
+    return true;
+  }
+};
+
+const writeAutoplay = (on) => {
+  try {
+    if (on) window.localStorage.removeItem(AUTOPLAY_KEY);
+    else window.localStorage.setItem(AUTOPLAY_KEY, "off");
+  } catch {
+    /* a browser refusing storage must not break the control */
+  }
+};
 
 export default function ArchiveScene() {
-  const ref = useRef(null);
-  const reduced = useReducedMotion();
+  const reduce = useReducedMotion();
+  const sectionRef = useRef(null);
+  // The heading drifts against the orbit as the chapter passes, so the
+  // two read as being at different distances. THE ORBIT ITSELF IS NOT
+  // TOUCHED - it keeps turning at its own rate, continuously.
+  //
+  // It is handed the section ref this component already owns, because a
+  // second `ref` on the same element is silently dropped.
+  const chapter = useChapterScroll({ ref: sectionRef, depth: 54 });
 
-  useLayoutEffect(() => {
-    if (reduced) return undefined;
-    const ctx = gsap.context(() => {
-      const announce = () =>
-        window.dispatchEvent(new CustomEvent("kymr:state", { detail: "08 — ARCHIVE" }));
+  // The chamber settles as the chapter is crossed.
+  //
+  // Scrollcraft's rule is that every act earns its span, and this one did
+  // not: the orbit turned on its own timer and scrolling past it changed
+  // nothing. Now the chamber tips a few degrees and comes level as the
+  // chapter passes, so the scroll is doing something here rather than
+  // just carrying the reader over a thing that happens to be moving.
+  // Transform only - the orbit's own rotation is untouched.
+  const chamberTilt = useTransform(chapter.progress, [0, 0.5, 1], [7.5, 0, -7.5]);
+  const chamberLift = useTransform(chapter.progress, [0, 0.5, 1], [0.965, 1, 0.965]);
+  const chamberRef = useRef(null);
+  const openerRef = useRef(null);
 
-      const mm = gsap.matchMedia();
+  const navigate = useNavigate();
+  const { conceptSlug } = useParams();
 
-      // ─────────────────────────── DESKTOP ───────────────────────────
-      // total: 30.7 units. beats: A silence 0-1.2 · B dolly 1.2-3.6 · C takeover 3.6-6.2
-      // D pass 6.2-7.4 · E letterform travel 7.4-10.9 · F splice 11.0-11.9 · G aperture 11.8-14.15
-      // G2 reel 14.3-21.3 (7 projections) · H orange impact 21.7-22.45 · I poster 22.9-24.75
-      // J silence+foot lines 24.7-27.8 · exit wipe 27.9-28.8
-      mm.add("(min-width: 768px)", () => {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top top",
-            end: "+=1400%",
-            scrub: 1,
-            pin: true,
-            anticipatePin: 1,
-            onToggle: (self) => self.isActive && announce(),
-          },
-        });
+  // The URL owns which dossier is open, so deep links, refresh, Back
+  // and Forward all work without a second source of truth.
+  const routed = conceptSlug ? conceptBySlug(conceptSlug) : null;
+  const notFound = Boolean(conceptSlug) && !routed;
 
-        // ── initial geometry
-        tl.set(".ax-hero", { scale: 0.5, clipPath: "inset(40% 42%)" }, 0);
-        tl.set(".ax-giant", { xPercent: -50, yPercent: -50, x: "125vw" }, 0);
-        tl.set(".ax-ap", { clipPath: "inset(49.6% 0%)" }, 0);
-        REEL.forEach((_, i) => tl.set(`.ax-r${i}`, { clipPath: "inset(49.6% 0%)" }, 0));
-        tl.set(".ax-slit", { clipPath: "inset(0% 50%)" }, 0);
-        tl.set(".ax-the", { xPercent: -50, yPercent: -50, x: "-32vw", y: "-34vh" }, 0);
-        tl.set(".ax-arch2", { xPercent: -50, yPercent: -50, x: "-10vw", y: "-11vh" }, 0);
-        tl.set(".ax-beg", { xPercent: -50, yPercent: -50, x: "-8vw", y: "38vh" }, 0);
+  const [active, setActive] = useState(() =>
+    routed ? CONCEPTS.findIndex((c) => c.id === routed.id) : 0
+  );
+  const dossier = Boolean(routed);
+  const [announce, setAnnounce] = useState("");
 
-        // foreground rail drifts the whole sequence (fast plane)
-        tl.fromTo(".ax-rail", { yPercent: 18 }, { yPercent: -18, duration: 28.8, ease: "none" }, 0);
+  // ---- the conditions the rotation lives under ----
+  const [handling, setHandling] = useState(false); // a plane is held
+  const [playing, setPlaying] = useState(readAutoplay); // the visitor's own choice, remembered
 
-        // ── BEAT A · SILENCE (0–1.2)
-        tl.fromTo(".ax-meta", { autoAlpha: 0, y: 10 }, { autoAlpha: 0.9, y: 0, duration: 0.6 }, 0.25)
-          .fromTo(".ax-hero", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.8 }, 0.35)
-          .fromTo(".ax-crops", { autoAlpha: 0 }, { autoAlpha: 0.55, duration: 0.6 }, 0.5)
-          .fromTo(".ax-giant", { autoAlpha: 0 }, { autoAlpha: 0.05, duration: 1.0 }, 0.4);
+  // What the orbit is told to do, as opposed to where it currently is.
+  // `active` changes many times a second while the ring drifts past
+  // twelve concepts; a command is only ever a move the visitor asked
+  // for, so the orbit can act on one without the other yanking it back.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const [command, setCommand] = useState(() => ({ i: active, seq: 0 }));
+  const issue = useCallback((i) => setCommand((c) => ({ i: mod(i), seq: c.seq + 1 })), []);
 
-        // ── BEAT B · DOLLY APPROACH (1.2–3.6)
-        tl.to(".ax-hero", { scale: 0.72, clipPath: "inset(31% 24%)", duration: 2.4, ease: "power1.inOut" }, 1.2)
-          .fromTo(".ax-hero-img", { yPercent: -7 }, { yPercent: 0, duration: 2.4, ease: "none" }, 1.2)
-          .fromTo(".ax-arch", { xPercent: -50, yPercent: -50, autoAlpha: 0, y: "42vh" }, { autoAlpha: 1, y: "12vh", duration: 1.4, ease: "power3.out" }, 2.2)
-          .to(".ax-crops", { autoAlpha: 0, duration: 0.4 }, 3.2);
+  const acc = useRef(0);
+  const settle = useRef(null);
+  const locked = useRef(false);
+  const manual = useRef(false);
 
-        // supporting frame crossing at its own velocity
-        tl.fromTo(".ax-trav", { x: "-45vw", autoAlpha: 0 }, { x: "112vw", autoAlpha: 0.3, duration: 3.4, ease: "none" }, 1.4)
-          .to(".ax-trav", { autoAlpha: 0, duration: 0.4 }, 5.0);
+  useEffect(() => {
+    if (!routed) return;
+    const i = CONCEPTS.findIndex((x) => x.id === routed.id);
+    if (i >= 0) {
+      setActive(i);
+      issue(i);
+    }
+  }, [routed, issue]);
 
-        // ── BEAT C · TAKEOVER — 21:9 → full bleed (3.6–6.2)
-        tl.to(".ax-hero", { scale: 1, clipPath: "inset(27% 0%)", duration: 1.4, ease: "power2.inOut" }, 3.6)
-          .to(".ax-hero", { clipPath: "inset(0% 0%)", duration: 1.2, ease: "power3.inOut" }, 5.0)
-          .to(".ax-hero-img", { yPercent: 8, scale: 1.16, duration: 2.6, ease: "none" }, 3.6)
-          .to(".ax-arch", { autoAlpha: 0, duration: 0.6 }, 5.6)
-          .to(".ax-meta", { autoAlpha: 0, duration: 0.5 }, 5.7);
+  const c = CONCEPTS[active];
 
-        // ── BEAT D · PASS BEYOND (6.2–7.4)
-        tl.to(".ax-hero", { scale: 1.7, duration: 1.0, ease: "power2.in" }, 6.2)
-          .to(".ax-hero", { autoAlpha: 0, duration: 0.35 }, 7.05);
+  // Every index change is functional, because a held arrow key, a fast
+  // double click and an autoplay tick can land in the same frame and a
+  // stale read would skip or stall.
+  const step = useCallback(
+    (dir, source) => {
+      const n = mod(activeRef.current + dir);
+      setActive(n);
+      if (source !== "auto") {
+        manual.current = true;
+        issue(n);
+      }
+    },
+    [issue]
+  );
 
-        // ── BEAT E · LETTERFORM TRAVEL (7.4–10.9) — payoff visible 10.55–11.0
-        tl.to(".ax-giant", { autoAlpha: 0.95, duration: 0.4 }, 7.4)
-          .to(".ax-giant", { x: "-125vw", duration: 2.4, ease: "none" }, 7.6)
-          .to(".ax-giant", { x: "0vw", scale: 0.12, y: "-20vh", duration: 0.9, ease: "power3.inOut" }, 10.0)
-          .fromTo(".ax-the-s", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.3 }, 10.25)
-          .fromTo(".ax-trav2", { x: "115vw", autoAlpha: 0 }, { x: "-50vw", autoAlpha: 0.25, duration: 2.6, ease: "none" }, 7.8)
-          .to(".ax-trav2", { autoAlpha: 0, duration: 0.3 }, 10.3);
+  const goTo = useCallback(
+    (i, source) => {
+      const n = mod(i);
+      setActive(n);
+      if (source !== "auto") {
+        manual.current = true;
+        issue(n);
+      }
+    },
+    [issue]
+  );
 
-        // ── BEAT F · HARD CUT — the splice (11.0–11.9)
-        tl.to(".ax-black", { autoAlpha: 1, duration: 0.12 }, 11.0)
-          .fromTo(".ax-black-meta", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 11.15)
-          .to({}, { duration: 0.45 }, 11.45);
+  // A move the visitor asked for is announced once it lands. The
+  // rotation is not: it would talk over the page every five seconds.
+  useEffect(() => {
+    if (!manual.current) return;
+    manual.current = false;
+    setAnnounce(`${CONCEPTS[active].title}, ${active + 1} of ${N}`);
+  }, [active]);
 
-        // ── BEAT G · APERTURE PROJECTION (11.8–14.3)
-        tl.fromTo(".ax-ap", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15 }, 11.8)
-          .to(".ax-ap", { clipPath: "inset(30% 0%)", duration: 0.8, ease: "power2.inOut" }, 11.8)
-          .to(".ax-ap", { clipPath: "inset(10% 0%)", duration: 0.6, ease: "power2.inOut" }, 12.6)
-          .to(".ax-ap", { clipPath: "inset(0% 0%)", duration: 0.5, ease: "power3.in" }, 13.2)
-          .fromTo(".ax-ap-img", { yPercent: -8, scale: 1.12 }, { yPercent: 8, scale: 1, duration: 2.2, ease: "none" }, 11.8)
-          .to(".ax-black-meta", { autoAlpha: 0, duration: 0.3 }, 12.8)
-          .to([".ax-giant", ".ax-the-s"], { autoAlpha: 0, duration: 0.3 }, 13.5)
-          .to(".ax-ap", { clipPath: "inset(49.8% 0%)", duration: 0.5, ease: "power3.in" }, 13.7)
-          .to(".ax-ap", { autoAlpha: 0, duration: 0.15 }, 14.15);
+  useEffect(() => () => window.clearTimeout(settle.current), []);
 
-        // ── BEAT G2 · THE REEL (14.3–21.3) — seven rapid projections, one frame at a time
-        REEL.forEach((_, i) => {
-          const t0 = 14.3 + i * 1.0;
-          tl.fromTo(`.ax-r${i}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.12 }, t0)
-            .to(`.ax-r${i}`, { clipPath: "inset(0% 0%)", duration: 0.5, ease: "power3.inOut" }, t0)
-            .fromTo(`.ax-r${i} img`, { yPercent: 5, scale: 1.08 }, { yPercent: -5, scale: 1, duration: 0.9, ease: "none" }, t0)
-            .to(`.ax-r${i}`, { clipPath: "inset(49.8% 0%)", duration: 0.35, ease: "power3.in" }, t0 + 0.68)
-            .to(`.ax-r${i}`, { autoAlpha: 0, duration: 0.12 }, t0 + 0.98);
-        });
-        tl.to(".ax-black", { autoAlpha: 0, duration: 0.4 }, 21.2);
+  // The rotation stops only for a hand actually holding a plane or a
+  // dossier covering the work. Hovering and focus are deliberately not
+  // in here: they are proximity, not intent, and stopping for them is
+  // what made the chapter feel like it kept catching.
+  const interacting = handling || dossier;
+  void interacting;
 
-        // ── BEAT H · IS JUST — orange impact (14.3–15.55)
-        tl.fromTo(".ax-just", { xPercent: -50, yPercent: -50, autoAlpha: 1, y: "108vh" }, { y: "-4vh", duration: 0.7, ease: "power4.out" }, 21.7)
-          .to({}, { duration: 0.35 }, 22.4)
-          .to(".ax-just", { scale: 0.26, x: "18vw", y: "17vh", duration: 0.5, ease: "power3.inOut" }, 22.45);
-
-        // ── BEAT I · THE POSTER FRAME (15.5–17.35) — hold
-        tl.set(".ax-slit", { autoAlpha: 1 }, 22.9)
-          .fromTo(".ax-the", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 22.95)
-          .fromTo(".ax-arch2", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 23.05)
-          .to(".ax-slit", { clipPath: "inset(0% 0%)", duration: 0.6, ease: "power3.inOut" }, 22.95)
-          .fromTo(".ax-slit-img", { xPercent: -8 }, { xPercent: 8, duration: 1.6, ease: "none" }, 22.95)
-          .fromTo(".ax-beg", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.9, ease: "power1.in" }, 23.1)
-          .to({}, { duration: 0.75 }, 24);
-
-        // ── BEAT J · SILENCE → FINAL REVEAL (17.3–22.6)
-        tl.to([".ax-the", ".ax-arch2", ".ax-just", ".ax-beg", ".ax-slit"], { autoAlpha: 0, duration: 0.4 }, 24.7)
-          .to({}, { duration: 0.7 }, 25.1)
-          .fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 25.8)
-          .to({}, { duration: 0.3 }, 26.15)
-          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.35 }, 26.45)
-          .to({}, { duration: 0.3 }, 26.8)
-          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.3 }, 27.1)
-          .to({}, { duration: 0.4 }, 27.4);
-
-        // ── EXIT · circle wipe into transit (22.2–23.3)
-        tl.to([".ax-rail"], { autoAlpha: 0, duration: 0.4 }, 27.8)
-          .fromTo(
-            ".ax-dark",
-            { clipPath: "circle(0% at 50% 115%)" },
-            { clipPath: "circle(140% at 50% 115%)", duration: 0.9, ease: "power3.inOut" },
-            27.9
-          );
-      });
-
-      // ─────────────────────────── MOBILE — vertical trailer ───────────────────────────
-      mm.add("(max-width: 767px)", () => {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top top",
-            end: "+=980%",
-            scrub: 1,
-            pin: true,
-            anticipatePin: 1,
-            onToggle: (self) => self.isActive && announce(),
-          },
-        });
-
-        tl.set(".ax-hero", { scale: 0.6, clipPath: "inset(38% 32%)" }, 0);
-        tl.set(".ax-ap", { clipPath: "inset(48% 4%)" }, 0);
-        REEL.forEach((_, i) => tl.set(`.ax-r${i}`, { clipPath: "inset(48% 4%)" }, 0));
-        tl.set(".ax-the", { xPercent: -50, yPercent: -50, x: "-16vw", y: "-30vh" }, 0);
-        tl.set(".ax-arch2", { xPercent: -50, yPercent: -50, x: "0vw", y: "0vh" }, 0);
-        tl.set(".ax-beg", { xPercent: -50, yPercent: -50, x: "0vw", y: "0vh" }, 0);
-
-        // tiny frame → near full-screen
-        tl.fromTo(".ax-meta", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.4 }, 0.2)
-          .fromTo(".ax-hero", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.5 }, 0.3)
-          .to(".ax-hero", { scale: 1, clipPath: "inset(17% 0%)", duration: 1.6, ease: "power2.inOut" }, 1.0)
-          .fromTo(".ax-hero-img", { yPercent: -6 }, { yPercent: 6, duration: 1.6, ease: "none" }, 1.0)
-          .to(".ax-meta", { autoAlpha: 0, duration: 0.3 }, 2.5)
-          .to(".ax-hero", { scale: 1.25, autoAlpha: 0, duration: 0.6, ease: "power2.in" }, 2.7);
-
-        // THE → ARCHIVE (huge, clipped)
-        tl.fromTo(".ax-the", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 3.4)
-          .fromTo(".ax-arch2", { autoAlpha: 0, x: "30vw" }, { autoAlpha: 1, x: "0vw", duration: 0.8, ease: "power3.out" }, 3.8)
-          .to([".ax-the", ".ax-arch2"], { autoAlpha: 0, duration: 0.4 }, 4.8);
-
-        // splice
-        tl.to(".ax-black", { autoAlpha: 1, duration: 0.1 }, 4.9)
-          .fromTo(".ax-black-meta", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, 5.0)
-          .to({}, { duration: 0.35 }, 5.25);
-
-        // aperture slit (vertical mask travel)
-        tl.set(".ax-ap", { autoAlpha: 1 }, 5.5)
-          .to(".ax-ap", { clipPath: "inset(10% 0%)", duration: 0.8, ease: "power2.inOut" }, 5.5)
-          .fromTo(".ax-ap-img", { yPercent: -6 }, { yPercent: 6, duration: 1.2, ease: "none" }, 5.5)
-          .to(".ax-black-meta", { autoAlpha: 0, duration: 0.25 }, 6.0)
-          .to(".ax-ap", { clipPath: "inset(48% 4%)", duration: 0.5, ease: "power3.in" }, 6.4)
-          .to(".ax-ap", { autoAlpha: 0, duration: 0.15 }, 6.85);
-
-        // the reel — seven rapid projections
-        REEL.forEach((_, i) => {
-          const t0 = 6.9 + i * 0.95;
-          tl.set(`.ax-r${i}`, { autoAlpha: 1 }, t0)
-            .to(`.ax-r${i}`, { clipPath: "inset(12% 0%)", duration: 0.55, ease: "power2.inOut" }, t0)
-            .fromTo(`.ax-r${i} img`, { yPercent: 4 }, { yPercent: -4, duration: 0.85, ease: "none" }, t0)
-            .to(`.ax-r${i}`, { clipPath: "inset(48% 4%)", duration: 0.4, ease: "power3.in" }, t0 + 0.6)
-            .set(`.ax-r${i}`, { autoAlpha: 0 }, t0 + 0.92);
-        });
-        tl.to(".ax-black", { autoAlpha: 0, duration: 0.35 }, 13.5);
-
-        // IS JUST — orange, from the opposite axis
-        tl.fromTo(".ax-just", { xPercent: -50, yPercent: -50, autoAlpha: 1, x: "105vw" }, { x: "0vw", duration: 0.7, ease: "power4.out" }, 13.5)
-          .to({}, { duration: 0.3 }, 14.2)
-          .to(".ax-just", { autoAlpha: 0, duration: 0.3 }, 14.5);
-
-        // BEGINNING. outline, then silence
-        tl.fromTo(".ax-beg", { autoAlpha: 0 }, { autoAlpha: 0.9, duration: 0.7, ease: "power1.in" }, 14.7)
-          .to(".ax-beg", { autoAlpha: 0, duration: 0.3 }, 15.5)
-          .to({}, { duration: 0.8 }, 15.8);
-
-        // foot lines, then the resolve
-        tl.fromTo(".ax-foot1", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 16.2)
-          .fromTo(".ax-foot2", { autoAlpha: 0 }, { autoAlpha: 0.85, duration: 0.3 }, 16.6)
-          .to([".ax-foot1", ".ax-foot2"], { autoAlpha: 0, duration: 0.25 }, 16.95)
-          .to({}, { duration: 0.35 }, 17.25);
-
-        // exit
-        tl.fromTo(
-          ".ax-dark",
-            { clipPath: "circle(0% at 50% 115%)" },
-            { clipPath: "circle(172% at 50% 115%)", duration: 0.9, ease: "power3.inOut" },
-            17.7
-          );
-      });
-    }, ref);
-    return () => ctx.revert();
-  }, [reduced]);
-
-  if (reduced) {
-    return (
-      <section data-testid="archive-scene" className="relative z-10 flex min-h-screen flex-col items-center justify-center gap-4 bg-[#EAE6DF] px-6 py-24 text-center">
-        <h2 className="font-display text-[10vw] font-black leading-none text-[#050505]">
-          THE ARCHIVE IS JUST BEGINNING.
-        </h2>
-        <p className="font-mono text-xs md:text-sm tracking-[0.35em] text-[#050505]/60">
-          NO BORROWED GLORY. NO INVENTED CLIENTS.
-        </p>
-      </section>
+  // ...and it stops when the chapter is off screen.
+  //
+  // The lap drives twelve planes through a transform, an opacity and a
+  // z-index EVERY FRAME. Left ungated that ran for the entire life of the
+  // page, including while the visitor was reading a section thousands of
+  // pixels away, which is a permanent tax on every other animation and
+  // on scrolling itself. An endless carousel nobody can see does not need
+  // to turn: it resumes the moment the chapter comes back into view, so
+  // it is still always moving whenever anyone is looking at it.
+  const [onScreen, setOnScreen] = useState(true);
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => setOnScreen(entry.isIntersecting),
+      { rootMargin: "200px 0px" }
     );
-  }
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // THE ORBIT DOES NOT STOP.
+  //
+  // It used to hold still for a hand dragging a plane and for an open
+  // dossier. Both are gone at the owner's instruction (2026-09-08): the
+  // archive is meant to be continuously in motion, and a carousel that
+  // catches every time you touch it reads as broken rather than as
+  // considerate.
+  //
+  // What is left is not an exception a visitor can perceive:
+  //   reduce    prefers-reduced-motion. Not negotiable, and not a stop
+  //             a visitor did not ask for - they asked for it in their OS.
+  //   onScreen  the chapter is not in the viewport. Nobody is looking at
+  //             it, and twelve planes writing a transform, an opacity and
+  //             a z-index every frame for the life of the page is the
+  //             single most expensive thing this page has ever done.
+  //   playing   the visitor pressed Pause. WCAG 2.2.2 requires a way to
+  //             stop motion that starts on its own and runs past five
+  //             seconds, so this control stays. It defaults to playing.
+  const drifting = playing && !reduce && onScreen;
+
+  // the hero action lands focus on the work itself
+  useEffect(() => {
+    const onOpen = () => {
+      sectionRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+      window.setTimeout(
+        () => chamberRef.current?.querySelector('[aria-current="true"]')?.focus(),
+        reduce ? 60 : 900
+      );
+    };
+    window.addEventListener("kymr:open-archive", onOpen);
+    return () => window.removeEventListener("kymr:open-archive", onOpen);
+  }, [reduce]);
+
+  // ---- horizontal intent only: the page keeps its own scrolling ----
+  useEffect(() => {
+    if (reduce) return undefined;
+    const el = chamberRef.current;
+    if (!el) return undefined;
+    const onWheel = (e) => {
+      if (dossier) return;
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      if (locked.current) return;
+      if (Math.sign(e.deltaX) !== Math.sign(acc.current)) acc.current = 0;
+      acc.current += e.deltaX;
+      window.clearTimeout(settle.current);
+      settle.current = window.setTimeout(() => {
+        acc.current = 0;
+      }, 200);
+      if (Math.abs(acc.current) < 90) return;
+      acc.current = 0;
+      locked.current = true;
+      window.setTimeout(() => {
+        locked.current = false;
+      }, 520);
+      step(e.deltaX > 0 ? 1 : -1, "manual");
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      window.clearTimeout(settle.current);
+    };
+  }, [reduce, dossier, step]);
+
+  const onKeyDown = (e) => {
+    if (dossier) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      step(1, "manual");
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      step(-1, "manual");
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      goTo(0, "manual");
+    } else if (e.key === "End") {
+      e.preventDefault();
+      goTo(N - 1, "manual");
+    }
+  };
 
   return (
     <section
-      ref={ref}
+      ref={sectionRef}
+      id="work"
       data-testid="archive-scene"
-      className="relative z-10 h-screen overflow-hidden bg-[#EAE6DF] text-[#050505]"
+      data-shader-mode="archive"
+      className="env-archive relative"
     >
-      {/* DISTANT PLANE — the monumental word the camera travels through */}
-      <div className="ax-giant pointer-events-none absolute left-1/2 top-1/2 z-[1] hidden select-none whitespace-nowrap font-display text-[135vh] font-black leading-none tracking-[-0.05em] text-[#050505] opacity-0 md:block">
-        ARCHIVE
-      </div>
-
-      {/* MID PLANE — editorial metadata */}
-      <div data-testid="archive-meta" className="ax-meta pointer-events-none absolute left-6 top-20 z-[20] opacity-0 md:left-10 md:top-24">
-        <p className="font-mono text-[9px] tracking-[0.42em] text-[#050505]/70">
-          KYMR / ARCHIVE — FRAME 001
-        </p>
-        <p className="mt-2 font-mono text-[8px] tracking-[0.3em] text-[#050505]/40">
-          SPEC REEL — 35MM — TC 00:00:00:00
-        </p>
-      </div>
-
-      {/* crop marks */}
-      <div className="ax-crops pointer-events-none absolute inset-0 z-[20] hidden items-center justify-center opacity-0 md:flex">
-        <div className="relative h-[52vh] w-[42vw]">
-          <span className="absolute left-0 top-0 h-5 w-5 border-l border-t border-[#050505]/50" />
-          <span className="absolute right-0 top-0 h-5 w-5 border-r border-t border-[#050505]/50" />
-          <span className="absolute bottom-0 left-0 h-5 w-5 border-b border-l border-[#050505]/50" />
-          <span className="absolute bottom-0 right-0 h-5 w-5 border-b border-r border-[#050505]/50" />
-        </div>
-      </div>
-
-      {/* FOREGROUND rail — fast plane */}
-      <div className="ax-rail pointer-events-none absolute right-6 top-1/2 z-[20] hidden -translate-y-1/2 flex-col items-center gap-4 opacity-50 md:flex">
-        <span className="h-24 w-px bg-[#050505]/30" />
-        <span className="font-mono text-[9px] tracking-[0.4em] text-[#050505]/60 [writing-mode:vertical-rl]">
-          SEQ. 07 — 24 FPS
-        </span>
-        <span className="h-24 w-px bg-[#050505]/30" />
-      </div>
-
-      {/* CAMERA PLANE — hero frame (dolly → 21:9 → full bleed → beyond) */}
-      <div data-testid="archive-hero" className="ax-hero absolute inset-0 z-[10] opacity-0">
-        <img
-          src={HERO.img}
-          alt={`${HERO.id} — spec concept, fragrance`}
-          loading="lazy"
-          decoding="async"
-          className="ax-hero-img absolute -top-[9%] left-0 h-[118%] w-full max-w-none object-cover"
-        />
-        <span className="absolute bottom-8 left-8 bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
-          {HERO.id} — SPEC CONCEPT
-        </span>
-      </div>
-
-      {/* BACKGROUND TRAVELER — one supporting frame during the approach */}
-      <div className="ax-trav pointer-events-none absolute left-0 top-[32vh] z-[6] hidden h-[30vh] w-[20vw] overflow-hidden opacity-0 md:block">
-        <img
-          src={TRAV.img}
-          alt="Spec concept, audio"
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full max-w-none object-cover"
-        />
-      </div>
-
-      {/* SECOND TRAVELER — a frame gliding through the letterforms */}
-      <div className="ax-trav2 pointer-events-none absolute left-0 top-[14vh] z-[6] hidden h-[24vh] w-[16vw] overflow-hidden opacity-0 md:block">
-        <img
-          src={TRAV2.img}
-          alt="Spec concept, fashion"
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full max-w-none object-cover"
-        />
-      </div>
-
-      {/* approach-era headline (behind the hero plane) */}<h2 className="ax-arch pointer-events-none absolute left-1/2 top-1/2 z-[5] hidden -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[9vw] font-black leading-none tracking-[-0.04em] text-[#050505] opacity-0 md:block">
-        THE ARCHIVE
-      </h2>
-
-      {/* THE — small, above the resolved monumental word */}
-      <p className="ax-the-s pointer-events-none absolute left-1/2 top-1/2 z-[5] hidden -translate-x-1/2 select-none whitespace-nowrap font-display text-[3.5vw] font-black tracking-[0.3em] text-[#050505] opacity-0 md:block" style={{ marginTop: "-42vh" }}>
-        THE
-      </p>
-
-      {/* THE SPLICE — black frame */}
-      <div className="ax-black absolute inset-0 z-[40] flex items-center justify-center bg-[#050505] opacity-0">
-        <div className="ax-black-meta text-center opacity-0">
-          <p className="font-cinzel text-sm font-bold tracking-[0.5em] text-white/90">KYMRSTUDIO</p>
-          <p className="mt-4 font-mono text-[9px] tracking-[0.42em] text-white/50">
-            ARCHIVE / FRAME 002
+      <div className="k-archive">
+        {/* ---------- editorial header ---------- */}
+        <motion.header className="k-archive-head" style={{ y: chapter.far }}>
+          <h2 className="k-archive-h">
+            Selected <span className="t-lit">work.</span>
+          </h2>
+          <p className="k-archive-lead">Campaign concepts by KymrStudio.</p>
+          <p className="k-archive-note">
+            Twelve self-initiated spec concepts: briefs written in-house, then answered in full.
+            None of them ran as commissioned campaigns, and no client result is claimed.
           </p>
-          <p className="mt-2 font-mono text-[8px] tracking-[0.3em] text-white/30">
-            TC 00:00:04:16 — SPEC CONCEPT
-          </p>
-        </div>
-      </div>
+        </motion.header>
 
-      {/* APERTURE — the mask moves, not the image */}
-      <div data-testid="archive-aperture" className="ax-ap absolute inset-0 z-[45] opacity-0">
-        <img
-          src={PROJ.img}
-          alt={`${PROJ.id} — spec concept, home`}
-          loading="lazy"
-          decoding="async"
-          className="ax-ap-img absolute -top-[9%] left-0 h-[118%] w-full max-w-none object-cover"
-        />
-        <span className="absolute bottom-[8%] right-[6%] bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
-          {PROJ.id} — SPEC CONCEPT
-        </span>
-      </div>
-
-      {/* THE REEL — seven projections, one frame at a time */}
-      {REEL.map((p, i) => (
-        <div key={p.id} data-testid={`archive-reel-${i}`} className={`ax-r${i} absolute inset-0 z-[45] opacity-0`}>
-          <img
-            src={p.img}
-            alt={`${p.id} — spec concept`}
-            loading="lazy"
-            decoding="async"
-            className="absolute -top-[9%] left-0 h-[118%] w-full max-w-none object-cover"
+        {/* ---------- the orbit ---------- */}
+        <motion.div
+          ref={chamberRef}
+          style={reduce ? undefined : { rotateX: chamberTilt, scale: chamberLift }}
+          role="group"
+          aria-roledescription="carousel"
+          aria-label="Archive of twelve spec concepts"
+          data-testid="archive-chamber"
+          onKeyDown={onKeyDown}
+          className="k-chamber"
+        >
+          <p className="sr-only">Use the arrow keys to move between concepts.</p>
+          <ArchiveOrbit
+            active={active}
+            command={command}
+            reduce={reduce}
+            drifting={drifting}
+            onCommit={(i) => setActive((prev) => (prev === i ? prev : i))}
+            onSelect={(i) => goTo(i, "manual")}
+            onGrab={() => setHandling(true)}
+            onRelease={() => setHandling(false)}
           />
-          <span className={`absolute bottom-[8%] ${i % 2 ? "left-[6%]" : "right-[6%]"} bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85`}>
-            {p.id} — SPEC CONCEPT
-          </span>
+        </motion.div>
+
+        {/* ---------- the dock ---------- */}
+        <div className="k-dock">
+          <motion.div
+            key={c.id}
+            className="k-dock-read"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.42, delay: reduce ? 0 : 0.24, ease: EASE }}
+          >
+            <p className="k-dock-meta">
+              <span style={{ color: c.accent }}>{c.category}</span>
+              <span className="t-data">
+                {String(active + 1).padStart(2, "0")} / {N}
+              </span>
+              <span className="k-dock-spec">Spec concept</span>
+            </p>
+            <h3 className="k-dock-title">{c.title}</h3>
+            <p className="k-dock-premise">{c.premise}</p>
+            {/* The brief belongs WITH the description, not after the whole
+                chapter. It used to be a sibling of .k-archive, so it never
+                inherited the chapter's gutter (left edge 0 against the
+                title's 52) and it sat flush on the section boundary with
+                0px beneath it. Inside the dock's reading column it aligns
+                with the title and description for free, and the chapter's
+                own bottom padding gives it room. */}
+            <p className="k-archive-brief">
+              <span className="t-data k-archive-brief-k">The brief:</span> {c.motif}
+            </p>
+          </motion.div>
+
+          <div className="k-dock-controls">
+            <FlowButton
+              type="button"
+              ref={openerRef}
+              data-testid="archive-open"
+              onClick={() => navigate(`/work/${slugFor(c)}`)}
+              text="Explore the concept"
+              className="k-flow k-flow--primary"
+            />
+
+            {/* the transport: step, and the visitor's own play control */}
+            <div className="k-transport">
+              <button
+                type="button"
+                data-testid="archive-prev"
+                aria-label="Previous concept"
+                onClick={() => step(-1, "manual")}
+                className="k-tbtn"
+              >
+                <span aria-hidden="true">&larr;</span>
+              </button>
+              <button
+                type="button"
+                data-testid="archive-play"
+                data-on={playing ? "true" : undefined}
+                aria-pressed={playing}
+                onClick={() =>
+                  setPlaying((v) => {
+                    writeAutoplay(!v);
+                    return !v;
+                  })
+                }
+                className="k-tbtn k-tbtn--wide"
+              >
+                {reduce ? "Autoplay off" : playing ? "Pause" : "Play"}
+              </button>
+              <button
+                type="button"
+                data-testid="archive-next"
+                aria-label="Next concept"
+                onClick={() => step(1, "manual")}
+                className="k-tbtn"
+              >
+                <span aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+
+            {/* progress: position, without a live region announcing it */}
+            <p className="k-progress t-data" aria-hidden="true">
+              <span className="k-progress-track">
+                <span
+                  className="k-progress-fill"
+                  style={{ transform: `scaleX(${(active + 1) / N})` }}
+                />
+              </span>
+              <span className="k-progress-n">
+                {String(active + 1).padStart(2, "0")} / {N}
+              </span>
+            </p>
+          </div>
         </div>
-      ))}
-
-      {/* POSTER FRAME typography */}
-      <p className="ax-the pointer-events-none absolute left-1/2 top-1/2 z-[30] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[9vw] font-black leading-none tracking-[-0.02em] text-[#050505] opacity-0 md:text-[6vw]">
-        THE
-      </p>
-      <p data-testid="archive-headline" className="ax-arch2 pointer-events-none absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[30vw] font-black leading-none tracking-[-0.04em] text-[#050505] opacity-0 md:text-[15vw]">
-        ARCHIVE
-      </p>
-      <p className="ax-just pointer-events-none absolute left-1/2 top-1/2 z-[30] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[26vw] font-black leading-none tracking-[-0.04em] text-ember opacity-0 md:text-[34vw]">
-        IS JUST
-      </p>
-      <p className="ax-beg pointer-events-none absolute left-1/2 top-1/2 z-[30] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[18vw] font-black leading-none tracking-[-0.04em] opacity-0 md:text-[15vw]">
-        <span className="text-outline-dark block">BEGINNING.</span>
-      </p>
-
-      {/* the slit — one thin image crossing the poster frame */}
-      <div data-testid="archive-slit" className="ax-slit absolute left-0 top-[61%] z-[10] hidden h-[13vh] w-full overflow-hidden opacity-0 md:block">
-        <img
-          src={SLIT.img}
-          alt={`${SLIT.id} — spec concept, skincare`}
-          loading="lazy"
-          decoding="async"
-          className="ax-slit-img absolute -left-[6%] top-0 h-full w-[112%] max-w-none object-cover"
-        />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-[#050505]/60 px-2 py-1 font-mono text-[8px] tracking-[0.3em] text-white/85">
-          {SLIT.id} — SPEC CONCEPT
-        </span>
       </div>
 
-
-      {/* quiet foot lines */}
-      <p className="ax-foot1 pointer-events-none absolute left-1/2 top-[46%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-xs md:text-sm tracking-[0.42em] text-[#050505]/60 opacity-0">
-        NO BORROWED GLORY.
-      </p>
-      <p className="ax-foot2 pointer-events-none absolute left-1/2 top-[53%] z-[30] -translate-x-1/2 select-none whitespace-nowrap font-mono text-xs md:text-sm tracking-[0.42em] text-[#050505]/60 opacity-0">
-        NO INVENTED CLIENTS.
+      <p className="sr-only" role="status" aria-live="polite">
+        {announce}
       </p>
 
-      {/* EXIT wipe into transit */}
-      <div className="ax-dark pointer-events-none absolute inset-0 z-[50] bg-[#050505]" style={{ clipPath: "circle(0% at 50% 115%)" }} />
+      {notFound && (
+        <div
+          role="alert"
+          data-testid="concept-not-found"
+          className="relative mx-auto mt-s5 w-full max-w-[1600px] border border-smoke px-s5 py-s4"
+          style={{ zIndex: "var(--z-content)" }}
+        >
+          <p className="m-0 text-f-sm text-frost">
+            That concept does not exist. Twelve are listed below.
+          </p>
+          <button type="button" onClick={() => navigate("/work")} className="k-link mt-s3">
+            Back to the archive
+            <span aria-hidden="true" className="k-link-arrow">
+              &rarr;
+            </span>
+          </button>
+        </div>
+      )}
+
+      {dossier && (
+        <ConceptViewer
+          concept={c}
+          index={active}
+          count={N}
+          onNavigate={(d) => {
+            const next = mod(active + d);
+            navigate(`/work/${slugFor(CONCEPTS[next])}`, { replace: true });
+          }}
+          onClose={() => {
+            navigate("/work", { replace: false });
+            window.setTimeout(() => openerRef.current?.focus(), 60);
+          }}
+        />
+      )}
     </section>
   );
 }

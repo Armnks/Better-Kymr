@@ -4,6 +4,8 @@ import { CatalogService, ServiceCategory } from '../types';
 import { Plus, Edit2, Archive, CheckCircle, X, Check } from 'lucide-react';
 import { Button, Input, Badge } from '../components/ui/DesignSystem';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SettingsNav } from '../components/layout/SettingsNav';
+
 
 export function SettingsServices() {
   const [services, setServices] = useState<CatalogService[]>([]);
@@ -80,6 +82,8 @@ export function SettingsServices() {
 
   return (
     <div className="flex flex-col gap-8 pb-12">
+      <SettingsNav />
+
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-brand-border pb-6">
         <div>
           <h1 className="text-3xl font-display uppercase tracking-widest text-brand-ivory mb-2">Services & Pricing</h1>

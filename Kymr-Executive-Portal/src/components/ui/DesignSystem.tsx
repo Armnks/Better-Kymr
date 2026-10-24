@@ -2,9 +2,9 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 import { LucideIcon } from 'lucide-react';
 
-export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
+export function Card({ className, children, ...props }: { className?: string; children: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("bg-brand-surface border border-brand-border p-6", className)}>
+    <div className={cn("bg-brand-surface border border-brand-border p-6", className)} {...props}>
       {children}
     </div>
   );

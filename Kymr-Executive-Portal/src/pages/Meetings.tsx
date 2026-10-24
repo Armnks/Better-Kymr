@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/db';
 import { Meeting, Inquiry, Client, Quote, Project, Invoice } from '../types';
-import { Calendar, Phone, Clock, Video, CheckCircle, X, ChevronRight, MessageSquare, ArrowRight, AlertTriangle, Briefcase, Receipt, FileText } from 'lucide-react';
+import { Calendar, Phone, Clock, Video, CheckCircle, X, ChevronRight, MessageSquare, ArrowRight, AlertTriangle, Briefcase, Receipt, FileText, Trash2 } from 'lucide-react';
 import { Button, Input, Badge } from '../components/ui/DesignSystem';
 import { createCalendarEvent, createMeetSpace } from '../lib/google';
 import { useGoogle } from '../contexts/GoogleContext';
@@ -27,6 +27,7 @@ export default function Meetings() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
   
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(isCreating);
@@ -41,6 +42,31 @@ export default function Meetings() {
     attendeeName: '',
     attendeeEmail: '',
   });
+
+  const handleClearAll = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL meetings? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      const res = await api.deleteAllDocuments('meetings');
+      alert(`Successfully deleted ${res.deletedCount} meetings.`);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete meetings");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this meeting?")) return;
+    try {
+      await api.deleteDocument('meetings', id);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete meeting");
+    }
+  };
 
   useEffect(() => {
     let unsubscribe = () => {};
@@ -178,7 +204,6 @@ export default function Meetings() {
         });
       }
       closeDrawer();
-      load();
     } catch (e: any) {
       console.error(e);
       alert(`Failed to save meeting: ${e.message}`);
@@ -209,8 +234,8 @@ export default function Meetings() {
     }
   };
 
-  const upcoming = meetings.filter(m => m.status === 'PENDING' && m.date >= new Date(new Date().setHours(0,0,0,0)));
-  const past = meetings.filter(m => m.status !== 'PENDING' || m.date < new Date(new Date().setHours(0,0,0,0)));
+  const upcoming = meetings.filter(m => ['PENDING', 'SCHEDULED', 'RESCHEDULED'].includes(m.status) && m.date >= new Date(new Date().setHours(0,0,0,0)));
+  const past = meetings.filter(m => !['PENDING', 'SCHEDULED', 'RESCHEDULED'].includes(m.status) || m.date < new Date(new Date().setHours(0,0,0,0)));
 
   // PREP DATA COMPUTATION
   let relatedInquiry: Inquiry | undefined;
@@ -250,6 +275,9 @@ export default function Meetings() {
           <p className="font-mono text-[10px] text-brand-muted uppercase tracking-[0.2em]">Schedule and Join</p>
         </div>
         <div className="flex gap-3">
+          <Button icon={Trash2} variant="danger" onClick={handleClearAll} disabled={clearing || meetings.length === 0}>
+            {clearing ? 'Clearing...' : 'Clear All'}
+          </Button>
           <Button icon={Calendar} onClick={() => navigate('/admin/meetings?create=true')} variant="primary">New Call</Button>
         </div>
       </div>
@@ -318,6 +346,13 @@ export default function Meetings() {
                             );
                           }
                         })()}
+                        <button 
+                          onClick={(e) => handleDelete(e, m.id!)}
+                          className="p-1.5 text-brand-muted hover:text-brand-accent-red hover:bg-brand-accent-red/10 rounded transition-colors ml-2"
+                          title="Delete Meeting"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -337,7 +372,16 @@ export default function Meetings() {
                       {m.date.toLocaleDateString()}
                     </div>
                   </div>
-                  <Badge variant={m.status === 'COMPLETED' ? 'success' : 'default'}>{m.status}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={m.status === 'COMPLETED' ? 'success' : 'default'}>{m.status}</Badge>
+                    <button 
+                      onClick={(e) => handleDelete(e, m.id!)}
+                      className="p-1 text-brand-muted hover:text-brand-accent-red hover:bg-brand-accent-red/10 rounded transition-colors"
+                      title="Delete Meeting"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

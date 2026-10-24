@@ -3,23 +3,53 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#050505" />
-        <meta name="description" content="KymrStudio — a living digital world. Scroll-driven cinematic experience." />
+        <meta name="theme-color" content="#0A0A0C" />
+        <meta name="description" content="KymrStudio designs and builds websites, ecommerce stores and advertising campaigns. One studio for strategy, design and technology." />
         <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
         <link rel="icon" type="image/jpeg" sizes="32x32" href="%PUBLIC_URL%/favicon-32.jpg" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.jpg" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="KymrStudio" />
-        <meta property="og:title" content="KymrStudio — A Living Digital World" />
-        <meta property="og:description" content="A scroll-driven cinematic organism. The website itself is the work." />
-        <meta property="og:image" content="https://living-studio-1.preview.emergentagent.com/og-image.jpg" />
+        <meta property="og:title" content="KymrStudio - Built to stand out. Designed to grow." />
+        <meta property="og:description" content="Websites, ecommerce and advertising from one studio." />
+        <meta property="og:image" content="https://kymrstudio.com/og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="KymrStudio — A Living Digital World" />
-        <meta name="twitter:description" content="A scroll-driven cinematic organism. The website itself is the work." />
-        <meta name="twitter:image" content="https://living-studio-1.preview.emergentagent.com/og-image.jpg" />
+        <meta name="twitter:title" content="KymrStudio - Built to stand out. Designed to grow." />
+        <meta name="twitter:description" content="Websites, ecommerce and advertising from one studio." />
+        <meta name="twitter:image" content="https://kymrstudio.com/og-image.jpg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link
+            href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Two working families plus one brand face. Cormorant/Spectral were
+             dropped: long serif body copy and serif-labelled-as-mono metadata
+             were the most dated part of the old system, and removing them also
+             removes a font request.
+
+             Trimmed again on 2026-09-07 against what the pages actually
+             render: cabinet-grotesk had ZERO references anywhere in the
+             source, and Cinzel 900 and IBM Plex Mono 500 were never used
+             either. Browsers only fetch faces that get used, so none of
+             this was costing bytes - it was the stylesheet claiming a type
+             system wider than the one on screen. Every weight still listed
+             below is one the site genuinely sets.
+
+             2026-09-08: IBM Plex Mono is OUT, replaced by DM Sans. It set
+             every eyebrow, every 01/02/03 and every piece of small
+             metadata on the site, and wide-tracked monospace on a dark
+             page is the single most recognisable machine-made tell there
+             is - the look reads as generated whatever the words say.
+             DM Sans is the closest openly-licensed face to Google Sans,
+             which is what the owner asked for: geometric, low contrast,
+             and legible at the 11-12px these labels actually run at,
+             which a mono is not. Three weights, all of them used. -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap"
+            rel="stylesheet"
+        />
         <!--
         manifest.json provides metadata used when your web app is installed on a
         user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -33,9 +63,7 @@
         work correctly both with client-side routing and a non-root public URL.
         Learn how to configure a non-root public URL by running `npm run build`.
         -->
-        <title>KymrStudio — A Living Digital World</title>
-        <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
-        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+        <title>KymrStudio - Built to stand out. Designed to grow.</title>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -50,76 +78,5 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-        <script>
-            !(function (t, e) {
-                var o, n, p, r;
-                e.__SV ||
-                    ((window.posthog = e),
-                    (e._i = []),
-                    (e.init = function (i, s, a) {
-                        function g(t, e) {
-                            var o = e.split(".");
-                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
-                                (t[e] = function () {
-                                    t.push(
-                                        [e].concat(
-                                            Array.prototype.slice.call(
-                                                arguments,
-                                                0,
-                                            ),
-                                        ),
-                                    );
-                                });
-                        }
-                        ((p = t.createElement("script")).type =
-                            "text/javascript"),
-                            (p.crossOrigin = "anonymous"),
-                            (p.async = !0),
-                            (p.src =
-                                s.api_host.replace(
-                                    ".i.posthog.com",
-                                    "-assets.i.posthog.com",
-                                ) + "/static/array.js"),
-                            (r =
-                                t.getElementsByTagName(
-                                    "script",
-                                )[0]).parentNode.insertBefore(p, r);
-                        var u = e;
-                        for (
-                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
-                                u.people = u.people || [],
-                                u.toString = function (t) {
-                                    var e = "posthog";
-                                    return (
-                                        "posthog" !== a && (e += "." + a),
-                                        t || (e += " (stub)"),
-                                        e
-                                    );
-                                },
-                                u.people.toString = function () {
-                                    return u.toString(1) + ".people (stub)";
-                                },
-                                o =
-                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
-                                        " ",
-                                    ),
-                                n = 0;
-                            n < o.length;
-                            n++
-                        )
-                            g(u, o[n]);
-                        e._i.push([i, s, a]);
-                    }),
-                    (e.__SV = 1));
-            })(document, window.posthog || []);
-            posthog.init("phc_DbsPb39SRc8z3EiQ6Dhj6ikv4H4rTKcht9d4sZSesceP", {
-                api_host: "https://ap.emergent.sh",
-                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
-                session_recording: {
-                    recordCrossOriginIframes: true,
-                    capturePerformance: false,
-                },
-            });
-        </script>
     </body>
 </html>

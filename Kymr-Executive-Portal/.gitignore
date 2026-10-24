@@ -6,3 +6,15 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Scratch and debug scripts
+check_*.cjs
+check_*.js
+test_*.cjs
+test_*.js
+test_*.mjs
+test_invoice*.ts
+test_gen_invoice.ts
+delete*.ts
+restart_backend.sh
+

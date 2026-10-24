@@ -408,5 +408,55 @@ export function createBusinessLifecycleRouter(db: Firestore | null) {
     }
   });
 
+  // --- GENERIC DELETE ENDPOINTS ---
+  const ALLOWED_COLLECTIONS = [
+    'inquiries', 'clients', 'meetings', 'quotes', 'projects', 'tasks', 'invoices', 'activity', 'catalogServices', 'serviceCategories', 'deliverables', 'payments'
+  ];
+
+  // Bulk Delete (Clear All)
+  router.delete('/:collection', authMiddleware, async (req, res) => {
+    if (!db) return res.status(500).json({ error: 'DB_MISSING' });
+    const { collection } = req.params;
+    
+    if (!ALLOWED_COLLECTIONS.includes(collection)) {
+      return res.status(400).json({ error: 'INVALID_COLLECTION' });
+    }
+
+    try {
+      const snapshot = await db.collection(collection).get();
+      const batch = db.batch();
+      let count = 0;
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+        count++;
+      });
+      if (count > 0) {
+        await batch.commit();
+      }
+      res.json({ success: true, deletedCount: count });
+    } catch (e: any) {
+      console.error(`Error deleting all ${collection}:`, e);
+      res.status(500).json({ error: e.message || 'DELETE_ERROR' });
+    }
+  });
+
+  // Single Delete
+  router.delete('/:collection/:id', authMiddleware, async (req, res) => {
+    if (!db) return res.status(500).json({ error: 'DB_MISSING' });
+    const { collection, id } = req.params;
+    
+    if (!ALLOWED_COLLECTIONS.includes(collection)) {
+      return res.status(400).json({ error: 'INVALID_COLLECTION' });
+    }
+
+    try {
+      await db.collection(collection).doc(id).delete();
+      res.json({ success: true });
+    } catch (e: any) {
+      console.error(`Error deleting ${id} from ${collection}:`, e);
+      res.status(500).json({ error: e.message || 'DELETE_ERROR' });
+    }
+  });
+
   return router;
 }

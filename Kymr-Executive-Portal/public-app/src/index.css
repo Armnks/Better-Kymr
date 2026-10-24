@@ -1,212 +1,4582 @@
-@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Spectral:wght@400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   KYMRSTUDIO - THE CAMPAIGN GENOME
+   See DESIGN.md. This file is the single source of truth for
+   ground, light, type, space, layer and motion.
+   ============================================================ */
 :root {
-    --void: #05050A;
-    --bone: #F5F5F0;
-    --ash: #666666;
-    --ember: #FF2A00;
+    /* ---- ground: carbon, never pure black ---- */
+    --carbon: #0B0B0E;
+    --carbon-lift: #111218;
+    --graphite: #15161B;
+    --smoke: #21232B;
+
+    /* ---- ink: smoked silver through cold off-white ---- */
+    --frost: #F1F3F2;
+    --silver: #A9AFB8;
+    --silver-dim: #7C838D;
+
+    /* ---- the one signal colour ---- */
+    --signal: #FF3B14;
+    --signal-dim: rgba(255, 59, 20, 0.22);
+
+    /* Per-concept accent. Concepts tint the archive stage at runtime.
+       It lights an edge; it never floods a surface. */
+    --k-accent: var(--signal);
+
+    /* ---- SURFACES ----
+       Every chapter used to invent its own background gradient, which is
+       why seven sections read as seven variations of one dark panel. A
+       chapter now picks a SURFACE, and the surface carries its own text
+       colours with it. That is what makes an inverted chapter possible
+       without every rule inside it needing an override.
+
+       `--on-*` are the foreground roles. Components reference those, not
+       --frost / --silver directly, so the same component works on either
+       ground. */
+    --surface-base: #0B0B0E;
+    --surface-lift: #131419;
+    --surface-deep: #08080A;
+    --surface-ivory: #EFEBE4;
+    --surface-ivory-lift: #F6F3EE;
+
+    --on-strong: var(--frost);
+    --on-body: var(--silver);
+    --on-quiet: var(--silver-dim);
+    --on-rule: var(--smoke);
+
+    /* ---- RULES AND EDGES ---- */
+    --rule-hair: 1px;
+    --rule-soft: rgba(241, 243, 242, 0.10);
+    --rule-firm: rgba(241, 243, 242, 0.20);
+
+    /* ---- REEL PACING ----
+       How deep one band of a pinned reel is. Both reels read this, so
+       their pacing cannot drift apart. At 100vh the two reels together
+       were 66% of the whole page against the Archive's 6%; the stages
+       still hold the screen, they just stop outstaying their welcome. */
+    --k-reel-band: 78vh;
+
+    /* ---- fluid type. Capped on purpose: emphasis comes from
+       position, weight and the signal colour, not from size. ---- */
+    /* RAISED 2026-09-08. These two carry every eyebrow and data label on
+       the site - "THE PROBLEMS WE HELP YOU SOLVE", "WHAT WE DO",
+       "CONNECTED BY DESIGN" - and they were bottoming out at 10px. Ten
+       pixels of uppercase at 0.24em tracking on a near-black ground is
+       under the size anyone should be asked to read, and it is worst on
+       the phones where the floor of the clamp actually applies. The
+       ceiling is unchanged, so nothing moves on a large display. */
+    --k-t-3xs: clamp(0.6875rem, 0.66rem + 0.09vw, 0.75rem);
+    --k-t-2xs: clamp(0.75rem, 0.72rem + 0.14vw, 0.8125rem);
+    --k-t-xs: clamp(0.75rem, 0.72rem + 0.16vw, 0.8125rem);
+    --k-t-sm: clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem);
+    --k-t-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+    --k-t-md: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+    --k-t-lg: clamp(1.15rem, 1.06rem + 0.45vw, 1.375rem);
+    --k-t-xl: clamp(1.35rem, 1.2rem + 0.75vw, 1.75rem);
+    --k-t-2xl: clamp(1.6rem, 1.35rem + 1.25vw, 2.25rem);
+    --k-t-3xl: clamp(1.9rem, 1.5rem + 2vw, 2.85rem);
+    --k-t-4xl: clamp(2.3rem, 1.75rem + 2.9vw, 4.2rem);
+
+    /* ---- spacing. Density 6: tighter than the previous system. ---- */
+    --k-s-1: 0.25rem;
+    --k-s-2: 0.5rem;
+    --k-s-3: 0.75rem;
+    --k-s-4: 1rem;
+    --k-s-5: 1.375rem;
+    --k-s-6: 1.875rem;
+    --k-s-7: 2.375rem;
+    --k-s-8: 3rem;
+    --k-s-9: 3.75rem;
+    --k-s-10: 4.75rem;
+    --k-gutter: clamp(1.15rem, 3.6vw, 4rem);
+    --k-section: clamp(3rem, 5.2vw, 5rem);
+    /* The room the orbit is guaranteed, and the basis a plane is sized
+       from. A plane is a 3:4 frame with its caption underneath, so
+       deriving its width from this height means the caption clears the
+       chamber floor by construction instead of by a vh guess that was
+       wrong on short viewports.
+
+       48vh is the ceiling the rest of the chapter can afford: above it
+       the section outgrows the screen and pushes the dock, with
+       "Explore the concept" and the transport, below the fold at
+       1440x900. See STAGE2-REPORT.md. */
+    /* The Archive is the one genuinely distinctive thing on this page and
+       was the SMALLEST chapter on it - 6.3% of the page, below the hero
+       and barely above the footer. The chamber now takes the room the
+       work deserves. */
+    --k-chamber-h: clamp(23rem, 64vh, 45rem);
+    --k-plane-foot: 2.75rem;
+    /* the fixed header is 68px; a chapter entrance clears it and no more */
+    --k-nav-offset: 84px;
+
+    /* ---- layers ---- */
+    --z-plate: 1;
+    --z-field: 2;
+    --z-content: 10;
+    --z-nav: 40;
+    --z-overlay: 60;
+    --z-grain: 80;
+
+    /* ---- motion ---- */
+    --k-dur-cut: 160ms;
+    --k-dur-ui: 220ms;
+    --k-dur-comp: 420ms;
+    --k-dur-scene: 720ms;
+    --k-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --k-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-html {
-    background: var(--void);
-}
-
-html.lenis,
-html.lenis body {
-    height: auto;
-}
-
-.lenis.lenis-smooth {
-    scroll-behavior: auto !important;
-}
-
-body {
-    margin: 0;
-    background: var(--void);
-    color: var(--bone);
-    font-family: 'Cabinet Grotesk', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-}
-
-::selection {
-    background: var(--ember);
-    color: var(--void);
-}
-
-::-webkit-scrollbar {
-    width: 4px;
-}
-::-webkit-scrollbar-track {
-    background: var(--void);
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(245, 245, 240, 0.2);
-}
-
-@media (pointer: fine) {
-    body, a, button, input, textarea, [data-hover] {
-        cursor: none;
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --k-dur-cut: 1ms;
+        --k-dur-ui: 1ms;
+        --k-dur-comp: 1ms;
+        --k-dur-scene: 1ms;
     }
 }
 
-.text-outline {
-    -webkit-text-stroke: 1px rgba(245, 245, 240, 0.8);
-    color: transparent;
-}
-
-.text-outline-faint {
-    -webkit-text-stroke: 1px rgba(245, 245, 240, 0.18);
-    color: transparent;
-}
-
-.text-outline-ember {
-    -webkit-text-stroke: 1px var(--ember);
-    color: transparent;
-}
-
-.text-outline-dark {
-    -webkit-text-stroke: 1px rgba(5, 5, 5, 0.85);
-    color: transparent;
-}
-
-.grain {
-    position: fixed;
-    inset: -100%;
-    z-index: 90;
-    pointer-events: none;
-    opacity: var(--grain-o, 0.05);
-    transition: opacity 0.6s ease;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: grain-shift 0.8s steps(4) infinite;
-}
-
-@keyframes grain-shift {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-2%, 1%); }
-    50% { transform: translate(1%, -2%); }
-    75% { transform: translate(-1%, 2%); }
-    100% { transform: translate(2%, -1%); }
-}
-
-.marquee-track {
-    display: flex;
-    width: max-content;
-    animation: marquee var(--marquee-dur, 22s) linear infinite;
-}
-
-.marquee-reverse {
-    animation-direction: reverse;
-}
-
-@keyframes marquee {
-    to { transform: translateX(-50%); }
-}
-
-.pulse-dot {
-    animation: pulse-dot 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 42, 0, 0.5); }
-    50% { opacity: 0.5; box-shadow: 0 0 0 12px rgba(255, 42, 0, 0); }
-}
-
-.input-line {
-    background: transparent;
-    border: 0;
-    border-bottom: 1px solid rgba(245, 245, 240, 0.2);
-    padding: 14px 0;
-    width: 100%;
-    color: var(--bone);
-    font-family: 'Spectral', serif;
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    outline: none;
-    transition: border-color 0.4s ease;
-}
-
-.input-line:focus {
-    border-color: var(--ember);
-}
-
-.input-line::placeholder {
-    color: rgba(245, 245, 240, 0.3);
-}
-
-.link-sweep {
+html {
+    /* The window scroll container is what Motion's useScroll measures a
+       target's inset against, and a static container makes that inset
+       ambiguous. Positioning the root fixes the measurement at source.
+       Nothing in the page resolves against the initial containing
+       block, so no layout moves. */
     position: relative;
+    background: var(--carbon);
+    /* The only chapter-entrance offset on the page. Lenis subtracts the
+       scrollport's scroll-padding and the target's scroll-margin, and
+       scrollToId subtracted a third offset on top of both, so every
+       anchor landed a full nav height short of its own heading and left
+       the chapter above it showing. One mechanism, declared here, and
+       it is the one native focus and scrollIntoView already obey. */
+    scroll-padding-top: var(--k-nav-offset);
+    color-scheme: dark;
 }
 
-.link-sweep::after {
+html.lenis,
+html.lenis /* Satoshi is loaded at 400, 500, 700 and 900 - there is no 800 face.
+   Five rules used to ask for 800; measured at 100px, "Campaign films"
+   renders 750.91px at both 800 and 900 and 725.61px at 700, which is the
+   CSS font-matching algorithm resolving 800 up to 900. They now say 900,
+   which is what was always on screen. Nothing moved; the stylesheet just
+   stopped describing a face that was never downloaded. */
+body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+body {
+    margin: 0;
+    background: var(--carbon);
+    color: var(--frost);
+    font-family: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+    font-size: var(--k-t-base);
+    line-height: 1.5;
+    text-wrap: pretty;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(255, 59, 20, 0.16);
+}
+
+/* scrollcraft taste floor: a headline balances its lines so the last one
+   is never a single orphaned word; prose keeps `pretty`, which only guards
+   the final line. Free, and it is the difference between a headline that
+   looks set and one that looks wrapped. */
+h1, h2, h3,
+.k-archive-h, .k-make-h, .k-build-h, .k-inq-h, .k-close-h, .k-dock-title,
+.k-make-name, .k-deliv-name, .k-inq-qh {
+    text-wrap: balance;
+}
+
+::selection { background: var(--signal); color: var(--carbon); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--carbon); }
+::-webkit-scrollbar-thumb { background: var(--smoke); }
+
+/* ============================================================
+   PLATE
+   A chapter ground, lit from one direction. This replaces every
+   section background on the site, so the page stays a single
+   continuous environment while depth and direction change.
+   Painted on a pseudo-element: no layout cost, no scroll cost.
+   ============================================================ */
+.plate { position: relative; }
+
+/* Local ground under a reading column. Only where text sits, never a
+   full-frame scrim: the field has to stay visible either side. */
+.read-ground {
+    position: relative;
+    isolation: isolate;
+}
+.read-ground::before {
+    content: '';
+    position: absolute;
+    inset: -1.5rem -3rem;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+        120% 100% at 20% 50%,
+        var(--carbon) 0%,
+        rgba(11, 11, 14, 0.92) 45%,
+        rgba(11, 11, 14, 0.55) 72%,
+        transparent 100%
+    );
+}
+
+.plate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-plate);
+    pointer-events: none;
+    background: radial-gradient(
+        115% 75% at var(--kl-x, 14%) var(--kl-y, 0%),
+        var(--carbon-lift) 0%,
+        transparent 60%
+    );
+}
+
+/* ============================================================
+   THE CLOSE
+   A quiet, typographic ending. The invitation and direct contact
+   lead; the Cinzel signature sits below, on its own clear ground.
+   ============================================================ */
+.k-close { overflow: hidden; }
+#decision.k-close { background: var(--carbon); }
+
+/* ---- THE CLOSE, MERGED INTO THE COMMISSION ----
+   It is a block inside the inquiry chapter now, not a section of its
+   own, so it drops the three things that only made sense at a chapter
+   boundary: its own ground, the hairline that announced a new chapter,
+   and a second helping of top padding stacked under the form's bottom
+   padding. What is left is one continuous chapter that goes brief ->
+   decision -> signature without a seam. */
+.k-close--merged {
+    background: none;
+    border-top: 0;
+}
+.k-close--merged /* Four steps, read across, with the arrow drawn rather than typed so it
+   is never read aloud by a screen reader as a character. */
+.k-close-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0;
+    margin: clamp(1.5rem, 3.2vh, 2.25rem) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.k-close-steps li {
+    display: inline-flex;
+    align-items: center;
+    font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+    letter-spacing: -0.01em;
+    color: var(--frost);
+}
+
+.k-close-steps li + li::before {
+    content: "";
+    width: clamp(1.5rem, 3vw, 2.75rem);
+    height: 1px;
+    margin: 0 clamp(0.7rem, 1.6vw, 1.15rem);
+    background: linear-gradient(90deg, var(--smoke), var(--signal));
+}
+
+.k-close-eyebrow {
+    margin: 0 0 clamp(0.75rem, 1.6vh, 1.1rem);
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+.k-close-inner {
+    padding-top: 0;
+}
+
+.k-close-inner {
+    position: relative;
+    z-index: var(--z-content);
+    max-width: 1536px;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 4vw, 3.75rem) clamp(1.25rem, 4.1vw, 4rem) 1rem;
+}
+
+/* ---- the wordmark ---- */
+/* The signature wordmark.
+
+   This was `display: flex` with `justify-content: space-between`. The
+   markup is a bare text node followed by <span class="k-close-dot">.</span>,
+   so flex made those TWO items and space-between shoved them to opposite
+   ends of a 1408px box: "KYMRSTUDIO" pinned left, its full stop stranded
+   at the far right. Measured before the fix, the gap between the end of
+   the word and the start of the dot was 55px at 390 and 205px at 1920 -
+   it was wrong at every width, not just wide ones.
+
+   It is one word. It is set as one word, centred. */
+.k-close-mark {
+    display: block;
+    text-align: center;
+    margin: clamp(3rem, 6vw, 5.5rem) 0 0;
+    font-weight: 700;
+    font-size: clamp(1.9rem, 10.5vw, 10.25rem);
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+    white-space: nowrap;
+    color: #303138;
+    user-select: none;
+    pointer-events: none;
+}
+
+.k-close-dot {
+    color: var(--signal);
+    font: inherit;
+}
+
+/* ---- the decision ---- */
+.k-close-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.9fr);
+    align-items: start;
+    gap: clamp(3rem, 8vw, 8rem);
+    margin-top: 0;
+}
+
+.k-close-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+    color: var(--frost);
+}
+
+.k-close-copy {
+    max-width: 43ch;
+    margin: 1.75rem 0 0;
+    font-size: clamp(1rem, 1.2vw, 1.125rem);
+    line-height: 1.65;
+    color: var(--silver);
+}
+
+.k-close-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 1.75rem;
+    margin-top: 2rem;
+}
+
+/* the primary action: a sharp rectangle, no radius, no gradient */
+.k-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2.5rem;
+    min-height: 52px;
+    min-width: clamp(11rem, 13vw, 12.5rem);
+    padding: 0 1.1rem;
+    background: var(--signal);
+    color: var(--carbon);
+    border: 0;
+    border-radius: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition:
+        background-color var(--k-dur-ui) var(--k-ease-out),
+        transform var(--k-dur-cut) var(--k-ease-out);
+}
+
+.k-cta:hover { background: #ff4a24; }
+.k-cta:active { transform: translateY(1px); }
+
+.k-cta:focus-visible {
+    outline: 2px solid var(--frost);
+    outline-offset: 3px;
+}
+
+.k-cta[aria-busy='true'] { opacity: 0.72; cursor: progress; }
+
+.k-cta-arrow { font-size: 1.05rem; line-height: 1; }
+
+/* the secondary action, and every link that carries the thin rule */
+/* A 44px pointer target that does not touch the drawn box.
+   Growing the element itself pushed .k-underlink's border-bottom to the
+   foot of a 44px box, so the rule detached from its text. This puts the
+   extra reach in a transparent overlay centred on the link instead:
+   the hit area is 44px, the underline, baseline and spacing are exactly
+   where they were. */
+.k-tap { position: relative; }
+
+.k-tap::after {
     content: '';
     position: absolute;
     left: 0;
-    bottom: -4px;
-    height: 1px;
-    width: 100%;
-    background: var(--ember);
-    transform: scaleX(0);
-    transform-origin: right;
-    transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+    right: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
 }
 
-.link-sweep:hover::after {
-    transform: scaleX(1);
-    transform-origin: left;
+.k-underlink {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 3px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--frost);
+    border-bottom: 1px solid var(--signal);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
 }
 
-:focus-visible {
-    outline: 1px solid var(--ember);
+.k-underlink:hover { color: var(--signal); }
+
+.k-underlink:focus-visible {
+    outline: 2px solid var(--signal);
     outline-offset: 4px;
 }
+
+/* ---- the proof ---- */
+.k-proof {
+    margin: 2rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.k-proof li {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(241, 243, 242, 0.09);
+    font-size: 0.9375rem;
+    color: var(--silver);
+}
+
+.k-proof li:last-child { border-bottom: 0; }
+
+.k-proof-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    color: var(--silver);
+}
+
+/* ---- direct contact ---- */
+.k-direct { padding-top: 0.5rem; }
+
+.k-direct-label {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--silver);
+}
+
+.k-direct-email {
+    display: block;
+    margin-top: 0.85rem;
+    font-size: clamp(1.125rem, 2.1vw, 2rem);
+    letter-spacing: -0.015em;
+    color: var(--frost);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+    overflow-wrap: anywhere;
+}
+
+.k-direct-email:hover { color: var(--signal); }
+
+.k-direct-email:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 4px;
+}
+
+.k-direct-brief { margin-top: 0.5rem; font-size: 0.9375rem; }
+
+/* Real padding makes touch/focus bounds match what can be clicked. */
+.k-close .k-tap { min-height: 44px; display: inline-flex; align-items: center; }
+.k-close .k-tap::after { content: none; }
+.k-close .k-underlink {
+    border-bottom: 0;
+    padding: 0.5rem 0;
+    text-decoration: underline;
+    text-decoration-color: var(--signal);
+    text-underline-offset: 0.45em;
+}
+.k-close .k-direct-email { display: flex; width: fit-content; max-width: 100%; }
+
+/* ---- the footer ---- */
+.k-close-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(241, 243, 242, 0.1);
+    padding-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--silver);
+}
+
+.k-foot-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2.25rem;
+}
+
+.k-foot-links a,
+.k-foot-links span,
+.k-foot-links button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: 0;
+    font: inherit;
+    color: var(--silver);
+    cursor: pointer;
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-foot-links a:hover,
+.k-foot-links button:hover { color: var(--frost); }
+
+.k-foot-links a:focus-visible,
+.k-foot-links button:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+}
+
+@media (max-width: 1023px) {
+    .k-close-body { gap: 2.5rem; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+    .k-close-h { font-size: clamp(2.5rem, 4.5vw, 3rem); }
+}
+
+@media (max-width: 767px) {
+    .k-close-body { grid-template-columns: 1fr; gap: 2.75rem; }
+    .k-close-h { font-size: clamp(2.25rem, 7.7vw, 3.5rem); }
+    .k-close-copy { margin-top: 1.25rem; }
+    .k-close-actions { gap: 0.75rem 1.5rem; margin-top: 1.5rem; }
+    .k-direct { padding-top: 0; }
+    .k-direct-email { font-size: clamp(1.25rem, 5.3vw, 1.75rem); }
+    .k-proof { margin-top: 1rem; }
+    .k-close-mark { margin-top: 2.5rem; font-size: 10.3vw; }
+    .k-foot-links { gap: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .k-cta, .k-underlink, .k-direct-email { transition: none; }
+}
+
+/* ============================================================
+   THE SIGNAL ASSEMBLY
+   A track of five stations. The one being read holds the centre at
+   full strength, its neighbours sit at the edges, and the whole
+   assembly slides under a signal that never leaves the middle.
+   ============================================================ */
+.k-proc-stage {
+    --step: min(58vw, 52rem);
+    isolation: isolate;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: clamp(0.6rem, 1.6vh, 1.1rem);
+    padding-top: 5rem;
+    padding-bottom: clamp(0.9rem, 2.2vh, 1.5rem);
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* this chapter keeps the dark ground and loses the ruled paper */
+.k-proc.env-process::before { display: none; }
+
+.k-proc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+}
+
+.k-proc-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.4rem; margin: 0; padding: 0; list-style: none; }
+
+.k-proc-step {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-size: clamp(0.82rem, 0.95vw, 0.94rem);
+    color: var(--silver-dim);
+    cursor: pointer;
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-proc-step:hover { color: var(--silver); }
+.k-proc-step:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; border-radius: 2px; }
+.k-proc-step[data-on='true'] { color: var(--frost); font-weight: 700; }
+
+.k-proc-mark {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(241, 243, 242, 0.2);
+    transition: background-color var(--k-dur-ui) var(--k-ease-out), border-color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-proc-step[data-on='true'] .k-proc-mark {
+    background: var(--signal);
+    border-color: var(--signal);
+    box-shadow: 0 0 0 4px rgba(255, 59, 20, 0.14);
+}
+
+/* ---- the assembly ---- */
+.k-assembly {
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.k-track {
+    --centre: 0;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    /* the centred station sits in the middle of the frame */
+    padding-left: calc(50% - var(--step) / 2);
+    transform: translate3d(calc(var(--centre) * var(--step) * -1), 0, 0);
+    will-change: transform;
+}
+
+.k-station {
+    flex: 0 0 var(--step);
+    width: var(--step);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 clamp(1rem, 2.5vw, 2.5rem);
+    will-change: transform, opacity;
+}
+
+/* ---- the material each station works on ---- */
+/* the work holds the middle cell, where the signal is */
+.k-st {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: clamp(0.9rem, 1.8vw, 1.8rem);
+    width: 100%;
+}
+
+.k-cell { min-width: 0; }
+.k-cell--l { justify-self: end; text-align: right; }
+.k-cell--r { justify-self: start; }
+.k-cell--l .k-st-body { margin-left: auto; }
+.k-cell--frame { display: flex; align-items: center; gap: clamp(0.6rem, 1.2vw, 1.1rem); }
+.k-cell--pair { flex-wrap: nowrap; }
+
+/* Frames are sized by the height of the stage, so the work fills the
+   band it is standing in instead of floating inside it. The caption
+   sits outside the picture, which is why the figure does not clip. */
+.k-frame {
+    position: relative;
+    margin: 0;
+    flex: none;
+    --fh: min(48vh, 23rem);
+    --ar: 3 / 4;
+}
+
+.k-frame img {
+    display: block;
+    height: var(--fh);
+    width: auto;
+    aspect-ratio: var(--ar);
+    object-fit: cover;
+    border: 1px solid rgba(241, 243, 242, 0.12);
+    box-shadow: 0 24px 58px rgba(0, 0, 0, 0.64);
+}
+
+.k-frame figcaption {
+    margin-top: 0.5rem;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.04em;
+    color: var(--silver);
+}
+
+.k-frame--lead { --fh: min(54vh, 26rem); --ar: 4 / 5; }
+.k-frame--tall { --fh: min(52vh, 25rem); --ar: 3 / 4; }
+.k-frame--story { --fh: min(46vh, 22rem); transform: translateY(calc(var(--n) * -1.6vh)); }
+.k-frame--cut { --fh: min(38vh, 18rem); transform: translateY(calc(var(--n) * 1.3vh)); }
+.k-frame--out { --fh: min(42vh, 20rem); --ar: 4 / 5; transform: translateY(calc(var(--n) * -1.2vh)); }
+.k-frame--still { --fh: 7.5rem; --ar: 4 / 5; }
+
+
+
+
+
+.k-st-tag {
+    margin: 0;
+    font-family: 'DM Sans', 'Satoshi', Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+.k-st-line {
+    margin: 0.5rem 0 0;
+    font-weight: 700;
+    font-size: clamp(1rem, 1.5vw, 1.35rem);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--frost);
+}
+
+.k-st-angle {
+    margin: 0.5rem 0 0;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.25vw, 1.15rem);
+    line-height: 1.35;
+    color: var(--frost);
+}
+
+.k-st-body {
+    margin: 0.6rem 0 0;
+    max-width: 34ch;
+    font-size: clamp(0.8rem, 0.92vw, 0.9rem);
+    line-height: 1.55;
+    color: var(--silver);
+}
+
+/* ---- the signal ---- */
+.k-orb-light {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: min(30rem, 52%);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255, 72, 32, 0.13) 0%, rgba(255, 72, 32, 0.05) 34%, transparent 68%);
+    pointer-events: none;
+}
+
+.k-orb {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+}
+
+.k-orb:active { cursor: grabbing; }
+.k-orb:focus-visible { outline: 2px solid var(--signal); outline-offset: 4px; border-radius: 50%; }
+
+.k-orb-core {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.62), transparent 48%),
+        var(--signal);
+    box-shadow:
+        0 8px 22px rgba(0, 0, 0, 0.55),
+        0 0 0 10px rgba(255, 59, 20, 0.1),
+        0 0 34px rgba(255, 72, 32, 0.4);
+}
+
+/* ---- the live stage, one editorial block ---- */
+.k-proc-read { position: relative; z-index: 2; }
+
+.k-proc-stage-name {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+    letter-spacing: -0.025em;
+    color: var(--frost);
+}
+
+.k-proc-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem clamp(1rem, 2.4vw, 2.5rem);
+    margin: 0.7rem 0 0;
+}
+
+.k-proc-facts--stack { grid-template-columns: 1fr; }
+.k-proc-facts div { min-width: 0; }
+
+.k-proc-facts dt {
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.02em;
+    color: var(--silver-dim);
+}
+
+.k-proc-facts dd {
+    margin: 0.2rem 0 0;
+    font-size: clamp(0.82rem, 0.95vw, 0.94rem);
+    line-height: 1.5;
+    color: var(--silver);
+}
+
+.k-proc-key { color: var(--signal) !important; }
+.k-proc-val { color: var(--frost) !important; }
+
+/* ---- the rail ---- */
+.k-proc-rail {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    border-top: 1px solid rgba(241, 243, 242, 0.1);
+    padding-top: clamp(0.7rem, 1.8vh, 1.1rem);
+}
+
+.k-proc-terms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.8rem;
+    margin: 0;
+    font-size: var(--k-t-xs);
+    color: var(--silver);
+}
+
+.k-proc-terms > span { display: inline-flex; align-items: baseline; gap: 0.5rem; }
+.k-proc-n { font-size: var(--k-t-lg); color: var(--signal); }
+
+@media (max-width: 1023px) {
+    .k-proc-stage { --step: 88vw; padding-top: 4.5rem; }
+    .k-proc-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .k-st { flex-wrap: wrap; }
+    .k-frame--lead, .k-frame--tall { width: 42%; }
+    .k-orb { width: 44px; height: 44px; }
+}
+
+/* ============================================================
+   THE ARCHIVE CHAMBER
+   Header, orbit and dock in one viewport. The chamber is the only
+   thing that grows; the header and the dock are sized to what they
+   have to say, so the work always owns the middle of the screen.
+   ============================================================ */
+.k-archive {
+    position: relative;
+    z-index: var(--z-content);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(0.6rem, 1.5vh, 1.15rem);
+    min-height: calc(100svh - 68px);
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 4.3rem var(--k-gutter) clamp(1.25rem, 3.7vh, 2.5rem);
+}
+
+/* The work leads, so the introduction is short and the disclosure is
+   legible without becoming the headline. */
+.k-archive-head { max-width: 68ch; }
+
+.k-archive-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.7rem, 3vw, 2.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--frost);
+}
+
+.k-archive-lead {
+    margin: 0.4rem 0 0;
+    font-size: clamp(1rem, 1.2vw, 1.18rem);
+    line-height: 1.45;
+    color: var(--silver);
+}
+
+.k-archive-note {
+    max-width: 74ch;
+    margin: 0.55rem 0 0;
+    font-size: clamp(0.85rem, 0.95vw, 0.92rem);
+    line-height: 1.5;
+    color: var(--silver-dim);
+}
+
+/* the stage. Everything physical in this chapter happens inside it,
+   and nothing physical is allowed outside it. */
+.k-chamber {
+    position: relative;
+    min-height: var(--k-chamber-h);
+    overflow: hidden;
+    /* the chamber is the world: the ember and every plane are clipped
+       to it and cannot reach the sections above or below */
+    touch-action: pan-y;
+}
+
+.k-orbit {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.k-orbit:active { cursor: grabbing; }
+
+.k-orbit-rig {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    /* A preserve-3d container that carries no transform of its own
+       swallows hit-tests aimed at its rotated children: the front
+       plane answered a click and the turned neighbours did not. The
+       rig only needs to be a stage, never a target, so it hands
+       pointers straight through to the planes. */
+    pointer-events: none;
+}
+
+/* a concept plane */
+.k-plane {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* Whichever runs out first: the width of the stage, or the height
+       the chamber can actually give a 3:4 frame plus its caption.
+       The divisor is 0.66 rather than 3/4 because the front plane sits
+       at translateZ(140px) under a 1200px perspective and therefore
+       renders about 1.13x its CSS box. What has to clear the chamber
+       floor is the rendered height, not the declared one. */
+    width: min(
+        clamp(21rem, 33vw, 34rem),
+        calc((var(--k-chamber-h) - var(--k-plane-foot)) * 0.66)
+    );
+    transform-style: preserve-3d;
+    background: none;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    -webkit-user-select: none;
+    user-select: none;
+    will-change: transform, opacity;
+}
+
+.k-plane { pointer-events: auto; }
+
+.k-plane:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 8px;
+}
+
+/* the local light the active plane stands in: a soft pool behind it,
+   not a glow around it */
+.k-plane-light {
+    position: absolute;
+    inset: -14% -12% -18%;
+    z-index: -1;
+    opacity: 0;
+    background: radial-gradient(60% 55% at 50% 52%, rgba(150, 160, 180, 0.16), transparent 72%);
+    transition: opacity var(--k-dur-scene) var(--k-ease-out);
+}
+
+.k-plane[data-front='true'] .k-plane-light { opacity: 1; }
+
+.k-plane-frame {
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    transition: box-shadow var(--k-dur-comp) var(--k-ease-out);
+}
+
+/* one restrained edge of light on the live plane, and nothing on the
+   others: no permanent outlines, no metallic borders */
+.k-plane[data-front='true'] .k-plane-frame {
+    box-shadow:
+        0 0 0 1px rgba(241, 243, 242, 0.22),
+        0 30px 80px rgba(0, 0, 0, 0.62);
+}
+
+.k-plane[data-pulse='true'] .k-plane-frame {
+    box-shadow:
+        0 0 0 1px var(--signal),
+        0 30px 80px rgba(0, 0, 0, 0.62);
+}
+
+.k-plane[data-near='true'] .k-plane-frame {
+    box-shadow:
+        0 0 0 1px rgba(241, 243, 242, 0.34),
+        0 30px 80px rgba(0, 0, 0, 0.62);
+}
+
+/* the caption travels with its plane and is legible on arrival */
+.k-plane-name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin-top: 0.6rem;
+    font-size: 1rem;
+    color: var(--silver);
+    transition: color var(--k-dur-comp) var(--k-ease-out);
+}
+
+.k-plane[data-front='true'] .k-plane-name { color: var(--frost); }
+.k-plane[data-near='true'] .k-plane-n { color: var(--frost); }
+
+.k-plane-n {
+    font-family: 'DM Sans', 'Satoshi', Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    font-size: var(--k-t-2xs);
+    color: var(--silver-dim);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+/* ---- the spread ---- */
+
+/* The failure under discussion, at the scale of the thing it is. This
+   is the loudest object in the chapter on purpose: the claim above it
+   sets the terms, and this is the term being argued. */
+.k-subject {
+    margin: 0.5rem 0 0;
+    max-width: 24ch;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 2.6vw, 2.3rem);
+    line-height: 1.1;
+    color: var(--frost);
+    text-wrap: balance;
+}
+
+/* The conclusion is an argument being closed, not a headline being
+   made: it is set to be read, at a measure that holds a sentence. */
+.k-subject--resolved {
+    max-width: 44ch;
+    font-weight: 700;
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    line-height: 1.24;
+    letter-spacing: -0.02em;
+}
+
+.k-subject-line {
+    margin: 0.7rem 0 0;
+    max-width: 52ch;
+    font-size: clamp(1.125rem, 1.35vw, 1.3rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+.k-reveal {
+    margin: 0.8rem 0 0;
+    height: 1.1rem;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--signal);
+    transition: opacity var(--k-dur-comp) var(--k-ease-out);
+}
+
+/* The sentence coming apart along the floor of the frame. A band with
+   a real top and bottom edge, so it reads as ground under the type
+   rather than as words loose in the middle of the composition. */
+.k-band {
+    position: relative;
+    margin-top: clamp(1rem, 3.5vh, 2rem);
+    height: clamp(6rem, 13vh, 9rem);
+    width: 100%;
+}
+
+/* the statement's position in the sequence, anchored to the index */
+.k-plate-n {
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
+    color: var(--signal);
+}
+
+.k-plate-n span { color: var(--silver-dim); }
+
+/* ---------- the dock ---------- */
+.k-dock {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    border-top: 1px solid var(--smoke);
+    padding-top: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+.k-dock-read { min-width: 0; max-width: 58ch; }
+
+.k-dock-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1rem;
+    margin: 0;
+    font-size: var(--k-t-2xs);
+    color: var(--silver);
+}
+
+.k-dock-spec { border: 1px solid var(--smoke); padding: 0.12rem 0.5rem; }
+
+.k-dock-title {
+    margin: 0.5rem 0 0;
+    font-weight: 900;
+    font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--frost);
+}
+
+.k-dock-premise {
+    max-width: 58ch;
+    margin: 0.45rem 0 0;
+    font-size: clamp(0.92rem, 1vw, 1rem);
+    line-height: 1.55;
+    color: var(--silver);
+}
+
+/* ---- transport: the visitor decides whether it moves ---- */
+.k-transport { display: flex; align-items: center; gap: 0.4rem; }
+
+.k-tbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--smoke);
+    background: transparent;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--silver);
+    cursor: pointer;
+    transition:
+        border-color var(--k-dur-ui) var(--k-ease-out),
+        color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-tbtn:hover { border-color: var(--silver-dim); color: var(--frost); }
+.k-tbtn:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.k-tbtn--wide { min-width: 86px; }
+.k-tbtn[data-on='true'] { border-color: var(--signal); color: var(--frost); }
+
+.k-dock-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.k-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver);
+}
+
+.k-progress-track {
+    display: block;
+    width: clamp(3.5rem, 7vw, 6rem);
+    height: 1px;
+    background: var(--smoke);
+}
+
+.k-progress-fill {
+    display: block;
+    height: 100%;
+    background: var(--signal);
+    transform-origin: left center;
+    transition: transform var(--k-dur-scene) var(--k-ease-out);
+}
+
+.k-progress-n { color: var(--frost); }
+
+@media (max-height: 880px) {
+    .k-archive {
+        gap: 0.6rem;
+        padding-top: 4.4rem;
+        padding-bottom: 0.85rem;
+    }
+
+    /* A short screen cannot hold a large frame and a legible caption at
+       once. It gets a smaller frame, not a cropped one. */
+    :root {
+        --k-chamber-h: clamp(13rem, 44vh, 26rem);
+        /* a short screen's caption needs the same margin from the floor
+           that a tall one gets, and it has fewer pixels to spend */
+        --k-plane-foot: 3.5rem;
+    }
+
+    .k-archive-h { font-size: clamp(1.35rem, 2.2vw, 1.9rem); }
+    .k-archive-note { margin-top: 0.4rem; }
+
+    .k-dock-title { margin-top: 0.4rem; }
+
+    .k-dock-premise {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 1023px) {
+    .k-archive { min-height: 0; padding-top: 4.5rem; }
+    /* narrow screens size from the chamber too, or the caption is
+       cropped exactly as it was on short desktops */
+    .k-plane {
+        width: min(
+            clamp(15rem, 62vw, 22rem),
+            calc((var(--k-chamber-h) - var(--k-plane-foot)) * 0.66)
+        );
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .k-plane { transition: opacity var(--k-dur-ui) linear; will-change: auto; }
+    .k-plane-light, .k-plane-frame, .k-plane-name { transition: none; }
+}
+
+/* ============================================================
+   THE FRACTURED SIGNAL
+   One campaign frame cut into five irregular pieces. Each piece is
+   the same photograph clipped to its own polygon, so at rest they
+   are one image and the seams are the room showing through. No
+   panels, no containers, no radii: a piece is a piece of a picture.
+   ============================================================ */
+/* ============================================================
+   CHAPTER 2 - THE KYMR SYSTEM
+
+   One heading over three coordinated columns: the services on the
+   left, the campaign frame in the middle, what the client receives
+   on the right. Content-driven height, no fixed wrapper, nothing
+   pinned, and no scroll runway.
+   ============================================================ */
+.k-sys-inner {
+    position: relative;
+    z-index: var(--z-content);
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: clamp(4rem, 8vh, 6rem) clamp(1.25rem, 3.9vw, 3.5rem)
+             clamp(3.5rem, 7vh, 5.25rem);
+}
+
+.k-sys-head { max-width: 62rem; }
+
+.k-sys-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.85rem, 3.4vw, 3rem);
+    line-height: 1.06;
+    letter-spacing: -0.035em;
+    color: var(--frost);
+}
+
+.k-sys-sub {
+    max-width: 58ch;
+    margin: clamp(0.75rem, 1.6vh, 1.15rem) 0 0;
+    font-size: clamp(1rem, 1.15vw, 1.15rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+.k-sys-cols {
+    display: grid;
+    grid-template-columns:
+        minmax(0, clamp(11.5rem, 17vw, 16.25rem))
+        minmax(0, clamp(20rem, 36vw, 35rem))
+        minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(1.75rem, 2.4vw, 2.25rem);
+    margin-top: clamp(2rem, 4.5vh, 3.25rem);
+}
+
+/* ---- LEFT: the services, readable before anything is touched ---- */
+.k-disc {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1.3vh, 0.9rem);
+    min-width: 0;
+}
+
+.k-disc-item {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0.55rem 0.65rem 0.7rem 0;
+    border: 0;
+    border-left: 1px solid transparent;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color var(--k-dur-ui) var(--k-ease-out),
+        padding-left var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-disc-item:hover { border-left-color: var(--smoke); padding-left: 0.7rem; }
+
+.k-disc-item[data-on='true'] {
+    border-left-color: var(--signal);
+    padding-left: 0.85rem;
+}
+
+.k-disc-item:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+}
+
+.k-disc-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+}
+
+.k-disc-mark {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    transform: translateY(-0.15em);
+    background: transparent;
+    transition: background var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-disc-item[data-on='true'] .k-disc-mark { background: var(--signal); }
+
+.k-disc-n {
+    flex: none;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.14em;
+    color: var(--silver-dim);
+}
+
+.k-disc-item[data-on='true'] .k-disc-n { color: var(--signal); }
+
+.k-disc-name {
+    min-width: 0;
+    font-weight: 900;
+    font-size: clamp(1.2rem, 1.56vw, 1.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--silver);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-disc-item:hover .k-disc-name { color: var(--frost); }
+.k-disc-item[data-on='true'] .k-disc-name { color: var(--frost); }
+
+.k-disc-sum {
+    display: block;
+    margin-top: 0.3rem;
+    padding-left: calc(6px + 0.55rem);
+    font-size: clamp(0.95rem, 1.06vw, 1rem);
+    line-height: 1.5;
+    color: var(--silver-dim);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-disc-item[data-on='true'] .k-disc-sum,
+.k-disc-item:hover .k-disc-sum { color: var(--silver); }
+
+/* ---- CENTRE: the campaign frame ---- */
+.k-sys-frame { min-width: 0; }
+
+.k-frame {
+    position: relative;
+    /* the archive masters are 4/3, so the cuts land on the picture
+       the photograph actually is and nothing is cropped away */
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    /* A thrown piece has real travel, and the column gap is only ~34px,
+       so without this a hard throw lands on top of the deliverables.
+       The play area is the frame plus a margin narrower than that gap:
+       a piece slides out under your hand and is occluded by the edge
+       of its own column, and can never reach the text either side.
+       Older engines ignore the margin and clip at the frame, which is
+       tighter and still correct. */
+    overflow: clip;
+    overflow-clip-margin: 26px;
+}
+
+.k-shard {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    cursor: grab;
+    touch-action: pan-y;
+    will-change: transform, filter;
+    filter: brightness(0.74) saturate(0.9);
+    transition: filter var(--k-dur-comp) var(--k-ease-out);
+}
+
+.k-shard:active { cursor: grabbing; }
+
+.k-shard[data-on='true'] {
+    z-index: 2;
+    filter: brightness(1) saturate(1);
+}
+
+.k-shard:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: -2px;
+}
+
+/* one restrained seam marks the fracture being read */
+.k-shard[data-on='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 59, 20, 0.55);
+    pointer-events: none;
+}
+
+/* the piece answering the selected discipline stands out for a
+   moment: a response to the choice, never a label for it */
+.k-shard[data-lift='true'] {
+    z-index: 2;
+    filter: brightness(1) saturate(1);
+}
+
+.k-shard[data-lift='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 59, 20, 0.5);
+    pointer-events: none;
+    animation: k-seam 900ms var(--k-ease-out) forwards;
+}
+
+@keyframes k-seam {
+    0%   { opacity: 0; }
+    22%  { opacity: 1; }
+    100% { opacity: 0.32; }
+}
+
+.k-frame-note {
+    margin: clamp(0.8rem, 1.8vh, 1.15rem) 0 0;
+    font-size: clamp(0.88rem, 0.98vw, 0.95rem);
+    line-height: 1.5;
+    color: var(--silver-dim);
+}
+
+/* ---- RIGHT: what the client receives ----
+   Every panel shares one grid cell, so the column is already the
+   height of its longest state and switching never jumps the page. */
+.k-deliv {
+    display: grid;
+    min-width: 0;
+}
+
+.k-deliv-panel {
+    grid-area: 1 / 1;
+    max-width: 31rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition:
+        opacity 200ms var(--k-ease-out),
+        transform 200ms var(--k-ease-out),
+        visibility 0s linear 200ms;
+}
+
+.k-deliv-panel[data-on='true'] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+}
+
+.k-deliv-panel:focus-visible { outline: 2px solid var(--signal); outline-offset: 6px; }
+
+.k-deliv-name {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.35rem, 1.9vw, 1.75rem);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: var(--frost);
+}
+
+.k-deliv-purpose {
+    margin: 0.6rem 0 0;
+    font-size: clamp(1rem, 1.15vw, 1.12rem);
+    line-height: 1.55;
+    color: var(--silver);
+}
+
+.k-deliv-label {
+    margin: clamp(1.35rem, 3vh, 1.9rem) 0 0;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-deliv-list {
+    margin: 0.7rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.k-deliv-list li {
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--smoke);
+    font-size: clamp(1rem, 1.15vw, 1.1rem);
+    line-height: 1.4;
+    color: var(--frost);
+}
+
+.k-deliv-list li:last-child { border-bottom: 1px solid var(--smoke); }
+
+.k-deliv-hand {
+    display: flex;
+    gap: 0.45rem;
+    margin: clamp(1rem, 2.4vh, 1.5rem) 0 0;
+    font-size: clamp(0.95rem, 1.04vw, 1rem);
+    line-height: 1.5;
+    color: var(--silver);
+}
+
+.k-deliv-arrow { flex: none; color: var(--signal); }
+
+@media (max-width: 1180px) {
+    .k-sys-cols {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(1.5rem, 3vw, 2.25rem) clamp(1.75rem, 2.4vw, 2.25rem);
+    }
+    .k-sys-frame { grid-column: 1 / -1; grid-row: 1; max-width: 44rem; }
+    .k-disc { grid-row: 2; }
+    .k-deliv { grid-row: 2; }
+}
+
+@media (max-width: 720px) {
+    /* one column, in reading order: the services first, then the frame
+       they belong to, then what the selected one delivers */
+    .k-sys-cols { grid-template-columns: minmax(0, 1fr); }
+    .k-sys-frame, .k-disc, .k-deliv { grid-column: auto; grid-row: auto; }
+    .k-deliv-panel { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* no inertia and no depth travel: the pieces hold their seam and
+       every control, name and deliverable stays exactly where it is */
+    .k-shard { cursor: pointer; transition: filter 120ms linear; }
+    .k-shard[data-lift='true']::after { animation: none; opacity: 0.5; }
+    .k-deliv-panel { transition: opacity 120ms linear, visibility 0s linear 120ms; transform: none; }
+    .k-disc-item, .k-disc-name, .k-disc-sum, .k-disc-mark { transition: none; }
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.t-display {
+    font-weight: 900;
+    letter-spacing: -0.032em;
+    line-height: 0.96;
+    text-wrap: balance;
+}
+
+.t-lit { color: var(--signal); }
+
+/* THE NUMERALS AND THE SMALL METADATA.
+
+   This was IBM Plex Mono, and it was the site's worst habit: wide-
+   tracked monospace set every eyebrow, every 01/02/03 and every counter
+   on a dark ground, which is the most recognisable machine-made
+   signature on the web. The face is now DM Sans - the closest openly
+   licensed thing to Google Sans, geometric and low contrast, and
+   actually legible at the 11-12px these labels run at, which a mono at
+   this size is not.
+
+   `tabular-nums` is kept and is the point: figures still align in a
+   column, which was the only real job the monospace was doing. */
+.t-data {
+    font-family: 'DM Sans', 'Satoshi', Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+}
+
+/* The rationed uppercase label. Six per page, maximum. */
+.t-tag {
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+/* ============================================================
+   MATERIAL
+   ============================================================ */
+.grain {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-grain);
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Image wells hold their aspect box before the file loads.
+   Explicit width, because a well's height derives from its width,
+   and an auto-sized grid or flex track resolves that cycle using
+   the file's intrinsic size, blowing the well out to full size. */
+.well {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--graphite);
+}
+
+.well > img {
+    display: block;
+    /* the archive is dragged horizontally; native image drag would
+       swallow pointermove the moment it started */
+    -webkit-user-drag: none;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--focal, 50% 50%);
+}
+
+/* A slot whose file is missing degrades to the well and its label
+   rather than a broken image icon. */
+.well[data-missing='true'] > img { display: none; }
+.well[data-missing='true']::after {
+    content: attr(data-label);
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 0.6rem 0.75rem;
+    font-size: var(--k-t-2xs);
+    color: var(--silver-dim);
+    background: linear-gradient(180deg, transparent, var(--carbon));
+}
+
+/* ============================================================
+   CONTROLS. One radius system: square. One focus system.
+   ============================================================ */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+    border-radius: 1px;
+}
+
+.k-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 46px;
+    padding: 0 1.35rem;
+    border: 1px solid transparent;
+    font-size: var(--k-t-sm);
+    font-weight: 700;
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+        background-color var(--k-dur-ui) var(--k-ease-out),
+        color var(--k-dur-ui) var(--k-ease-out),
+        border-color var(--k-dur-ui) var(--k-ease-out),
+        transform var(--k-dur-cut) var(--k-ease-out);
+}
+.k-btn:active { transform: scale(0.98); }
+
+/* ============================================================
+   THE FLOW BUTTON
+
+   components/ui/flow-button.tsx is the owner's file and its colours are
+   not edited there. It ships light-mode - a #111111 label on a
+   transparent ground, filling with #111111 on hover - and this site is
+   carbon, so mounted verbatim the label is invisible. Everything below
+   repaints it and nothing below moves it: the geometry, the two
+   durations, the four cubic-beziers, the arrow sweep and the expanding
+   circle are all still the component's own.
+
+   SPECIFICITY, because it is the whole trick here. Tailwind's
+   `group-hover:` variants compile to `.group:hover .the-class`, which is
+   three classes. A single site class loses to that, so every rule that
+   has to beat one is written with the base class AND the variant class
+   plus the state - four - and the plain-property rules (backgrounds,
+   the resting stroke) only ever face a one-class utility.
+
+   The circle and the arrows carry no id of their own, so they are
+   addressed by the utilities that are unique to them in the supplied
+   markup. Those strings are the component's structure; if the file is
+   ever replaced, check them.
+   ============================================================ */
+
+.k-flow {
+    /* The site's own hit target. The component's `py-3` gives about
+       42px and every other control on this page is 46. */
+    min-height: 46px;
+    font-family: inherit;
+    font-size: var(--k-t-sm);
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+}
+
+.k-flow:disabled { opacity: 0.3; pointer-events: none; }
+
+/* ---- PRIMARY: solid vermilion, inverting to carbon ----
+
+   The page has exactly one primary action per screen and it is the
+   only solid block on it. An outline pill at rest would have handed
+   that weight back, so this variant keeps the fill and lets the
+   component's circle invert it instead of introduce it. */
+.k-flow.k-flow--primary {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--carbon);
+}
+.k-flow.k-flow--primary:hover,
+.k-flow.k-flow--primary:focus-visible { color: var(--frost); }
+.k-flow--primary span[class*="rounded-[50%]"] { background: var(--carbon); }
+.k-flow.k-flow--primary svg { stroke: var(--carbon); }
+.k-flow.k-flow--primary:hover svg,
+.k-flow.k-flow--primary:focus-visible svg { stroke: var(--frost); }
+
+/* ---- GHOST: the outline the component was drawn as ---- */
+.k-flow.k-flow--ghost {
+    border-color: var(--smoke);
+    color: var(--frost);
+}
+.k-flow.k-flow--ghost:hover,
+.k-flow.k-flow--ghost:focus-visible { color: var(--carbon); }
+.k-flow--ghost span[class*="rounded-[50%]"] { background: var(--frost); }
+.k-flow.k-flow--ghost svg { stroke: var(--frost); }
+.k-flow.k-flow--ghost:hover svg,
+.k-flow.k-flow--ghost:focus-visible svg { stroke: var(--carbon); }
+
+/* The nav CTA on the light routes, where the header is ivory. The old
+   button did this with two `!important` Tailwind utilities on the call
+   site; the circle and the arrows cannot be reached that way, so it is
+   a variant class instead. */
+.k-flow.k-flow--light { border-color: rgba(20, 21, 26, 0.35); color: #14151A; }
+.k-flow.k-flow--light:hover, .k-flow.k-flow--light:focus-visible { color: var(--frost); }
+.k-flow--light span[class*="rounded-[50%]"] { background: #14151A; }
+.k-flow.k-flow--light svg { stroke: #14151A; }
+.k-flow.k-flow--light:hover svg, .k-flow.k-flow--light:focus-visible svg { stroke: var(--frost); }
+
+/* THE ONE CONTROL THAT IS NOT A BUTTON.
+
+   The mailto on /start is an <a>, and FlowButton renders a <button> -
+   converting it would cost the link its href, its middle-click and its
+   context menu. It takes the pill's RESTING look so the row reads as
+   one set of controls, and none of the motion, because the arrows and
+   the circle belong to the component. */
+.k-flow-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 2rem;
+    border: 1.5px solid var(--smoke);
+    border-radius: 100px;
+    font-size: var(--k-t-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--frost);
+    transition: border-radius 600ms cubic-bezier(0.23, 1, 0.32, 1),
+                background-color 600ms cubic-bezier(0.23, 1, 0.32, 1),
+                color 600ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.k-flow-link:hover, .k-flow-link:focus-visible {
+    border-radius: 12px;
+    background: var(--frost);
+    color: var(--carbon);
+}
+
+/* ---- --lg: the closing action ----
+
+   The page's last button was a solid vermilion block, deliberately the
+   heaviest control on the site. At the component's default size it
+   would have become the same weight as a Back button in a form, so this
+   variant gives the size back without touching the mechanics. */
+.k-flow--lg {
+    min-height: 62px;
+    padding-left: 2.75rem;
+    padding-right: 2.75rem;
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+}
+
+/* The keyboard ring the component has no opinion about. */
+.k-flow:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+/* The component reserves `px-8` so its two arrows can sweep through
+   without touching the label. Anything that pads it tighter than that
+   has to hide them, or they cross the text. */
+.k-flow--tight { padding-left: 1.1rem; padding-right: 1.1rem; }
+.k-flow--tight svg { display: none; }
+.k-flow--tight > span:first-of-type { transform: none; }
+.k-flow.k-flow--tight:hover > span:first-of-type { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .k-flow, .k-flow * { transition-duration: 1ms !important; }
+}
+
+
+/* Vermilion directional fill: the ghost control fills from the edge
+   the pointer arrived at, driven by --fx set on pointerenter. */
+.k-btn--ghost { position: relative; overflow: hidden; isolation: isolate; }
+.k-btn--ghost::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: var(--fx, left) center;
+    transition: transform var(--k-dur-ui) var(--k-ease-out);
+}
+.k-btn--ghost:hover::before,
+.k-btn--ghost:focus-visible::before { transform: scaleX(1); }
+.k-btn--ghost:hover, .k-btn--ghost:focus-visible {
+    color: var(--carbon);
+    border-color: var(--signal);
+    background: transparent;
+}
+
+/* Secondary: a directional underline and a 4px arrow, no layout shift. */
+.k-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 46px;
+    font-size: var(--k-t-sm);
+    font-weight: 700;
+    color: var(--silver);
+    background: none;
+    border: 0;
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+/* NEVER PAD A .k-link.
+
+   This rule is pinned 12px off the bottom edge, which is where the
+   baseline sits ONLY while the link is its bare `min-height: 46px` with
+   the label centred in it. Add padding-top and the content box shrinks,
+   the centred label drops onto this line, and the link renders struck
+   through. Space a link with MARGIN, or pad the element above it. */
+.k-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 12px;
+    height: 1px;
+    width: 100%;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform var(--k-dur-ui) var(--k-ease-out);
+}
+.k-link:hover, .k-link:focus-visible { color: var(--frost); }
+.k-link:hover::after, .k-link:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+}
+.k-link-arrow {
+    display: inline-block;
+    transition: transform var(--k-dur-ui) var(--k-ease-out);
+}
+.k-link:hover .k-link-arrow, .k-link:focus-visible .k-link-arrow {
+    transform: translateX(4px);
+}
+
+/* #FF3B14 fill with the carbon ground as the label: 5.8:1 */
+.k-btn--primary { background: var(--signal); color: var(--carbon); }
+.k-btn--primary:hover { background: #FF5733; }
+
+.k-btn--ghost { border-color: var(--smoke); color: var(--frost); }
+.k-btn--ghost:hover { border-color: var(--silver); background: rgba(255,255,255,0.045); }
+
+/* The entry skip control. Its own class rather than .k-btn--ghost,
+   because that rule sets position: relative and is declared after
+   Tailwind's utility layer, so it silently won over .absolute and
+   dropped the button into the centre of the flex container. */
+.entry-skip {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--smoke);
+    color: var(--silver);
+    font-size: var(--k-t-2xs);
+    font-weight: 700;
+    background: rgba(11, 11, 14, 0.6);
+    transition:
+        color var(--k-dur-ui) var(--k-ease-out),
+        border-color var(--k-dur-ui) var(--k-ease-out);
+}
+.entry-skip:hover, .entry-skip:focus-visible {
+    color: var(--frost);
+    border-color: var(--signal);
+}
+
+.skip-link {
+    position: absolute;
+    left: 0.5rem;
+    top: -100%;
+    z-index: 100;
+    padding: 0.75rem 1.25rem;
+    background: var(--signal);
+    color: var(--carbon);
+    font-weight: 700;
+    transition: top var(--k-dur-cut) var(--k-ease-out);
+}
+.skip-link:focus { top: 0.5rem; }
+
+/* Fixed full-bleed layers respect the notch and home indicator. */
+.safe-x {
+    padding-left: max(var(--k-gutter), env(safe-area-inset-left));
+    padding-right: max(var(--k-gutter), env(safe-area-inset-right));
+}
+.safe-y {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Below 360px the wordmark, the header action and the menu button
+   cannot share a line. The action goes: it is the first item in the
+   menu, so nothing becomes unreachable. */
+@media (max-width: 359px) {
+    .nav-cta { display: none; }
+}
+
+/* ============================================================
+   REVEAL GRAMMAR: the signal resolves.
+   Paired with src/components/Reveal.jsx.
+   ============================================================ */
+.reveal {
+    transition:
+        opacity var(--k-dur-scene) var(--k-ease-out),
+        transform var(--k-dur-scene) var(--k-ease-out),
+        clip-path var(--k-dur-scene) var(--k-ease-out);
+}
+.reveal.is-dark { opacity: 0; transform: translate3d(0, 12px, 0); }
+.reveal.is-lit { opacity: 1; transform: none; }
+
+/* The wipe: light crossing a surface in the reading direction.
+   Its closed state keeps a 2px sliver rather than clipping to zero.
+   An element clipped to zero area reports no intersection at all, so
+   observing it would deadlock: it could never become visible enough
+   to be told to become visible. */
+.reveal--wipe.is-dark {
+    clip-path: inset(0 calc(100% - 2px) 0 0);
+    transform: none;
+    opacity: 1;
+}
+.reveal--wipe.is-lit { clip-path: inset(0 0 0 0); }
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal.is-dark, .reveal.is-lit {
+        opacity: 1;
+        transform: none;
+        clip-path: none;
+        transition: none;
+    }
+    .grain { opacity: 0.02; }
+    *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+/* ============================================================
+   DOSSIER
+   ============================================================ */
+.scrim {
+    background: rgba(11, 11, 14, 0.975);
+    overscroll-behavior: contain;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* ============================================================
+   FORM CONTROLS (the /start estimator)
+   ============================================================ */
+.input-line {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--smoke);
+    padding: 14px 0;
+    width: 100%;
+    color: var(--frost);
+    font-family: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+    font-size: var(--k-t-sm);
+    transition: border-color var(--k-dur-ui) var(--k-ease-out);
+}
+/* No outline reset. The global focus ring is the one focus system
+   and it has to reach form controls too; the border colour is an
+   additional cue, never the only one. */
+.input-line:focus-visible { border-color: var(--signal); }
+/* --silver-dim clears 4.5:1 on carbon, so placeholders stay legible */
+.input-line::placeholder { color: var(--silver-dim); }
 
 .volume-slider {
     -webkit-appearance: none;
     appearance: none;
+    display: block;
     width: 100%;
     height: 2px;
-    background: rgba(245, 245, 240, 0.15);
+    box-sizing: content-box;
+    /* real 44px hit box: the bar stays 2px via background-clip while
+       padding grows the element's own target, not a wrapper */
+    padding-block: 21px;
+    background: var(--smoke);
+    background-clip: content-box;
     margin-top: 2.5rem;
 }
-
 .volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    background: var(--ember);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+    width: 26px; height: 26px; margin-top: -12px;
+    background: var(--signal); cursor: pointer;
+    transition: transform var(--k-dur-ui) var(--k-ease-out);
 }
-
-.volume-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.35);
-}
-
+.volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .volume-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    background: var(--ember);
-    border: none;
-    border-radius: 50%;
+    width: 26px; height: 26px; background: var(--signal);
+    border: none; cursor: pointer;
+}
+.volume-slider::-moz-range-track { height: 2px; background: var(--smoke); }
+
+.estimator-cta { display: inline-block; padding: 0.875rem 0.25rem; }
+
+/* outline treatments retained for the /start route */
+.text-outline { -webkit-text-stroke: 1px var(--frost); color: transparent; }
+.text-outline-faint { -webkit-text-stroke: 1px var(--smoke); color: transparent; }
+.text-outline-ember { -webkit-text-stroke: 1px var(--signal); color: transparent; }
+
+.link-sweep { position: relative; }
+.link-sweep::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -4px;
+    height: 1px; width: 100%;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--k-dur-comp) var(--k-ease-out);
+}
+.link-sweep:hover::after { transform: scaleX(1); transform-origin: left; }
+
+/* ============================================================
+   ARCHIVE INDEX
+   The whole row is the control. Readable at rest: unselected rows
+   are silver, never a disabled-looking grey, so twelve concepts
+   scan as twelve available choices.
+   ============================================================ */
+.archive-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 13.5rem;
+    min-height: 48px;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    color: var(--silver);
+    border-bottom: 1px solid var(--smoke);
+    background: transparent;
+    transition:
+        color var(--k-dur-ui) var(--k-ease-out),
+        background-color var(--k-dur-ui) var(--k-ease-out),
+        border-color var(--k-dur-ui) var(--k-ease-out);
+}
+@media (min-width: 1024px) {
+    .archive-row { width: 100%; }
+}
+.archive-row:hover { color: var(--frost); background: rgba(255, 255, 255, 0.035); }
+.archive-row:focus-visible { color: var(--frost); }
+.archive-row .archive-row-mark {
+    display: block;
+    flex: none;
+    width: 2px;
+    height: 26px;
+    background: var(--smoke);
+    transition:
+        height var(--k-dur-comp) var(--k-ease-out),
+        background-color var(--k-dur-comp) var(--k-ease-out);
+}
+.archive-row.is-on {
+    color: var(--frost);
+    background: rgba(255, 255, 255, 0.055);
+    border-bottom-color: var(--signal);
+}
+.archive-row.is-on .archive-row-mark { height: 38px; }
+
+/* ============================================================
+   TEXT-SAFE FIELD
+   Feathered luminance reduction beneath readable content only.
+   Not a card, not a panel, no border and no blur: the shader
+   stays vivid in negative space and only loses contrast where it
+   would otherwise compete with type.
+   ============================================================ */
+.veil {
+    position: relative;
+    isolation: isolate;
+}
+.veil::before {
+    content: '';
+    position: absolute;
+    inset: -2.5rem -3.5rem;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+        118% 104% at var(--veil-x, 26%) 50%,
+        rgba(11, 11, 14, 0.95) 0%,
+        rgba(11, 11, 14, 0.86) 38%,
+        rgba(11, 11, 14, 0.48) 68%,
+        transparent 100%
+    );
+}
+
+/* ============================================================
+   THE LIVING SIGNAL
+   One fixed canvas behind every chapter after the hero. It fades in
+   as the hero leaves rather than cutting, and its render loop is
+   switched off while it is off screen.
+   ============================================================ */
+.signal-field {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-field);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 900ms var(--k-ease-out);
+}
+
+.field-on .signal-field { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    .signal-field { transition: none; }
+}
+
+/* ============================================================
+   POST-HERO ENVIRONMENTS
+   The landing shader belongs to the hero and ends with it. Every
+   chapter after it gets its own ground, built from the same five
+   brand values so the page stays one identity while the state
+   visibly changes underfoot.
+   ============================================================ */
+
+/* THE KYMR SYSTEM: one ground for the whole chapter. It grades out
+   of the hero's carbon, holds the matte, damaged carbon the broken
+   frame sits in, and settles into graphite as the disciplines and
+   their deliverables resolve down the page. */
+.env-system {
+    background:
+        radial-gradient(112% 46% at 12% 0%, #101014 0%, transparent 58%),
+        radial-gradient(78% 40% at 82% 78%, #14151B 0%, transparent 64%),
+        linear-gradient(180deg,
+            var(--carbon) 0%,
+            #08080A 8%,
+            #0A0A0D 58%,
+            #0D0E12 100%);
+}
+
+/* ============================================================
+   CHAPTER 3 - WHAT WE MAKE
+
+   Four offerings as editorial rows, with the work beside them at a
+   size that carries the section. Every name and summary is on the
+   page at rest; selection only changes which frame is shown.
+   ============================================================ */
+.k-make-inner {
+    position: relative;
+    z-index: var(--z-content);
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: clamp(2.75rem, 5vh, 3.75rem) clamp(1.25rem, 3.9vw, 3.5rem) clamp(2.25rem, 4.25vh, 3.25rem);
+}
+
+.k-make-head { max-width: 60rem; }
+
+.k-make-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--frost);
+}
+
+.k-make-sub {
+    margin: clamp(0.7rem, 1.5vh, 1rem) 0 0;
+    max-width: 62ch;
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+    line-height: 1.62;
+    color: var(--silver);
+}
+
+/* Challenge on the left, response on the right, one pair per row. A
+   definition list because that is exactly what this is: a term and what
+   answers it. Reads as five short lines, not as five cards. */
+.k-make-eyebrow {
+    margin: 0 0 clamp(0.7rem, 1.6vh, 1.05rem);
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+.k-make-problems {
+    max-width: 76ch;
+    margin: clamp(1.1rem, 2.6vh, 1.75rem) 0 0;
+    padding: clamp(0.9rem, 2vh, 1.25rem) 0 0;
+    border-top: 1px solid var(--rule-soft);
+}
+
+.k-make-problem {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+    gap: 0.15rem clamp(0.75rem, 1.8vw, 1.5rem);
+    padding: 0.42rem 0;
+}
+
+.k-make-problem-q {
+    margin: 0;
+    font-weight: 700;
+    font-size: clamp(0.92rem, 1.02vw, 1rem);
+    line-height: 1.55;
+    color: var(--silver-dim);
+}
+
+.k-make-problem-a {
+    display: flex;
+    gap: 0.55rem;
+    margin: 0;
+    font-size: clamp(0.92rem, 1.02vw, 1rem);
+    line-height: 1.55;
+    color: var(--frost);
+}
+
+.k-make-problem-arrow { flex: none; color: var(--signal); }
+
+@media (max-width: 640px) {
+    .k-make-problem { grid-template-columns: minmax(0, 1fr); gap: 0.1rem; padding: 0.5rem 0; }
+}
+
+.k-make-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(2rem, 4vw, 4rem);
+    margin-top: clamp(2.5rem, 5.5vh, 4rem);
+}
+
+.k-make-rows {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--smoke);
+}
+
+.k-make-row {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: clamp(1.15rem, 2.6vh, 1.9rem) 0;
+    border: 0;
+    border-bottom: 1px solid var(--smoke);
+    background: none;
+    text-align: left;
     cursor: pointer;
 }
 
-.volume-slider:focus-visible {
-    outline: 1px solid var(--ember);
-    outline-offset: 10px;
+.k-make-row:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+.k-make-row-top {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.k-make-n {
+    flex: none;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.16em;
+    color: var(--silver-dim);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-make-row[data-on='true'] .k-make-n { color: var(--signal); }
+
+.k-make-name {
+    font-weight: 900;
+    font-size: clamp(1.35rem, 2.1vw, 1.9rem);
+    line-height: 1.1;
+    letter-spacing: -0.028em;
+    color: var(--silver);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-make-row:hover .k-make-name,
+.k-make-row[data-on='true'] .k-make-name { color: var(--frost); }
+
+.k-make-line {
+    display: block;
+    max-width: 48ch;
+    margin-top: 0.5rem;
+    font-size: clamp(0.95rem, 1.1vw, 1.06rem);
+    line-height: 1.62;
+    color: var(--silver);
+}
+
+.k-make-deliv {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.15rem;
+    margin-top: 0.7rem;
+}
+
+.k-make-deliv span {
+    font-size: clamp(0.9rem, 1.01vw, 0.98rem);
+    line-height: 1.5;
+    color: var(--silver-dim);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-make-row[data-on='true'] .k-make-deliv span { color: var(--silver); }
+
+/* ---- the reel ----
+   Four viewport-deep bands with the stage pinned inside them, so the
+   offerings are advanced by the scroll rather than by a click. The reel
+   only exists above 1024px; under it the body is one column and the
+   markup renders unwrapped, exactly as it did before. */
+.k-make-reel {
+    position: relative;
+    height: calc(var(--k-make-bands, 4) * var(--k-reel-band));
+    margin-top: clamp(1.25rem, 2.5vh, 2rem);
+}
+
+.k-make-stage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    /* TOP, NOT CENTRE.
+       Centring inside a 100vh pin is what put a hole in this chapter.
+       While the chapter's heading is still on screen the stage has not
+       stuck yet, so its content sat half a viewport below the heading
+       and the reader met ~300px of nothing between the argument and the
+       work. Anchored to the top, the stage begins just under the header
+       whether it is stuck or not, and the chapter reads continuously. */
+    align-items: start;
+    min-height: 100vh;
+    padding: clamp(5rem, 8vh, 6rem) 0 clamp(1.5rem, 3vh, 2.5rem);
+}
+
+.k-make-stage .k-make-body {
+    width: 100%;
+    margin-top: 0;
+}
+
+/* the work, at a size that carries the section */
+.k-make-plate { min-width: 0; }
+.k-make-img { width: 100%; }
+
+/* Frames are stacked, not swapped: every offering's frame is in the
+   document at all times and the scrub decides which is lit, so the
+   change between two of them is a dissolve rather than a cut. */
+.k-make-deck {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+}
+
+/* THE CLIP STACK.
+
+   It takes the deck's box exactly, so swapping the cross-faded plates
+   for a masked frame moved no layout. The mask is decoration over a
+   real photograph - never the content - which is why the stack renders
+   the whole frame unmasked under prefers-reduced-motion instead of
+   hiding it. */
+.k-make-stack { position: relative; }
+
+.k-make-stack .k-stack-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* The masked shapes are the only lit thing in the chamber, so they get
+   the chamber's own falloff rather than a flat drop shadow. */
+.k-make-stack .k-stack-svg image { filter: saturate(1.02); }
+
+.k-make-cel {
+    position: absolute;
+    inset: 0;
+    /* No will-change. These plates were scroll-scrubbed when this section
+       was a pinned reel; that reel is gone and they now only cross-fade on
+       a click, so promoting ten full-size layers for the life of the page
+       bought nothing and cost GPU memory. */
+}
+
+.k-make-cel .well { height: 100%; }
+
+.k-make-cap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1.1rem;
+    margin: 0.85rem 0 0;
+    font-size: var(--k-t-2xs);
+    color: var(--silver-dim);
+}
+
+.k-make-cap-cat { letter-spacing: 0.16em; text-transform: uppercase; }
+.k-make-cap-t { font-size: clamp(0.95rem, 1.05vw, 1.05rem); color: var(--frost); }
+.k-make-cap-note {
+    border: 1px solid var(--smoke);
+    padding: 0.1rem 0.45rem;
+    font-size: 0.8125rem;
+}
+
+.k-make-close {
+    max-width: 62ch;
+    margin: clamp(2.25rem, 5vh, 3.5rem) 0 0;
+    font-size: clamp(1rem, 1.11vw, 1.05rem);
+    line-height: 1.62;
+    color: var(--silver);
+}
+
+/* ============================================================
+   CHAPTER 4 - BEYOND THE AD
+
+   The studio's second offering, argued for rather than linked to.
+   Replaces "Made by one team", whose stylesheet is kept verbatim at
+   audit/2026-09-08/removed/craft-chapter.css.
+
+   Shape: a full-width film that IS the argument, then the two builds
+   under it on the left and what goes into one on the right. The film
+   leads because it is the only asset on the page that shows the work
+   this chapter is selling.
+   ============================================================ */
+.k-build-inner {
+    position: relative;
+    z-index: var(--z-content);
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: clamp(2.75rem, 5vh, 3.75rem) clamp(1.25rem, 3.9vw, 3.5rem) clamp(2.25rem, 4.25vh, 3.25rem);
+}
+
+/* ---- BAND 1: the masthead ----
+
+   The headline held 68ch on the left of a full-width row and the right
+   half of that row was empty; the two approved floors, meanwhile, were
+   at the foot of the sidebar under six feature rows. Set opposite each
+   other on one baseline they read as a masthead - what the studio does,
+   and what it costs to start - and the chapter's widest empty band is
+   gone. */
+.k-build-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: clamp(1.25rem, 3vw, 3.5rem);
+    padding-bottom: clamp(1.1rem, 2.4vh, 1.7rem);
+    border-bottom: 1px solid var(--rule-firm);
+}
+
+.k-build-rate {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    text-align: right;
+}
+
+.k-build-eyebrow {
+    margin: 0 0 clamp(0.75rem, 1.6vh, 1.1rem);
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+/* Two lines, two weights of attention: the claim, then what the studio
+   does about it. */
+.k-build-h > span { display: block; }
+.k-build-h .k-build-h-2 { color: var(--silver); }
+
+.k-build-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--frost);
+}
+
+
+.k-build-sub {
+    max-width: 56ch;
+    margin: clamp(0.75rem, 1.6vh, 1.1rem) 0 0;
+    font-size: clamp(1rem, 1.15vw, 1.12rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+/* THE FIELD.
+
+   SonarGrid is the chapter's ground, so it owns the section's full
+   width and the chapter renders inside it. The canvas sits at -z-10
+   inside the component's own `isolate`, which is what keeps the rings
+   travelling UNDER the type instead of across it. */
+.k-build-grid {
+    width: 100%;
+    background:
+        radial-gradient(92% 62% at 50% 8%, #101014 0%, transparent 62%),
+        var(--carbon);
+}
+
+/* The component sets `cursor-crosshair` on its host to advertise that
+   the field answers a tap. That reads as an invitation over empty
+   ground and as a mistake over a control or a paragraph, so the normal
+   cursors are handed back to everything that has its own meaning. */
+.k-build-grid :is(button, a, p, h2, h3, li, span) {
+    cursor: auto;
+}
+.k-build-grid :is(button, a) {
+    cursor: pointer;
+}
+
+/* The body is now four horizontal bands, not two vertical columns. Two
+   columns of hairline-ruled lists is one layout printed twice: whatever
+   the left column said, the right column said it again in the same
+   shape. Each band below has its own grammar - columns, then cells,
+   then a bar - so the eye is given a reason to travel down. */
+.k-build-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2rem, 4.5vh, 3.25rem);
+    margin-top: clamp(1.75rem, 4vh, 2.75rem);
+}
+
+.k-build-lede {
+    margin: 0;
+    max-width: 14ch;
+    font-weight: 900;
+    font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+    line-height: 1.24;
+    letter-spacing: -0.022em;
+    color: var(--frost);
+}
+
+.k-build-list,
+.k-build-levels,
+.k-build-feats {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 0;
+}
+
+/* ---- BAND 2: three offerings ACROSS ----
+
+   The brochure sells three services of equal weight and a vertical
+   stack cannot say that: whatever sits at the top of a list reads as
+   the main one and the other two as afterthoughts. Three columns
+   divided by vertical hairlines say it in the layout. */
+.k-build-list {
+    counter-reset: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* The brochure numbers its three offerings, and the number is the thing
+   that makes them read as one list of equal weight rather than as a
+   headline service with two afterthoughts. */
+.k-build-offer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 clamp(1.1rem, 2.4vw, 2rem);
+    border: 0;
+    border-left: 1px solid var(--rule-firm);
+}
+
+.k-build-offer:first-child { padding-left: 0; border-left: 0; }
+.k-build-offer:last-child { padding-right: 0; }
+
+/* The number now heads its own column and carries the rule under it,
+   which is what makes three columns read as three plates rather than as
+   text that happens to be in thirds. */
+.k-build-offer-n {
+    align-self: stretch;
+    margin: 0 0 clamp(0.7rem, 1.6vh, 1rem);
+    padding-bottom: clamp(0.7rem, 1.6vh, 1rem);
+    border-bottom: 1px solid var(--rule-firm);
+    font-weight: 900;
+    font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--signal);
+}
+
+/* Pushed to the foot of the column so the three actions sit on one
+   line however unequal the blurbs above them are. `margin-top: auto`
+   only collapses the free space; the minimum gap is padding on the
+   blurb, because padding on the link itself strikes it through - see
+   the guard on .k-link::after. */
+.k-build-offer-cta { margin-top: auto; }
+
+/* A footnote, set as one. The brochure gives this a single line under a
+   rule and does not number it, so neither do we. */
+.k-build-plus {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.9rem;
+    margin: clamp(1.2rem, 2.8vh, 1.75rem) 0 0;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-build-plus-k { color: var(--signal); }
+
+.k-build-offer-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.2rem, 1.75vw, 1.6rem);
+    line-height: 1.24;
+    letter-spacing: -0.022em;
+    color: var(--frost);
+}
+
+.k-build-offer-d {
+    margin: 0.55rem 0 0;
+    padding-bottom: clamp(0.4rem, 1.1vh, 0.75rem);
+    max-width: 34ch;
+    font-size: clamp(0.95rem, 1.06vw, 1.02rem);
+    line-height: 1.62;
+    color: var(--silver);
+}
+
+/* ---- BAND 4: the closing bar ----
+
+   Standard and Premium are a qualification on the buy, not two more
+   things to buy, so they stand in the same band as the button rather
+   than under the offerings where they read as items 04 and 05. */
+.k-build-close {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: clamp(1.25rem, 3vw, 3rem);
+    padding-top: clamp(1.4rem, 3vh, 2.1rem);
+    border-top: 1px solid var(--rule-firm);
+}
+
+.k-build-levels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 clamp(1.5rem, 3vw, 3rem);
+}
+
+.k-build-level {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0;
+    border: 0;
+}
+
+.k-build-level-h {
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--frost);
+}
+
+.k-build-level-d {
+    flex: none;
+    max-width: 36ch;
+    font-size: clamp(0.9rem, 1vw, 0.98rem);
+    line-height: 1.55;
+    color: var(--silver-dim);
+}
+
+/* ---- BAND 3: what can be built into one ----
+
+   A short lede held to the left of six cells. This was a full-height
+   ruled column mirroring the offerings, which is the duplication that
+   made the whole chapter read as generic. Cells with a leading rule,
+   not rows with a trailing one: a different texture from every other
+   list here, and roughly half the height. */
+.k-build-side {
+    display: grid;
+    grid-template-columns: minmax(0, 0.3fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(1.5rem, 3.5vw, 3.5rem);
+    min-width: 0;
+    padding-top: clamp(1.4rem, 3vh, 2.1rem);
+    border-top: 1px solid var(--rule-firm);
+}
+
+/* Three cells across, on the same three tracks the offerings above run
+   on. A two-up grid left the lede's column empty for three rows, which
+   is the hole this pass exists to close. */
+.k-build-feats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.9rem, 2.2vh, 1.35rem) clamp(1.5rem, 3vw, 3rem);
+}
+
+.k-build-feat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0 0 0 clamp(0.7rem, 1.2vw, 1rem);
+    border: 0;
+    border-left: 1px solid var(--rule-soft);
+}
+
+.k-build-feat-h {
+    flex: none;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.06vw, 1.02rem);
+    letter-spacing: -0.01em;
+    color: var(--frost);
+}
+
+.k-build-feat-d {
+    flex: none;
+    font-size: clamp(0.88rem, 0.98vw, 0.95rem);
+    line-height: 1.55;
+    color: var(--silver-dim);
+}
+
+/* The two approved floors. They sit in the masthead now, stacked and
+   right-ranged against the headline, so the rule they used to draw for
+   themselves is the header's rule instead. */
+.k-build-floors {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+}
+
+.k-build-floor {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.7rem;
+}
+
+.k-build-floor-m {
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-build-floor-v {
+    font-weight: 900;
+    font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+    letter-spacing: -0.02em;
+    color: var(--signal);
+}
+
+
+.k-build-floors-note {
+    max-width: 34ch;
+    margin: 0.35rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--silver-dim);
+}
+
+.k-build-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem 1.75rem;
+    margin-top: 0;
+}
+
+/* THE WHOLE OFFERING, IN ONE LINE.
+
+   Set quietly on purpose. The four advertising disciplines have their
+   own chapter and their own evidence; this is a reminder that they and
+   the builds come from the same studio, not a second pitch competing
+   with the one above it. */
+.k-build-all {
+    margin-top: clamp(3rem, 6.5vh, 4.75rem);
+    padding-top: clamp(1.5rem, 3.2vh, 2.25rem);
+    border-top: 1px solid var(--rule-soft);
+}
+
+.k-build-all-h {
+    margin: 0;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-build-all-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem 2rem;
+    margin: clamp(0.9rem, 2vh, 1.35rem) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.k-build-all-item {
+    font-weight: 700;
+    font-size: clamp(1rem, 1.25vw, 1.15rem);
+    letter-spacing: -0.018em;
+    color: var(--frost);
+}
+
+.k-build-all .k-link { margin-top: clamp(1.1rem, 2.4vh, 1.6rem); }
+
+/* ---- the four bands, narrowed ----
+
+   Vertical rules dividing columns become horizontal rules dividing rows
+   the moment there is one column, otherwise the offerings lose the only
+   thing separating them. */
+@media (max-width: 1023px) {
+    .k-build-head {
+        grid-template-columns: minmax(0, 1fr);
+        gap: clamp(1rem, 2.4vh, 1.5rem);
+    }
+    .k-build-rate { align-items: flex-start; text-align: left; }
+    .k-build-floors { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 2.25rem; }
+
+    .k-build-list { grid-template-columns: minmax(0, 1fr); }
+    .k-build-offer {
+        padding: 0 0 clamp(1.1rem, 2.4vh, 1.6rem);
+        border-left: 0;
+        border-bottom: 1px solid var(--rule-firm);
+    }
+    .k-build-offer:last-child { padding-bottom: 0; border-bottom: 0; }
+    .k-build-offer-n {
+        align-self: flex-start;
+        margin-bottom: 0.55rem;
+        padding-bottom: 0;
+        border-bottom: 0;
+        font-size: clamp(1.05rem, 3.4vw, 1.35rem);
+    }
+    .k-build-offer-cta { margin-top: 0; }
+    .k-build-offer-d { padding-bottom: 0.4rem; }
+
+    .k-build-side { grid-template-columns: minmax(0, 1fr); gap: clamp(1.1rem, 2.6vh, 1.6rem); }
+    .k-build-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .k-build-lede { max-width: none; }
+
+    .k-build-close { grid-template-columns: minmax(0, 1fr); align-items: start; }
+    .k-build-actions { justify-content: flex-start; }
+}
+
+@media (max-width: 640px) {
+    .k-build-feats { grid-template-columns: minmax(0, 1fr); }
+    .k-build-levels { grid-template-columns: minmax(0, 1fr); gap: clamp(0.75rem, 2vh, 1rem) 0; }
+}
+
+/* Inside the pin the frame is bounded by the viewport, not by the
+   column: a square at 46vw is taller than 100vh on a short laptop. */
+@media (min-width: 1024px) {
+    .k-make-stage .k-make-deck {
+        max-height: calc(100vh - 12rem);
+        max-width: calc(100vh - 12rem);
+        margin-inline: auto;
+    }
+}
+
+/* A laptop window is routinely 768px tall, and the rows at their full
+   rhythm do not fit a pin that short. They are tightened rather than
+   scrolled, because a pinned stage that clips its own last row reads as
+   broken. Below 720px tall the reel is not taken at all - see
+   MakeScene. */
+@media (min-width: 1024px) and (max-height: 860px) {
+    .k-make-stage { padding-top: clamp(3.5rem, 7vh, 4.75rem); }
+    .k-make-stage .k-make-row { padding: clamp(0.7rem, 1.7vh, 1.15rem) 0; }
+    .k-make-stage .k-make-name { font-size: clamp(1.2rem, 1.8vw, 1.6rem); }
+    .k-make-stage .k-make-line { margin-top: 0.35rem; }
+    .k-make-stage .k-make-deliv { margin-top: 0.45rem; }
+}
+
+@media (max-width: 1023px) {
+    .k-make-body { grid-template-columns: minmax(0, 1fr); }
+    .k-make-plate { grid-row: 1; }
+}
+
+/* WHAT WE MAKE: graphite, so the offerings read as a change of state
+   after the dark chamber the work is shown in. */
+.env-make {
+    /* LIFTED. The offerings are a catalogue, not a film, so they sit on a
+       raised graphite panel a clear step above the chamber before it -
+       the seven chapters used to differ by about five values, which is
+       why they read as one long panel. The hairline says the surface
+       changed on purpose. */
+    background: var(--surface-lift);
+    border-top: var(--rule-hair) solid var(--rule-soft);
+}
+
+/* MADE BY ONE TEAM is now the inverted chapter and paints its own ground,
+   so this dark environment is no longer applied to it. Kept because
+   data-shader-mode still names "resolve" and a future dark chapter can
+   use it. */
+.env-craft {
+    background:
+        radial-gradient(84% 50% at 22% 10%, #101014 0%, transparent 60%),
+        var(--carbon);
+}
+
+/* ARCHIVE: a dark chamber. The concept images are the light source. */
+.env-archive {
+    /* THE DEEPEST GROUND ON THE PAGE. The chamber is a dark room and the
+       work is the only lit thing in it. */
+    background:
+        radial-gradient(80% 55% at 50% 46%, #131318 0%, transparent 70%),
+        var(--surface-deep);
+}
+/* depth fog, so distant frames sit back in the room */
+.env-archive::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    background:
+        linear-gradient(90deg, #060608 0%, transparent 20%, transparent 80%, #060608 100%),
+        linear-gradient(180deg, rgba(6,6,8,0.9) 0%, transparent 26%, transparent 78%, #060608 100%);
+}
+
+/* PROCESS: graphite. Structured, operational, resolved. */
+.env-process {
+    background:
+        linear-gradient(180deg, #0E0F13 0%, #16181D 48%, #0E0F13 100%);
+}
+.env-process::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0 118px,
+        rgba(198, 201, 196, 0.055) 118px 119px
+    );
+}
+
+/* FINAL: carbon returns, one concentrated signal at the destination */
+.env-final {
+    /* The page lands back on its own ground, with the wordmark. */
+    background:
+        radial-gradient(70% 50% at 50% 34%, #121218 0%, transparent 68%),
+        var(--surface-base);
+}
+
+/* ============================================================
+   CHAPTER 5 - THE INQUIRY
+
+   Two modes on one ground. No card, no panel, no glass: the form sits
+   on the section itself, in the same input, label and button system the
+   rest of the page uses. Nothing moves behind someone who is typing.
+   ============================================================ */
+.env-inquiry {
+    /* Between the two. The form is work to be done, so the ground comes
+       back up from the screening room without going as bright as the
+       catalogue. */
+    background:
+        radial-gradient(76% 44% at 78% 8%, #14151B 0%, transparent 60%),
+        #0E0F14;
+    border-top: var(--rule-hair) solid var(--rule-soft);
+}
+
+.k-inq-inner {
+    position: relative;
+    z-index: var(--z-content);
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: clamp(3.75rem, 7.5vh, 5.75rem) clamp(1.25rem, 3.9vw, 3.5rem)
+             clamp(3.25rem, 6.5vh, 5rem);
+}
+
+.k-inq-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.9rem, 3.6vw, 3.1rem);
+    line-height: 1.04;
+    letter-spacing: -0.038em;
+    color: var(--frost);
+}
+
+.k-inq-sub {
+    max-width: 42ch;
+    margin: clamp(0.75rem, 1.6vh, 1.1rem) 0 0;
+    font-size: clamp(1rem, 1.11vw, 1.05rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+.k-inq-alt { margin: clamp(1.25rem, 3vh, 2rem) 0 0; font-size: 1rem; color: var(--silver); }
+
+/* The reading column is roughly half the height of the form beside it, so
+   it used to leave a dead half-screen. It now travels with the form
+   instead of sitting at the top of a column of nothing. */
+@media (min-width: 1024px) {
+    .k-inq-intro { position: sticky; top: calc(var(--k-nav-offset) + 1.5rem); }
+}
+
+.k-inq-eyebrow {
+    margin: 0 0 clamp(0.75rem, 1.8vh, 1.15rem);
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+.k-inq-call { margin: 0.75rem 0 0; font-size: 0.95rem; color: var(--silver-dim); }
+.k-inq-mail { color: var(--frost); text-decoration: underline; text-underline-offset: 3px; }
+.k-inq-mail:hover { color: var(--signal); }
+.k-inq-mail:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+.k-inq-privacy {
+    max-width: 46ch;
+    margin: clamp(0.9rem, 2vh, 1.35rem) 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.62;
+    color: var(--silver-dim);
+}
+
+.k-inq-panel { min-width: 0; }
+
+/* ---- mode control ---- */
+.k-inq-modes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: clamp(1.5rem, 3vh, 2.25rem); }
+
+.k-inq-mode {
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--smoke);
+    background: transparent;
+    font-size: 0.9375rem;
+    color: var(--silver);
+    cursor: pointer;
+    transition: border-color var(--k-dur-ui) var(--k-ease-out), color var(--k-dur-ui) var(--k-ease-out);
+}
+.k-inq-mode:hover { color: var(--frost); border-color: var(--silver-dim); }
+.k-inq-mode[data-on='true'] { border-color: var(--signal); color: var(--frost); }
+.k-inq-mode:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+/* ---- fields ---- */
+.k-inq-field { margin-bottom: clamp(1.25rem, 2.8vh, 1.9rem); }
+.k-inq-label { display: block; font-size: 0.9375rem; line-height: 1.4; color: var(--frost); }
+.k-inq-opt { color: var(--silver-dim); }
+.k-inq-sublabel { display: block; font-size: 0.8125rem; color: var(--silver-dim); margin-bottom: 0.2rem; }
+.k-inq-help { margin: 0.3rem 0 0; max-width: 52ch; font-size: 0.8125rem; line-height: 1.6; color: var(--silver-dim); }
+
+/* Boxed, not underlined. An underline draws a 1px line where the control
+   is actually 52px tall, so the affordance is much smaller than the hit
+   area - the field reads as a caption with a rule under it. The box says
+   "this is where you type" and matches the reference board. */
+.k-inq-input,
+.k-inq-textarea {
+    display: block;
+    width: 100%;
+    margin-top: 0.55rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    background: var(--surface-lift);
+    font: inherit;
+    font-size: 1rem;
+    color: var(--frost);
+    transition: border-color var(--k-dur-ui) var(--k-ease-out),
+                background-color var(--k-dur-ui) var(--k-ease-out);
+}
+.k-inq-input:hover,
+.k-inq-textarea:hover { border-color: var(--rule-firm); }
+.k-inq-input { min-height: 52px; }
+.k-inq-textarea { min-height: 8.5rem; resize: vertical; line-height: 1.55; }
+.k-inq-input:focus,
+.k-inq-textarea:focus { outline: none; border-color: var(--signal); background: var(--surface-base); }
+.k-inq-input:focus-visible,
+.k-inq-textarea:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+.k-inq-input:disabled { opacity: 0.4; }
+.k-inq-input::placeholder { color: var(--silver-dim); opacity: 0.7; }
+
+.k-inq-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.55rem; }
+
+.k-inq-na {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    color: var(--silver);
+    cursor: pointer;
+}
+.k-inq-na input { width: 16px; height: 16px; accent-color: var(--signal); }
+
+.k-inq-err { margin: 0.5rem 0 0; font-size: 0.875rem; line-height: 1.45; color: var(--signal); }
+.k-inq-error { margin: 0.75rem 0 0; max-width: 44ch; font-size: 0.875rem; line-height: 1.5; color: var(--signal); }
+
+/* the honeypot is reachable by nothing: not the eye, not Tab, not a reader.
+   The input is collapsed too, not just its wrapper, so nothing can be
+   focused or dragged into it by accident. */
+.k-inq-hp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.k-inq-hp input,
+.k-inq-hp label { width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; font-size: 1px; }
+
+/* ---- guided flow ---- */
+.k-inq-progress { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.9rem; }
+.k-inq-step { margin: 0; font-size: 0.8125rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--silver-dim); }
+.k-inq-bar { position: relative; flex: 1; height: 1px; background: var(--smoke); }
+.k-inq-bar-fill {
+    position: absolute; inset: 0;
+    transform-origin: left;
+    background: var(--signal);
+    transition: transform 220ms var(--k-ease-out);
+}
+.k-inq-qh {
+    margin: 0 0 clamp(1rem, 2.4vh, 1.6rem);
+    font-weight: 900;
+    font-size: clamp(1.25rem, 1.9vw, 1.6rem);
+    line-height: 1.2;
+    letter-spacing: -0.022em;
+    color: var(--frost);
+}
+.k-inq-step-in { animation: k-inq-in 220ms var(--k-ease-out) both; }
+@keyframes k-inq-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.k-inq-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: clamp(1rem, 2.4vh, 1.6rem); }
+.k-inq-skip {
+    min-height: 44px; padding: 0 0.25rem; border: 0; background: none;
+    font-size: 0.9375rem; color: var(--silver-dim); text-decoration: underline;
+    text-underline-offset: 3px; cursor: pointer;
+}
+.k-inq-skip:hover { color: var(--frost); }
+.k-inq-skip:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.k-inq-count { margin: 0.9rem 0 0; font-size: 0.8125rem; color: var(--silver-dim); }
+
+/* ---- review ---- */
+.k-inq-review { margin: 0; border-top: 1px solid var(--smoke); }
+.k-inq-review > div { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 0.4rem 1.5rem; padding: 0.85rem 0; border-bottom: 1px solid var(--smoke); }
+.k-inq-review dt { font-size: 0.875rem; color: var(--silver-dim); }
+.k-inq-review dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; margin: 0; font-size: 0.9375rem; line-height: 1.5; color: var(--frost); }
+.k-inq-unanswered { color: var(--silver-dim); font-style: italic; }
+.k-inq-edit { min-height: 44px; border: 0; background: none; font-size: 0.875rem; color: var(--signal); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.k-inq-edit:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+/* ---- done / unconfigured ---- */
+.k-inq-done-h { margin: 0; font-weight: 900; font-size: clamp(1.2rem, 1.8vw, 1.5rem); line-height: 1.25; color: var(--frost); }
+.k-inq-done-p { max-width: 46ch; margin: 0.75rem 0 0; font-size: 1rem; line-height: 1.6; color: var(--silver); }
+.k-inq-note { max-width: 52ch; margin: clamp(1.25rem, 3vh, 2rem) 0 0; padding-top: 0.9rem; border-top: 1px solid var(--smoke); font-size: 0.8125rem; line-height: 1.6; color: var(--silver-dim); }
+
+@media (max-width: 1023px) {
+    .k-inq-inner { grid-template-columns: minmax(0, 1fr); }
+    .k-inq-review > div { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .marquee-track, .grain, .pulse-dot {
-        animation: none !important;
-    }
+    .k-inq-step-in { animation: none; }
+    .k-inq-bar-fill { transition: none; }
+}
+
+/* ============================================================
+   ONE IDEA. EVERY DISCIPLINE.
+
+   The same reel as WHAT WE MAKE, carrying a different payload: a
+   horizontal stage rail above, a reading column and a plate below, all
+   pinned while the scroll advances the stage.
+   ============================================================ */
+.k-cap-inner {
+    position: relative;
+    z-index: var(--z-content);
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: clamp(2.75rem, 5vh, 3.75rem) clamp(1.25rem, 3.9vw, 3.5rem) clamp(2.25rem, 4.25vh, 3.25rem);
+}
+
+.k-cap-head { max-width: 62rem; }
+
+.k-cap-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+    color: var(--frost);
+}
+
+.k-cap-sub {
+    margin: clamp(0.7rem, 1.5vh, 1rem) 0 0;
+    max-width: 52ch;
+    font-size: clamp(1rem, 1.2vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+/* the rail: five stages, the live one lit */
+.k-cap-rail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem clamp(1rem, 2.4vw, 2.25rem);
+    align-items: baseline;
+    margin-top: clamp(1rem, 2.4vh, 1.6rem);
+    border-bottom: 1px solid var(--smoke);
+    padding-bottom: 0.85rem;
+}
+
+/* The rail is wayfinding inside a five-viewport pin, so it has to say
+   WHERE the visitor is, not just which item is lit. The marker sits on
+   the rail's own rule and moves with the scrub. */
+.k-cap-tab { position: relative; }
+.k-cap-tab::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(-0.85rem - 1px);
+    height: 2px;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 420ms var(--k-ease-out);
+}
+.k-cap-tab[data-on='true']::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+    .k-cap-tab::after { transition: none; }
+}
+
+.k-cap-tab {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.35rem 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.k-cap-tab:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+.k-cap-tab-n {
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.16em;
+    color: var(--silver-dim);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-cap-tab-name {
+    font-weight: 700;
+    font-size: clamp(0.98rem, 1.25vw, 1.16rem);
+    letter-spacing: -0.012em;
+    color: var(--silver);
+    transition: color var(--k-dur-ui) var(--k-ease-out);
+}
+
+.k-cap-tab:hover .k-cap-tab-name { color: var(--frost); }
+.k-cap-tab[data-on='true'] .k-cap-tab-name { color: var(--frost); }
+.k-cap-tab[data-on='true'] .k-cap-tab-n { color: var(--signal); }
+
+/* the reel and its pin */
+.k-cap-reel {
+    position: relative;
+    /* A FULL VIEWPORT PER STAGE, not the shared 78vh band.
+
+       The offerings reel uses 78vh because its five plates are crops of
+       one campaign and it wants them to move past quickly. This chapter
+       is five DIFFERENT objects - a note, a storyboard, a lit set, a cut,
+       the variants - and each one is meant to hold the screen and be
+       read. A full band per stage is what makes it land as a sequence
+       rather than as a fast wipe, and it is why this chapter overrides
+       the shared token instead of using it. */
+    /* 60vh, not 80, not 100. Twice now the fix has been the same and it
+       is worth stating plainly: the PIN is `min-height: 100vh`, so a
+       stage always holds a full screen no matter what this token says.
+       This token is only the scroll COST of crossing one. At 80vh the
+       chapter was 4.2 viewport-heights on its own - the longest thing on
+       the page by a wide margin, and read as long rather than as big.
+       At 60vh every stage still fills the screen and still has to be
+       crossed deliberately; it just stops charging most of a screen of
+       wheel for a wipe. 3783px -> ~2880. */
+    --k-cap-band: 60vh;
+    height: calc(var(--k-cap-bands, 5) * var(--k-cap-band));
+}
+
+.k-cap-stage-pin {
+    position: sticky;
+    top: 0;
+    display: flex;
+    /* same reasoning as the offerings reel above */
+    align-items: start;
+    min-height: 100vh;
+    padding: clamp(5rem, 8vh, 6rem) 0 clamp(1.5rem, 3vh, 2.5rem);
+}
+
+.k-cap-pinned { width: 100%; }
+.k-cap-stage-pin .k-cap-pinned { width: 100%; }
+.k-cap-stage-pin .k-cap-body { margin-top: clamp(1.5rem, 3.5vh, 2.5rem); }
+.k-cap-stage-pin .k-cap-rail { margin-top: 0; }
+
+/* THE RECOMPOSITION (2026-09-08).
+   Three things were wrong and all three were compositional.
+
+   1. `align-items: center` floated the reading column against a tall
+      plate, so the copy started at a different height on every stage and
+      the chapter opened on a hole. Both columns now start together.
+   2. The columns were near-equal (1 : 1.12), which is the same balanced
+      two-up the offerings chapter uses. Two chapters running the same
+      layout family is what made this one read as generic. The plate now
+      clearly dominates (0.78 : 1.22) and the reading column becomes a
+      narrow measured column beside it.
+   3. Everything sat inside the same centred gutter, so the chapter was
+      two boxes floating in a wide frame. The plate now bleeds to the
+      chapter's edge. */
+.k-cap-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    align-items: start;
+    gap: clamp(1.75rem, 4vw, 3.5rem);
+    margin-top: clamp(1.5rem, 3vh, 2.25rem);
+}
+
+.k-cap-read { min-width: 0; }
+
+.k-cap-n {
+    margin: 0 0 0.5rem;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.2em;
+    color: var(--signal);
+}
+
+.k-cap-stage {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(1.9rem, 3.4vw, 3.1rem);
+    line-height: 1.04;
+    letter-spacing: -0.038em;
+    color: var(--frost);
+}
+
+.k-cap-line {
+    margin: 0.6rem 0 0;
+    max-width: 34ch;
+    font-weight: 700;
+    font-size: clamp(1.05rem, 1.4vw, 1.28rem);
+    line-height: 1.3;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+    color: var(--frost);
+}
+
+.k-cap-para {
+    margin: 0.9rem 0 0;
+    max-width: 50ch;
+    font-size: clamp(0.95rem, 1.06vw, 1.02rem);
+    line-height: 1.62;
+    color: var(--silver);
+}
+
+.k-cap-note {
+    margin: 0.6rem 0 0;
+    max-width: 48ch;
+    font-size: clamp(0.9rem, 1vw, 0.97rem);
+    line-height: 1.6;
+    color: var(--silver-dim);
+}
+
+.k-cap-deliv { margin-top: clamp(1.1rem, 2.6vh, 1.7rem); border-top: 1px solid var(--smoke); padding-top: 0.85rem; }
+.k-cap-deliv-h { margin: 0 0 0.5rem; font-size: var(--k-t-3xs); letter-spacing: 0.22em; text-transform: uppercase; color: var(--silver-dim); }
+.k-cap-deliv ul { display: flex; flex-wrap: wrap; gap: 0.3rem 1.15rem; margin: 0; padding: 0; list-style: none; }
+.k-cap-deliv li { font-size: clamp(0.92rem, 1.02vw, 0.99rem); color: var(--silver); }
+
+/* the plates */
+/* Bled to the chapter's right edge. The asymmetry is the point: a plate
+   that stops at the same gutter as the type reads as an illustration
+   placed in a column, and one that runs off the edge reads as the
+   subject the column is describing. */
+.k-cap-plate {
+    min-width: 0;
+    margin-right: calc(-1 * clamp(1.25rem, 3.9vw, 3.5rem));
+}
+
+.k-cap-deck {
+    position: relative;
+    /* The cels scale to 1.045 on entry. That overshoot used to be absorbed
+       by the gutter; now that the plate is flush to the chapter's edge it
+       left the viewport instead and put 13-19px of horizontal scroll on
+       the page between 1024 and 1440.
+       Safe to clip here: the sticky element is `.k-cap-stage-pin`, an
+       ANCESTOR of this box. Overflow on an ancestor of a sticky element
+       breaks it; on a descendant it does nothing to the pin. */
+    overflow: hidden;
+    /* 4:3 was leaving a band of empty ground above and below every
+       portrait asset, because the plates are deliberately fitted rather
+       than cropped. A wider box wastes less of it without cropping
+       anything. */
+    aspect-ratio: 3 / 2;
+    width: 100%;
+}
+
+.k-cap-cel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+/* The plates are deliberately different shapes: the note and the
+   storyboard are portrait sheets, the set and the variants are landscape.
+   The deck is one fixed 4/3 box, so a portrait sheet must be FITTED into
+   it, not cropped by it - cropping the storyboard cut two of its five
+   panels off the bottom, which is the one thing that asset exists to show.
+   Height drives, width follows from the asset's own ratio. */
+/* The note and the storyboard are CUTOUTS with real alpha. The well
+   paints --graphite behind every image so a slot reserves its box before
+   the file loads, but behind a cutout that reads as a grey card the
+   artwork is sitting on. These plates sit on the page ground instead.
+   Harmless for the photographic plates, whose image covers the box. */
+/* Each plate carries the chapter's own ground.
+
+   Two of these plates are CUTOUTS with real alpha. Crossfading a cutout
+   over a photograph let the incoming plate show straight through the
+   storyboard's transparent paper - a double exposure of a pencil sheet
+   over a lit film set at every stage boundary. Opaque plates crossfade
+   cleanly; transparent ones have to occlude what is behind them.
+
+   The colour is the chapter's own ground, so the plate reads as page
+   rather than as a card. This is NOT the earlier --graphite fill, which
+   was lighter than the ground and showed as a grey box behind the note. */
+/* No backing colour. It was added to stop a cutout showing the plate
+   behind it, but the dip already guarantees only one plate is ever
+   visible - and --surface-base is LIGHTER than this chapter's
+   --surface-deep ground, so the backing rendered as a grey card sitting
+   behind the note. The chapter's own ground shows through instead. */
+/* Fitted content is anchored to the RIGHT of the plate, not centred in
+   it. The plate bleeds to the chapter's edge, and a fitted asset floating
+   in the middle of that box throws the bleed away: the eye reads the box
+   it is centred in, not the edge it runs to. Right-anchored, every stage
+   shares one hard vertical edge no matter what shape its asset is, and
+   the varied shapes become the composition instead of fighting it. */
+.k-cap-cel { align-items: flex-end; }
+.k-cap-cel .well { background: none; }
+.k-cap-cel .well > img { object-fit: contain; }
+.k-cap-cel .well {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    margin-inline: auto;
+}
+
+/* the editing plate carries a strip underneath, so its main frame yields
+   the space that strip needs instead of filling the whole deck */
+.k-cap-cel[data-strip='true'] .well { height: auto; max-height: 100%; width: 100%; }
+.k-cap-cel[data-strip='true'] > .well { max-height: 76%; }
+.k-cap-strip .well { height: auto; width: 100%; }
+.k-cap-img { width: auto; }
+
+/* the five-frame cut */
+.k-cap-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.k-cap-strip li { margin: 0; }
+
+.k-cap-cap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1.1rem;
+    margin: 0.85rem 0 0;
+    font-size: var(--k-t-2xs);
+    color: var(--silver-dim);
+    /* Right-aligned to follow the plate, but pulled back inside the
+       chapter's gutter: the PLATE bleeds to the edge, the caption is
+       reading matter and must not. Flush to the viewport it was cutting
+       the last chip off. */
+    justify-content: flex-end;
+    text-align: right;
+    padding-right: clamp(1.25rem, 3.9vw, 3.5rem);
+}
+
+.k-cap-cap-cat { letter-spacing: 0.16em; text-transform: uppercase; }
+.k-cap-cap-t { font-size: clamp(0.95rem, 1.05vw, 1.05rem); color: var(--frost); }
+.k-cap-cap-note { border: 1px solid var(--smoke); padding: 0.1rem 0.45rem; font-size: 0.8125rem; }
+
+@media (min-width: 1024px) and (max-height: 860px) {
+    .k-cap-stage-pin { padding-top: clamp(3.5rem, 7vh, 4.75rem); }
+    .k-cap-stage { font-size: clamp(1.6rem, 2.8vw, 2.4rem); }
+    .k-cap-para { margin-top: 0.6rem; }
+}
+
+@media (max-width: 1023px) {
+    .k-cap-body { grid-template-columns: minmax(0, 1fr); }
+    .k-cap-plate { grid-row: 1; }
+}
+
+/* ONE IDEA: the graphite band, shared with WHAT WE MAKE so the two
+   reels read as one environment rather than two backdrops. */
+.env-cap {
+    /* A SCREENING ROOM. Back to the deepest ground, with a vignette that
+       closes the edges in around the pinned stage: this chapter is one
+       campaign being watched, and the plates are the only light. */
+    background:
+        radial-gradient(120% 78% at 50% 44%, #121318 0%, transparent 62%),
+        var(--surface-deep);
+    box-shadow: inset 0 0 clamp(6rem, 14vw, 16rem) rgba(0, 0, 0, 0.72);
+}
+
+/* ============================================================
+   INVERTED CHAPTER
+
+   One class turns a chapter's ground over. It works because every
+   component reads its colour from the --on-* roles rather than naming
+   --frost or --silver directly; the roles are what get swapped here, so
+   nothing inside needs a per-component override.
+
+   The accent does NOT change. Vermilion is the one constant across both
+   grounds, which is what stops the light chapter reading as a different
+   site.
+   ============================================================ */
+.k-invert {
+    --on-strong: #16161A;
+    --on-body: #4A4C54;
+    /* #7A7C85 measured 3.50:1 on this ground - the quiet role still has to
+       clear 4.5:1, it is real copy and not decoration */
+    --on-quiet: #5A5C64;
+    --on-rule: rgba(22, 22, 26, 0.16);
+    --rule-soft: rgba(22, 22, 26, 0.12);
+    --rule-firm: rgba(22, 22, 26, 0.26);
+    --smoke: rgba(22, 22, 26, 0.16);
+    --frost: #16161A;
+    --silver: #4A4C54;
+    --silver-dim: #5A5C64;
+    color: var(--on-strong);
+    background: var(--surface-ivory);
+}
+
+/* Every one of the twelve concept accents clears AA on the near-black
+   ground (5.24:1 to 9.09:1) and NONE of them clears it on ivory - they
+   are warm mid-tones chosen for a dark page. On the inverted ground the
+   accent is mixed toward the ink until it is legible, which keeps each
+   concept's own hue without pretending it is readable as-is. */
+/* The concept-accent-on-ivory rule left with the caption it was written
+   for; the chapter on this ground no longer shows a concept accent. The
+   reasoning is preserved in audit/2026-09-08/removed/craft-chapter.css
+   in case a future light chapter needs it again. */
+
+/* the paper ground, when it is delivered. It sits under the chapter at a
+   low opacity so ivory reads as a material and not as flat #EFEBE4. */
+.k-invert::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* set at runtime by the chapter, not here: css-loader tries to RESOLVE
+       a url() at build time and a root-absolute public path is not a module */
+    background-image: var(--k-paper, none);
+    background-size: 640px auto;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ============================================================
+   ARCHIVE DELTAS
+
+   Three things the reference board has that the built orbit did not:
+   a caption on every plane, a ground the planes sit on, and the brief
+   in one line. None of them touch the interaction.
+   ============================================================ */
+
+/* the caption under every plane */
+.k-plane-title { display: block; }
+
+.k-plane-kind-unused {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+    opacity: 0.7;
+}
+
+/* The ground. The planes were suspended in nothing, which is why the
+   chamber read as flat despite the perspective. A soft elliptical pool
+   under the front of the stage gives them something to stand on without
+   the cost of mirroring twelve planes. */
+.k-orbit::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 4%;
+    width: min(78%, 60rem);
+    height: 26%;
+    transform: translateX(-50%);
+    background:
+        radial-gradient(60% 100% at 50% 0%,
+            rgba(241, 243, 242, 0.075) 0%,
+            rgba(241, 243, 242, 0.028) 42%,
+            transparent 78%);
+    filter: blur(6px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* the brief, bottom-left of the chapter */
+/* In normal flow inside the dock's reading column - no centring, no
+   gutter of its own, no fixed height and no transform. It aligns with the
+   title and description because it is now their sibling. */
+.k-archive-brief {
+    max-width: 62ch;
+    margin: 1.5rem 0 0;   /* 24px under the description */
+    font-size: clamp(0.92rem, 1.02vw, 1rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+.k-archive-brief-k {
+    margin-right: 0.5rem;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+
+
+/* ============================================================
+   SCOPE ESTIMATOR
+
+   Lime and pink are SCOPED HERE. They are declared on .k-scope and
+   .k-contact only and are never added to :root, so the rest of the site
+   keeps its vermilion accent untouched.
+
+   Content height throughout: no min-height, no vertical centring, no
+   spacer elements. The section is as tall as the card inside it.
+   ============================================================ */
+/* The estimators now use the SITE's palette, not a separate lime/pink
+   language. --lime and --pink are kept as names so every rule that
+   references them keeps working, but they resolve to the brand accent and
+   its dimmer partner. The result is one website rather than a dark
+   editorial site with a lime tool bolted to the end of it. */
+.k-scope,
+.k-web,
+.k-inq,
+.k-contact {
+    --lime: var(--signal);
+    --lime-dim: var(--signal-dim);
+    --pink: var(--signal);
+    --ink: var(--carbon);
+    --card: var(--surface-lift);
+    --card-line: var(--rule-soft);
+    --card-line-strong: var(--rule-firm);
+}
+
+.env-scope {
+    background:
+        radial-gradient(78% 48% at 50% 0%, #121216 0%, transparent 62%),
+        var(--surface-base);
+    border-top: var(--rule-hair) solid var(--rule-soft);
+}
+
+.k-scope-inner {
+    position: relative;
+    z-index: var(--z-content);
+    width: 100%;
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: clamp(3rem, 6.5vh, 4.75rem) clamp(1.25rem, 3.9vw, 3.5rem);
+}
+
+.k-scope-card {
+    border: 1px solid var(--card-line);
+    border-radius: 20px;
+    background: var(--card);
+    padding: clamp(1.4rem, 3.4vw, 2.75rem);
+}
+
+/* ---- head ---- */
+.k-scope-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    border-bottom: 1px solid var(--card-line);
+    padding-bottom: clamp(1rem, 2.4vh, 1.5rem);
+}
+
+.k-scope-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.15vw, 1.08rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--frost);
+}
+
+.k-scope-icon { width: 26px; height: 26px; flex: none; color: var(--lime); }
+
+.k-scope-badge {
+    margin: 0;
+    border: 1px solid var(--lime);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lime);
+}
+
+/* ---- groups ---- */
+/* margin-top, NOT padding-top. A <legend> is laid out against the
+   fieldset's BORDER edge and ignores its padding, so padding-top left the
+   heading sitting on top of the control above it while the options below
+   drifted away. Margin moves the whole group. */
+.k-scope-group { margin: clamp(1.75rem, 3.6vh, 2.4rem) 0 0; border: 0; padding: 0; }
+.k-scope-card > .k-scope-group:first-of-type { margin-top: clamp(1.35rem, 2.8vh, 1.85rem); }
+
+.k-scope-legend {
+    display: block;
+    padding: 0;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver);
+}
+
+.k-scope-n { color: var(--silver-dim); margin-right: 0.35rem; }
+
+.k-scope-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+}
+
+/* the value sits WITH its control, not as a detached numeral */
+.k-scope-value {
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pink);
+}
+
+/* ---- slider ---- */
+.k-scope-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 44px;              /* a 44px target; the track is drawn inside it */
+    margin: 0.5rem 0 0;
+    background: none;
+    cursor: pointer;
+}
+
+.k-scope-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pink) var(--fill, 20%), rgba(255,255,255,0.16) var(--fill, 20%));
+}
+.k-scope-slider::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pink) var(--fill, 20%), rgba(255,255,255,0.16) var(--fill, 20%));
+}
+.k-scope-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    margin-top: -7px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--pink);
+    cursor: grab;
+}
+.k-scope-slider::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--pink);
+    cursor: grab;
+}
+.k-scope-slider:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; border-radius: 8px; }
+
+.k-scope-marks {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+/* ---- option groups ---- */
+.k-scope-opts { display: grid; gap: 0.65rem; margin-top: 0.85rem; }
+.k-scope-opts--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.k-scope-opts--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.k-scope-opt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 56px;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--card-line-strong);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.015);
+    font: inherit;
+    font-weight: 700;
+    font-size: clamp(0.85rem, 1vw, 0.98rem);
+    color: var(--frost);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 180ms var(--k-ease-out), background-color 180ms var(--k-ease-out),
+                color 180ms var(--k-ease-out);
+}
+
+.k-scope-opt:hover { border-color: var(--card-line-strong); background: rgba(255, 255, 255, 0.045); }
+.k-scope-opt:active { transform: translateY(1px); }
+.k-scope-opt:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+/* Selection is carried by fill, border AND a check mark, never by colour
+   alone. */
+.k-scope-opt[data-on='true'] {
+    border-color: var(--lime);
+    background: var(--lime);
+    color: var(--ink);
+}
+
+.k-scope-tick { width: 16px; height: 16px; flex: none; color: currentColor; }
+
+.k-scope-opt-n { font-weight: 400; opacity: 0.72; }
+
+/* ---- summary ---- */
+.k-scope-summary {
+    margin: clamp(1.5rem, 3.4vh, 2.25rem) 0 0;
+    border-top: 1px solid var(--card-line);
+    padding-top: clamp(1rem, 2.4vh, 1.4rem);
+}
+
+.k-scope-summary > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 1rem;
+    padding: 0.42rem 0;
+}
+
+.k-scope-summary dt {
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-scope-summary dd {
+    margin: 0;
+    font-weight: 700;
+    font-size: clamp(0.9rem, 1.05vw, 1rem);
+    color: var(--lime);
+}
+
+/* ---- the starting price, in its own block ---- */
+.k-scope-price {
+    margin-top: clamp(1.1rem, 2.6vh, 1.6rem);
+    border: 1px solid var(--card-line);
+    border-radius: 12px;
+    padding: clamp(0.9rem, 2.2vh, 1.25rem) clamp(1rem, 2.4vw, 1.35rem);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.k-scope-price-k {
+    margin: 0;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-scope-price-v {
+    margin: 0.3rem 0 0;
+    font-weight: 900;
+    font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+    letter-spacing: -0.02em;
+    color: var(--pink);
+}
+
+.k-scope-price-note { margin: 0.3rem 0 0; font-size: 0.9rem; line-height: 1.5; color: var(--silver); }
+
+/* ---- action ---- */
+.k-scope-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 60px;
+    margin-top: clamp(1.25rem, 3vh, 1.85rem);
+    border: 0;
+    border-radius: 12px;
+    background: var(--lime);
+    font: inherit;
+    font-weight: 900;
+    font-size: clamp(0.95rem, 1.15vw, 1.08rem);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    transition: filter 180ms var(--k-ease-out), transform 120ms var(--k-ease-out);
+}
+.k-scope-cta:hover { filter: brightness(1.07); }
+.k-scope-cta:active { transform: translateY(1px); }
+.k-scope-cta:focus-visible { outline: 2px solid var(--frost); outline-offset: 3px; }
+
+@media (max-width: 640px) {
+    .k-scope-opts--3 { grid-template-columns: minmax(0, 1fr); }
+    /* the cadence labels carry a qualifier and wrap to three cramped
+       lines two-up on a phone; the market labels are two words and do not */
+    .k-scope-opts--long { grid-template-columns: minmax(0, 1fr); }
+    .k-scope-marks li:nth-child(2), .k-scope-marks li:nth-child(3) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .k-scope-opt, .k-scope-cta { transition: none; }
+    .k-scope-opt:active, .k-scope-cta:active { transform: none; }
+}
+
+/* the configured scope, restated at the top of the contact panel */
+.k-inq-scope {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: clamp(1.25rem, 2.8vh, 1.85rem);
+    border: 1px solid var(--lime, var(--smoke));
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    background: var(--signal-dim);
+}
+
+.k-inq-scope-k { margin: 0; font-size: var(--k-t-3xs); letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink, var(--silver-dim)); }
+.k-inq-scope-v { margin: 0.2rem 0 0; font-weight: 700; font-size: clamp(0.92rem, 1.05vw, 1rem); color: var(--frost); }
+
+.k-inq-scope-edit {
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--lime, var(--smoke));
+    border-radius: 8px;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--lime, var(--frost));
+    cursor: pointer;
+    transition: background-color 180ms var(--k-ease-out);
+}
+.k-inq-scope-edit:hover { background: var(--signal-dim); }
+.k-inq-scope-edit:focus-visible { outline: 2px solid var(--lime, var(--signal)); outline-offset: 3px; }
+
+.k-inq-linkbtn { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }
+
+/* ============================================================
+   WEBSITE / ECOMMERCE SCOPE ESTIMATOR (dialog)
+
+   Scoped styling. It reuses the estimator's own lime/pink language so
+   the two scope tools read as one family, and adds nothing to :root.
+   ============================================================ */
+.k-web-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.75rem, 3vh, 2.5rem) clamp(0.75rem, 3vw, 2rem);
+    background: rgba(4, 4, 6, 0.72);
+    backdrop-filter: blur(3px);
+}
+
+.k-web {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 44rem;
+    max-height: min(88vh, 52rem);
+    border: 1px solid var(--card-line);
+    border-radius: 18px;
+    background: var(--surface-lift);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+    animation: k-web-in 200ms var(--k-ease-out);
+}
+
+@keyframes k-web-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .k-web { animation: none; } }
+
+.k-web-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex: none;
+    border-bottom: 1px solid var(--card-line);
+    padding: clamp(1rem, 2.4vw, 1.5rem);
+}
+
+.k-web-title { margin: 0; font-weight: 700; font-size: clamp(0.9rem, 1.1vw, 1rem); letter-spacing: 0.14em; text-transform: uppercase; color: var(--frost); }
+.k-web-sub { margin: 0.25rem 0 0; font-size: var(--k-t-2xs); letter-spacing: 0.16em; text-transform: uppercase; color: var(--silver-dim); }
+.k-web-head-r { display: flex; align-items: center; gap: 0.75rem; }
+.k-web-badge { margin: 0; border: 1px solid var(--lime); border-radius: 999px; padding: 0.3rem 0.7rem; font-size: var(--k-t-3xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lime); white-space: nowrap; }
+
+.k-web-x {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; flex: none;
+    border: 1px solid var(--card-line-strong); border-radius: 10px;
+    background: none; font-size: 1.4rem; line-height: 1; color: var(--frost); cursor: pointer;
+    transition: background-color 180ms var(--k-ease-out);
+}
+.k-web-x:hover { background: rgba(255,255,255,0.06); }
+.k-web-x:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+.k-web-body { overflow-y: auto; padding: clamp(1rem, 2.4vw, 1.5rem); -webkit-overflow-scrolling: touch; }
+
+.k-web-group { margin: 0 0 clamp(1.15rem, 2.6vh, 1.6rem); border: 0; padding: 0; }
+.k-web-legend { display: block; padding: 0; margin-bottom: 0.6rem; font-size: var(--k-t-2xs); letter-spacing: 0.16em; text-transform: uppercase; color: var(--silver); }
+.k-web-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.35rem 1rem; }
+.k-web-value { font-weight: 700; font-size: clamp(0.9rem, 1.1vw, 1rem); color: var(--pink); }
+
+.k-web-opts { display: grid; gap: 0.6rem; }
+.k-web-opts--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.k-web-opt {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
+    min-height: 48px; padding: 0.75rem 0.9rem;
+    border: 1px solid var(--card-line-strong); border-radius: 10px;
+    background: rgba(255,255,255,0.015);
+    font: inherit; font-weight: 700; font-size: 0.95rem; color: var(--frost);
+    text-align: left; cursor: pointer;
+    transition: border-color 180ms var(--k-ease-out), background-color 180ms var(--k-ease-out), color 180ms var(--k-ease-out);
+}
+.k-web-opt--tall { min-height: 66px; }
+.k-web-opt:hover { background: rgba(255,255,255,0.05); }
+.k-web-opt:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+.k-web-opt[data-on='true'] { border-color: var(--lime); background: var(--lime); color: var(--ink); }
+.k-web-opt-b { font-weight: 400; font-size: 0.82rem; line-height: 1.45; opacity: 0.78; }
+
+.k-web-slider { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 44px; margin: 0.35rem 0 0; background: none; cursor: pointer; }
+.k-web-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--pink) var(--fill,10%), rgba(255,255,255,0.16) var(--fill,10%)); }
+.k-web-slider::-moz-range-track { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--pink) var(--fill,10%), rgba(255,255,255,0.16) var(--fill,10%)); }
+.k-web-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -7px; border: 0; border-radius: 50%; background: var(--pink); }
+.k-web-slider::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--pink); }
+.k-web-slider:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; border-radius: 8px; }
+.k-web-hint { margin: 0.15rem 0 0; font-size: 0.82rem; line-height: 1.5; color: var(--silver-dim); }
+
+.k-web-feats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.6rem; }
+.k-web-feat {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    min-height: 48px; padding: 0.7rem 0.85rem;
+    border: 1px solid var(--card-line-strong); border-radius: 10px;
+    cursor: pointer; transition: border-color 180ms var(--k-ease-out);
+}
+.k-web-feat[data-on='true'] { border-color: var(--lime); background: var(--signal-dim); }
+.k-web-feat input { margin-top: 0.2rem; width: 18px; height: 18px; accent-color: var(--signal); flex: none; }
+.k-web-feat-l { display: block; font-weight: 700; font-size: 0.92rem; color: var(--frost); }
+.k-web-feat-b { display: block; font-size: 0.8rem; line-height: 1.45; color: var(--silver-dim); }
+.k-web-feat:focus-within { outline: 2px solid var(--lime); outline-offset: 2px; }
+
+.k-web-sum { border-top: 1px solid var(--card-line); padding-top: 0.9rem; }
+.k-web-sum-k { margin: 0; font-size: var(--k-t-3xs); letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver-dim); }
+.k-web-sum-v { margin: 0.3rem 0 0; font-weight: 700; font-size: 0.95rem; line-height: 1.55; color: var(--lime); }
+
+.k-web-price { margin-top: 0.9rem; border: 1px solid var(--card-line); border-radius: 10px; padding: 0.9rem 1rem; background: rgba(255,255,255,0.02); }
+.k-web-price-k { margin: 0; font-size: var(--k-t-3xs); letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver-dim); }
+.k-web-price-v { margin: 0.25rem 0 0; font-weight: 900; font-size: clamp(1.2rem, 2vw, 1.5rem); color: var(--pink); }
+.k-web-price-note { margin: 0.35rem 0 0; font-size: 0.85rem; line-height: 1.55; color: var(--silver); }
+
+.k-web-terms { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.9rem 1.25rem; margin-top: 0.8rem; border-top: 1px solid var(--card-line); padding-top: 0.8rem; }
+.k-web-terms-k { margin: 0 0 0.3rem; font-size: var(--k-t-3xs); letter-spacing: 0.16em; text-transform: uppercase; color: var(--silver-dim); }
+.k-web-terms ul { margin: 0; padding-left: 1rem; }
+.k-web-terms li { font-size: 0.82rem; line-height: 1.5; color: var(--silver); }
+@media (max-width: 640px) { .k-web-terms { grid-template-columns: minmax(0,1fr); } }
+
+.k-web-cta {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    width: 100%; min-height: 54px; margin-top: 1rem;
+    border: 0; border-radius: 10px; background: var(--lime);
+    font: inherit; font-weight: 900; font-size: 0.98rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink); cursor: pointer; transition: filter 180ms var(--k-ease-out);
+}
+.k-web-cta:hover { filter: brightness(1.07); }
+.k-web-cta:focus-visible { outline: 2px solid var(--frost); outline-offset: 3px; }
+
+/* the trigger, in the existing scope section */
+.k-scope-alt {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 0.85rem 1.25rem;
+    max-width: 60rem; margin: 0 auto;
+    padding: 0 clamp(1.25rem, 3.9vw, 3.5rem) clamp(2.5rem, 5vh, 4rem);
+}
+.k-scope-alt p { margin: 0; max-width: 46ch; font-size: clamp(0.92rem, 1.05vw, 1rem); line-height: 1.6; color: var(--silver); }
+.k-scope-alt button {
+    min-height: 52px; padding: 0 1.4rem;
+    border: 1px solid var(--signal); border-radius: 10px; background: none;
+    font: inherit; font-weight: 900; font-size: 0.92rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--signal); cursor: pointer; white-space: nowrap;
+    transition: background-color 180ms var(--k-ease-out), color 180ms var(--k-ease-out);
+}
+.k-scope-alt button:hover { background: var(--signal); color: var(--carbon); }
+.k-scope-alt button:focus-visible { outline: 2px solid var(--frost); outline-offset: 3px; }
+
+@media (max-width: 640px) {
+    .k-web-opts--2, .k-web-feats { grid-template-columns: minmax(0, 1fr); }
+    .k-web { max-height: 92vh; border-radius: 14px; }
+    .k-scope-alt button { width: 100%; }
+}
+
+/* The advertising estimator, as a dialog. The card keeps its own look;
+   this only gives the dialog a bounded box and its own scrolling. */
+.k-scope-dialog {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 44rem;
+    max-height: min(88vh, 54rem);
+    overflow-y: auto;
+    border-radius: 18px;
+    -webkit-overflow-scrolling: touch;
+    animation: k-web-in 200ms var(--k-ease-out);
+}
+@media (prefers-reduced-motion: reduce) { .k-scope-dialog { animation: none; } }
+.k-scope-dialog .k-scope-card { border: 0; border-radius: 18px; }
+.k-scope-head-r { display: flex; align-items: center; gap: 0.75rem; }
+@media (max-width: 640px) { .k-scope-dialog { max-height: 92vh; border-radius: 14px; } }
+
+/* Each closing action says what it scopes, directly beneath it. */
+.k-close-act { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+.k-close-act-note { margin: 0; max-width: 26ch; font-size: 0.85rem; line-height: 1.45; color: var(--silver-dim); }
+@media (max-width: 640px) { .k-close-act { width: 100%; } }
+
+/* The estimator header names the kind of work it covers. */
+.k-scope-kind {
+    margin: 0;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+@media (max-width: 640px) { .k-scope-kind { flex-basis: 100%; order: 3; } }
+
+/* ============================================================
+   THE LEGAL PAGES
+
+   A reading document, not a chapter. One measured column, generous
+   leading, and a contents list that jumps - because nobody arrives at a
+   privacy policy intending to read it end to end. Same palette and same
+   wordmark as the site, so it does not read as something pasted in.
+   ============================================================ */
+.k-legal {
+    position: relative;
+    min-height: 100vh;
+    background:
+        radial-gradient(78% 40% at 50% 0%, #121318 0%, transparent 64%),
+        var(--carbon);
+    color: var(--silver);
+}
+
+.k-legal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: clamp(1.1rem, 2.4vh, 1.6rem) clamp(1.25rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--rule-soft);
+}
+
+.k-legal-mark {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    color: var(--frost);
+    text-decoration: none;
+}
+
+.k-legal-back { white-space: nowrap; }
+.k-legal-back .k-link-arrow { margin: 0 0.4rem 0 0; }
+
+.k-legal-inner {
+    /* 68ch is the measure this reads best at; the page is a single
+       column on purpose, because a two-column policy is unquotable. */
+    max-width: 68ch;
+    margin: 0 auto;
+    padding: clamp(2.75rem, 7vh, 5rem) clamp(1.25rem, 4vw, 2rem) clamp(4rem, 10vh, 7rem);
+}
+
+.k-legal-eyebrow {
+    margin: 0 0 0.9rem;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+.k-legal-h {
+    margin: 0;
+    font-weight: 900;
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    line-height: 1.03;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+    color: var(--frost);
+}
+
+.k-legal-standfirst {
+    margin: clamp(1rem, 2.2vh, 1.4rem) 0 0;
+    font-size: clamp(1.05rem, 1.25vw, 1.18rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+
+.k-legal-updated {
+    margin: 1rem 0 0;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+/* ---- contents ---- */
+.k-legal-toc {
+    margin: clamp(2.25rem, 5vh, 3.25rem) 0 0;
+    padding: clamp(1.25rem, 3vh, 1.85rem) 0;
+    border-top: 1px solid var(--rule-firm);
+    border-bottom: 1px solid var(--rule-firm);
+}
+
+.k-legal-toc-h {
+    margin: 0 0 0.9rem;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+.k-legal-toc ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0.45rem 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.k-legal-toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    font-size: clamp(0.94rem, 1.05vw, 1rem);
+    line-height: 1.45;
+    color: var(--silver);
+    text-decoration: none;
+    transition: color 160ms var(--k-ease-out);
+}
+.k-legal-toc a:hover { color: var(--frost); }
+.k-legal-toc a:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+.k-legal-toc-n { color: var(--signal); }
+
+/* ---- the sections ---- */
+.k-legal-sec {
+    margin-top: clamp(2.5rem, 5.5vh, 3.75rem);
+    /* so a jump from the contents does not land the heading under the
+       top edge of the window */
+    scroll-margin-top: 1.5rem;
+}
+
+.k-legal-sh {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    margin: 0 0 0.9rem;
+    font-weight: 900;
+    font-size: clamp(1.25rem, 1.9vw, 1.6rem);
+    line-height: 1.2;
+    letter-spacing: -0.024em;
+    text-wrap: balance;
+    color: var(--frost);
+}
+.k-legal-sn { flex: 0 0 auto; color: var(--signal); }
+
+.k-legal-p {
+    margin: 0 0 0.95rem;
+    font-size: clamp(0.98rem, 1.08vw, 1.05rem);
+    line-height: 1.68;
+    color: var(--silver);
+}
+.k-legal-p:last-child { margin-bottom: 0; }
+
+.k-legal-list {
+    margin: 1.25rem 0;
+    padding: 1.1rem 1.25rem;
+    border-left: 2px solid var(--signal);
+    background: rgba(255, 255, 255, 0.022);
+}
+
+.k-legal-list-h {
+    margin: 0 0 0.6rem;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.05vw, 1.02rem);
+    color: var(--frost);
+}
+
+.k-legal-list ul {
+    margin: 0;
+    padding: 0 0 0 1.1rem;
+    list-style: none;
+}
+
+.k-legal-list li {
+    position: relative;
+    margin: 0 0 0.45rem;
+    font-size: clamp(0.94rem, 1.04vw, 1.01rem);
+    line-height: 1.6;
+    color: var(--silver);
+}
+.k-legal-list li:last-child { margin-bottom: 0; }
+.k-legal-list li::before {
+    content: "";
+    position: absolute;
+    left: -1.1rem;
+    top: 0.62em;
+    width: 5px;
+    height: 1px;
+    background: var(--silver-dim);
+}
+
+/* Anything the studio still has to supply. Marked so it cannot be
+   published by accident: it is legible, it is obviously unfinished, and
+   it does not look like body copy. */
+.k-legal-todo {
+    padding: 0.05em 0.4em;
+    border: 1px dashed var(--signal);
+    border-radius: 3px;
+    background: rgba(255, 59, 20, 0.09);
+    color: var(--signal);
+    font-size: 0.92em;
+    white-space: nowrap;
+}
+
+.k-legal-foot {
+    margin-top: clamp(3rem, 7vh, 4.5rem);
+    padding-top: clamp(1.5rem, 3.2vh, 2.25rem);
+    border-top: 1px solid var(--rule-firm);
+}
+
+.k-legal-mail { color: var(--frost); text-underline-offset: 3px; }
+.k-legal-cross { margin: 1.25rem 0 0; }
+.k-legal-copy {
+    margin: 1.5rem 0 0;
+    font-size: var(--k-t-2xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--silver-dim);
+}
+
+@media (max-width: 600px) {
+    .k-legal-toc ol { grid-template-columns: minmax(0, 1fr); }
+    .k-legal-bar { flex-wrap: wrap; gap: 0.75rem; }
+}
+
+/* ============================================================
+   WHAT WE MAKE - the argument beside the stack
+
+   Two columns. The left holds still while the right is scrolled through,
+   so the chapter reads as one thing rather than an argument followed by
+   a long walk to the evidence.
+
+   The component brings its own Tailwind for card geometry. These rules
+   override it from outside rather than editing the file: every selector
+   below is two or three deep, which beats a single Tailwind utility
+   class without needing !important.
+   ============================================================ */
+.k-make-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+    gap: clamp(2rem, 4.5vw, 4.5rem);
+    /* STRETCH, and it has to be. A sticky element can only travel inside
+       its own containing block, and a grid item set to `start` collapses
+       to its content height - so the argument stuck for its own 717px
+       and then left with the page. Stretched, the item box spans the
+       row and the sticky offset has the whole chapter to hold across. */
+    align-items: stretch;
+}
+
+/* The argument travels with the stack instead of leaving above it. It is
+   sticky rather than parallaxed: a transform on a sticky element fights
+   its own offset, and holding still is the device here. */
+.k-make-say {
+    position: sticky;
+    top: clamp(5.5rem, 12vh, 8rem);
+    align-self: stretch;
+    height: max-content;
+    padding-bottom: clamp(1.5rem, 4vh, 3rem);
+}
+
+/* ---- the stack, filling its half ---- */
+.k-make-stack { width: 100%; }
+
+/* The component's own `pt-[10vh] pb-[70vh]` is what made the chapter
+   3,495px tall. The bottom padding exists so the last card can finish
+   scaling, and 14vh is measurably enough for that: the last card
+   reaches its target scale before the section leaves the viewport. */
+.k-make-stack main {
+    padding-top: 0;
+    /* THE +88px IS NOT DECORATION, IT IS THE OVERHANG.
+
+       The component offsets each card with an inline
+       `top: calc(-5vh + (i*15 + 200)px)` against a `-top-1/4`. For the
+       last of four that nets out BELOW its own flow box - measured at
+       24 to 63px past the section edge across 1024 to 2000 - so the
+       card bled over the top of the next chapter. A vh-only tail cannot
+       cover it, because the offset is mostly a fixed pixel term and the
+       shortfall is worst on short viewports where vh buys least. */
+    padding-bottom: calc(14vh + 88px);
+}
+
+.k-make-stack .sticky {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: flex-start;
+}
+
+/* Card geometry, overriding the component's fixed pixel sizes so the
+   stack fills the column instead of sitting in the middle of it.
+
+   The chapter's height IS four card heights plus the tail: the cards
+   are laid out in flow and only then made sticky. 16/9 rather than
+   16/10 is 45px off each card at this width, and the frames are
+   16/9 masters anyway. */
+.k-make-stack .sticky > div {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
+/* ---- the caption on each card ---- */
+.k-make-stack .k-stick-cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: clamp(1.1rem, 2.4vw, 1.75rem);
+    background: linear-gradient(180deg, transparent, rgba(8, 8, 10, 0.88) 62%);
+    pointer-events: none;
+}
+
+.k-make-stack .k-stick-n {
+    font-family: 'DM Sans', 'Satoshi', Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    font-size: var(--k-t-3xs);
+    letter-spacing: 0.2em;
+    color: var(--signal);
+}
+
+.k-make-stack .k-stick-t {
+    font-weight: 900;
+    font-size: clamp(1.15rem, 1.9vw, 1.7rem);
+    letter-spacing: -0.028em;
+    line-height: 1.08;
+    color: var(--frost);
+}
+
+.k-make-stack .k-stick-l {
+    max-width: 46ch;
+    font-size: clamp(0.86rem, 1vw, 1rem);
+    line-height: 1.5;
+    color: var(--silver);
+}
+
+@media (max-width: 1023px) {
+    /* One column: the argument reads first, then the stack is scrolled. */
+    .k-make-body { grid-template-columns: minmax(0, 1fr); gap: clamp(1.5rem, 4vh, 2.5rem); }
+    .k-make-say { position: static; }
+    .k-make-stack main { padding-bottom: calc(20vh + 88px); }
+    .k-make-stack .sticky > div { aspect-ratio: 4 / 3; }
+}
+
+@media (max-width: 640px) {
+    .k-make-stack .k-stick-l { display: none; }
 }

@@ -2,19 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 import axios from "axios";
+import useDocumentTitle from "@/hooks/useDocumentTitle";
+import useCanonical from "@/hooks/useCanonical";
 import Cal, { getCalApi } from "@calcom/embed-react";
-import Background from "@/components/Background";
-import Cursor from "@/components/Cursor";
+import { FlowButton } from "@/components/ui/flow-button";
 
-const API = process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api` : '/api';
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const CAL_LINK = "armaan-khasim-shaik-p9vin0";
 const STORE_KEY = "kymr-start";
-
-const generateIdempotencyKey = () => {
-  return typeof crypto !== 'undefined' && crypto.randomUUID 
-    ? crypto.randomUUID() 
-    : Math.random().toString(36).substring(2, 15);
-};
 
 const MIXES = [
   { id: "static", label: "STATIC", desc: "STILL FRAMES THAT CONVERT" },
@@ -44,7 +39,7 @@ const fmtRate = (n, cur) =>
     : `$${n.toLocaleString("en-US")}`;
 const rateRange = (t, cur) => {
   const [lo, hi] = (RATES[cur] || RATES.USD)[t] || RATES.USD.MOMENTUM;
-  return `${fmtRate(lo, cur)} – ${fmtRate(hi, cur)}`;
+  return `${fmtRate(lo, cur)} - ${fmtRate(hi, cur)}`;
 };
 
 function CurrencyToggle({ value, onChange }) {
@@ -58,8 +53,8 @@ function CurrencyToggle({ value, onChange }) {
           data-hover
           aria-pressed={value === c}
           onClick={() => onChange(c)}
-          className={`px-4 py-2 font-mono text-[10px] tracking-[0.3em] transition-colors duration-300 ${
-            value === c ? "bg-ember text-void" : "text-white/40 hover:text-white"
+          className={`px-5 py-3.5 t-data text-[12px] tracking-[0.16em] transition-colors duration-300 ${
+            value === c ? "bg-ember text-void" : "text-white/50 hover:text-white"
           }`}
         >
           {c}
@@ -69,7 +64,7 @@ function CurrencyToggle({ value, onChange }) {
   );
 }
 
-const labelOf = (list, id) => (list.find((o) => o.id === id) || {}).label || "—";
+const labelOf = (list, id) => (list.find((o) => o.id === id) || {}).label || " - ";
 
 function OptionRow({ index, label, desc, selected, onSelect, testid }) {
   return (
@@ -82,19 +77,19 @@ function OptionRow({ index, label, desc, selected, onSelect, testid }) {
       className="group flex w-full items-center justify-between gap-6 border-t border-white/10 py-6 text-left md:py-8"
     >
       <span className="flex items-baseline gap-5 md:gap-8">
-        <span className="font-mono text-[10px] tracking-[0.3em] text-white/30">{index}</span>
+        <span className="t-data text-[12px] tracking-[0.16em] text-white/50">{index}</span>
         <span
-          className={`font-display text-3xl font-black tracking-tight transition-all duration-300 md:text-5xl ${
+          className={`font-display text-3xl font-black tracking-tight transition-[color,opacity] duration-300 md:text-5xl ${
             selected
               ? "translate-x-2 text-bone"
-              : "text-white/35 group-hover:translate-x-2 group-hover:text-white/70"
+              : "text-white/50 group-hover:translate-x-2 group-hover:text-white/70"
           }`}
         >
           {label}
         </span>
       </span>
       <span className="flex items-center gap-4">
-        <span className="hidden font-mono text-[10px] tracking-[0.25em] text-white/30 md:block">
+        <span className="hidden text-[13px] text-white/60 md:block">
           {desc}
         </span>
         <span
@@ -108,6 +103,8 @@ function OptionRow({ index, label, desc, selected, onSelect, testid }) {
 }
 
 export default function Start() {
+  useDocumentTitle("Start a project \u2014 KymrStudio");
+  useCanonical("/start");
   const panelRef = useRef(null);
   const submittedRef = useRef(false);
   const [stage, setStage] = useState(() => {
@@ -119,7 +116,10 @@ export default function Start() {
   });
   const [config, setConfig] = useState(() => {
     try {
-      return { volume: 20, ...(JSON.parse(sessionStorage.getItem(STORE_KEY) || "{}").config || {}) };
+      return {
+        volume: 20,
+        ...(JSON.parse(sessionStorage.getItem(STORE_KEY) || "{}").config || {}),
+      };
     } catch {
       return {};
     }
@@ -156,7 +156,7 @@ export default function Start() {
   useEffect(() => {
     sessionStorage.setItem(
       STORE_KEY,
-      JSON.stringify({ stage: stage === 6 ? 4 : stage, config, details, currency })
+      JSON.stringify({ stage: stage === 6 ? 4 : stage, config, details, currency }),
     );
   }, [stage, config, details, currency]);
 
@@ -177,7 +177,7 @@ export default function Start() {
       gsap.fromTo(
         panelRef.current,
         { autoAlpha: 0, y: 28 },
-        { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out" }
+        { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out" },
       );
     }
   }, [stage]);
@@ -211,41 +211,24 @@ export default function Start() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
-  const idempotencyKeyRef = useRef(generateIdempotencyKey());
-
   const submitLead = async (meeting) => {
     if (submittedRef.current) return;
     submittedRef.current = true;
     setSubmitting(true);
     try {
-      await axios.post(`${API}/public/inquiries`, {
+      await axios.post(`${API}/leads`, {
         name: details.name,
         email: details.email,
         company: details.company || "",
         phone: details.phone || "",
         config: { volume: config.volume, mix: config.mix, cadence: config.cadence },
         tier,
-        externalBookingId: meeting?.uid || undefined,
+        meeting,
         message: details.message || "",
-        source: "website",
-        submissionType: meeting?.booked ? "BOOKING" : "CONFIGURED_SCOPE"
-      }, {
-        headers: {
-          "Idempotency-Key": idempotencyKeyRef.current
-        }
       });
       setStage(6);
-    } catch (err) {
-      if (err.response?.status === 429) {
-        setBookingState("rate-limited");
-        alert("Too many requests. Please try again shortly.");
-      } else {
-        if (meeting?.booked) {
-          setBookingState("crm-failed");
-        } else {
-          setBookingState("submit-failed");
-        }
-      }
+    } catch {
+      setBookingState("submit-failed");
       submittedRef.current = false;
     } finally {
       setSubmitting(false);
@@ -254,20 +237,20 @@ export default function Start() {
 
   const validateDetails = () => {
     const e = {};
-    if (!details.name?.trim()) e.name = "NAME IS REQUIRED";
+    if (!details.name?.trim()) e.name = "Name is required.";
     if (!details.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email))
-      e.email = "VALID WORK EMAIL REQUIRED";
+      e.email = "Enter a valid work email.";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const rail = (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[9px] tracking-[0.3em]">
+    <div className="t-data flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] tracking-[0.16em]">
       {RAIL.map((r, i) => (
         <span
           key={r}
           className={
-            i < stageIndex ? "text-white/40" : i === stageIndex ? "text-bone" : "text-white/20"
+            i < stageIndex ? "text-white/50" : i === stageIndex ? "text-bone" : "text-white/50"
           }
         >
           0{i + 1} {r}
@@ -281,32 +264,43 @@ export default function Start() {
       data-testid="live-estimate"
       className="border border-white/10 p-6 md:sticky md:top-28 md:p-8"
     >
-      <p className="font-mono text-[9px] tracking-[0.4em] text-white/40">CONFIGURED SCOPE — LIVE</p>
-      <dl className="mt-6 space-y-4 font-mono text-[11px] tracking-[0.2em]">
+      <p className="t-data text-[12px] tracking-[0.16em] text-white/60">CONFIGURED SCOPE - LIVE</p>
+      <dl className="mt-6 space-y-4 text-[13px] tracking-[0.04em]">
         <div className="flex justify-between gap-4">
-          <dt className="text-white/40">VOLUME</dt>
-          <dd data-testid="estimate-volume" className="text-bone">{config.volume || 20} ADS / MO</dd>
+          <dt className="text-white/50">VOLUME</dt>
+          <dd data-testid="estimate-volume" className="text-bone">
+            {config.volume || 20} ADS / MO
+          </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-white/40">MIX</dt>
-          <dd data-testid="estimate-mix" className="text-bone">{labelOf(MIXES, config.mix)}</dd>
+          <dt className="text-white/50">MIX</dt>
+          <dd data-testid="estimate-mix" className="text-bone">
+            {labelOf(MIXES, config.mix)}
+          </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-white/40">CADENCE</dt>
-          <dd data-testid="estimate-cadence" className="text-bone">{labelOf(CADENCES, config.cadence)}</dd>
+          <dt className="text-white/50">CADENCE</dt>
+          <dd data-testid="estimate-cadence" className="text-bone">
+            {labelOf(CADENCES, config.cadence)}
+          </dd>
         </div>
       </dl>
       <div className="mt-6 border-t border-white/10 pt-6">
-        <p className="font-mono text-[9px] tracking-[0.4em] text-white/40">TIER</p>
-        <p data-testid="estimate-tier" className="mt-2 font-cinzel text-3xl font-bold text-ember">{tier}</p>
-        <p className="mt-4 font-mono text-[9px] leading-relaxed tracking-[0.25em] text-white/40">
-          EVERY ASSET — 100% REVIEW · 10+ ITERATIONS
+        <p className="t-data text-[12px] tracking-[0.16em] text-white/60">TIER</p>
+        <p data-testid="estimate-tier" className="mt-2 font-cinzel text-3xl font-bold text-ember">
+          {tier}
+        </p>
+        <p className="mt-4 text-[13px] leading-relaxed text-white/60">
+          EVERY ASSET - 100% REVIEW · 10+ ITERATIONS
         </p>
         <div className="mt-4">
           <CurrencyToggle value={currency} onChange={setCurrency} />
         </div>
-        <p data-testid="estimate-rate" className="mt-4 font-mono text-[10px] tracking-[0.2em] text-white/50">
-          INVESTMENT — {rateRange(tier, currency)} / MO · CONFIRMED ON YOUR CALL
+        <p
+          data-testid="estimate-rate"
+          className="mt-4 text-[13px] leading-relaxed text-white/60"
+        >
+          INVESTMENT - {rateRange(tier, currency)} / MO · CONFIRMED ON YOUR CALL
         </p>
       </div>
     </aside>
@@ -315,7 +309,7 @@ export default function Start() {
   const configureStage = (list, value, key, title, sub, nextLabel) => (
     <div className="grid gap-12 md:grid-cols-[1fr_340px]">
       <div>
-        <p className="font-mono text-[10px] tracking-[0.5em] text-ember">{sub}</p>
+        <p className="t-data text-[12px] tracking-[0.24em] text-ember">{sub}</p>
         <h1 className="mt-4 font-display text-4xl font-black tracking-tight text-bone md:text-6xl">
           {title}
         </h1>
@@ -335,24 +329,22 @@ export default function Start() {
         </div>
         <div className="mt-10 flex items-center gap-8">
           {stage > 0 && (
-            <button
+            <FlowButton
               data-testid="back-button"
               data-hover
               onClick={() => setStage(stage - 1)}
-              className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-white"
-            >
-              ← BACK
-            </button>
+              text="Back"
+              className="k-flow k-flow--ghost"
+            />
           )}
-          <button
+          <FlowButton
             data-testid={`continue-${key}`}
             data-hover
             disabled={!value}
             onClick={() => setStage(stage + 1)}
-            className="font-mono text-[11px] tracking-[0.4em] text-bone transition-colors duration-300 hover:text-ember disabled:opacity-30"
-          >
-            {nextLabel} →
-          </button>
+            text={nextLabel}
+            className="k-flow k-flow--primary"
+          />
         </div>
       </div>
       {estimateAside}
@@ -362,15 +354,20 @@ export default function Start() {
   const volumeStage = (
     <div className="grid gap-12 md:grid-cols-[1fr_340px]">
       <div>
-        <p className="font-mono text-[10px] tracking-[0.5em] text-ember">01 / SCOPE</p>
+        <p className="t-data text-[12px] tracking-[0.24em] text-ember">01 / SCOPE</p>
         <h1 className="mt-4 font-display text-4xl font-black tracking-tight text-bone md:text-6xl">
           Monthly ad volume.
         </h1>
         <div className="mt-14">
           <div className="flex items-baseline justify-between">
-            <span data-testid="volume-readout" className="font-display text-6xl font-black tracking-tight text-bone md:text-8xl">
+            <span
+              data-testid="volume-readout"
+              className="font-display text-6xl font-black tracking-tight text-bone md:text-8xl"
+            >
               {config.volume || 20}
-              <span className="ml-3 font-mono text-xs tracking-[0.3em] text-white/40">ADS / MO</span>
+              <span className="ml-3 t-data text-[12px] tracking-[0.16em] text-white/50">
+                ADS / MO
+              </span>
             </span>
             <span className="font-cinzel text-xl font-bold text-ember md:text-2xl">{tier}</span>
           </div>
@@ -385,20 +382,19 @@ export default function Start() {
             onChange={(e) => setConfig({ ...config, volume: parseInt(e.target.value, 10) })}
             className="volume-slider"
           />
-          <div className="mt-3 flex justify-between font-mono text-[9px] tracking-[0.3em] text-white/30">
+          <div className="mt-3 flex justify-between t-data text-[12px] tracking-[0.16em] text-white/50">
             <span>5</span>
             <span>50+</span>
           </div>
         </div>
         <div className="mt-12">
-          <button
+          <FlowButton
             data-testid="continue-volume"
             data-hover
             onClick={() => setStage(1)}
-            className="font-mono text-[11px] tracking-[0.4em] text-bone transition-colors duration-300 hover:text-ember"
-          >
-            CONTINUE →
-          </button>
+            text="Continue"
+            className="k-flow k-flow--primary"
+          />
         </div>
       </div>
       {estimateAside}
@@ -407,8 +403,15 @@ export default function Start() {
 
   const stages = [
     volumeStage,
-    configureStage(MIXES, config.mix, "mix", "Ad creative mix.", "02 / FORMAT", "CONTINUE"),
-    configureStage(CADENCES, config.cadence, "cadence", "Production cadence.", "03 / RHYTHM", "REVEAL ESTIMATE"),
+    configureStage(MIXES, config.mix, "mix", "Ad creative mix.", "02 / FORMAT", "Continue"),
+    configureStage(
+      CADENCES,
+      config.cadence,
+      "cadence",
+      "Production cadence.",
+      "03 / RHYTHM",
+      "Show the estimate",
+    ),
   ];
 
   return (
@@ -420,17 +423,27 @@ export default function Start() {
           className="pointer-events-none fixed inset-0 z-[250] bg-[#050505]"
         />
       )}
-      <Background />
-      <Cursor />
       <header className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-6 py-5 mix-blend-difference md:px-10">
-        <Link
-          to="/"
-          data-testid="start-logo"
-          data-hover
-          className="font-cinzel text-lg font-bold tracking-tight text-white"
-        >
-          KymrStudio<span className="text-ember">.</span>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link
+            to="/"
+            data-testid="start-logo"
+            data-hover
+            className="font-cinzel text-lg font-bold tracking-tight text-white"
+          >
+            KymrStudio<span className="text-ember">.</span>
+          </Link>
+          {/* the estimator is a route of its own, so it needs a way back
+              that does not depend on recognising the wordmark as one */}
+          <Link
+            to="/"
+            data-testid="start-back-to-site"
+            data-hover
+            className="hidden text-[14px] text-white/60 transition-colors duration-300 hover:text-white sm:inline"
+          >
+            &larr; Back to site
+          </Link>
+        </div>
         <div className="hidden md:block">{rail}</div>
       </header>
 
@@ -441,7 +454,7 @@ export default function Start() {
 
           {stage === 3 && (
             <div data-testid="estimate-result" className="text-center">
-              <p className="font-mono text-[10px] tracking-[0.5em] text-ember">04 / ESTIMATE</p>
+              <p className="t-data text-[12px] tracking-[0.24em] text-ember">04 / ESTIMATE</p>
               <p className="mt-8 font-serif text-xl italic text-white/50 md:text-2xl">
                 your production system, scoped:
               </p>
@@ -451,38 +464,36 @@ export default function Start() {
               >
                 {tier}
               </h1>
-              <div className="mx-auto mt-10 max-w-xl space-y-3 font-mono text-[11px] tracking-[0.25em] text-white/60">
+              <div className="mx-auto mt-10 max-w-xl space-y-3 text-[13px] tracking-[0.04em] text-white/60">
                 <p data-testid="result-volume">{config.volume} ADS / MO</p>
                 <p>{labelOf(MIXES, config.mix)} MIX</p>
                 <p>{labelOf(CADENCES, config.cadence)}</p>
                 <div className="mx-auto mt-6 h-px w-24 bg-ember" />
-                <p className="pt-4 text-white/40">
-                  100% ASSET REVIEW — 10+ ITERATIONS / SPRINT — 48H TURNAROUND
+                <p className="pt-4 text-white/50">
+                  100% ASSET REVIEW - 10+ ITERATIONS / SPRINT - 48H TURNAROUND
                 </p>
-                <p data-testid="result-rate" className="text-white/40">
-                  INVESTMENT: {rateRange(tier, currency)} / MO — CONFIRMED ON YOUR CALL
+                <p data-testid="result-rate" className="text-white/50">
+                  INVESTMENT: {rateRange(tier, currency)} / MO - CONFIRMED ON YOUR CALL
                 </p>
                 <div className="pt-3">
                   <CurrencyToggle value={currency} onChange={setCurrency} />
                 </div>
               </div>
               <div className="mt-14 flex items-center justify-center gap-10">
-                <button
+                <FlowButton
                   data-testid="edit-scope-button"
                   data-hover
                   onClick={() => setStage(0)}
-                  className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-white"
-                >
-                  ← EDIT SCOPE
-                </button>
-                <button
+                  text="Edit scope"
+                  className="k-flow k-flow--ghost"
+                />
+                <FlowButton
                   data-testid="start-inquiry-button"
                   data-hover
                   onClick={() => setStage(4)}
-                  className="font-mono text-[11px] tracking-[0.4em] text-bone transition-colors duration-300 hover:text-ember"
-                >
-                  START INQUIRY →
-                </button>
+                  text="Continue"
+                  className="k-flow k-flow--primary"
+                />
               </div>
             </div>
           )}
@@ -490,106 +501,146 @@ export default function Start() {
           {stage === 4 && (
             <div data-testid="inquiry-stage" className="grid gap-12 md:grid-cols-[1fr_340px]">
               <div>
-                <p className="font-mono text-[10px] tracking-[0.5em] text-ember">05 / DETAILS</p>
+                <p className="t-data text-[12px] tracking-[0.24em] text-ember">05 / DETAILS</p>
                 <h1 className="mt-4 font-display text-4xl font-black tracking-tight text-bone md:text-6xl">
                   Who are we building for?
                 </h1>
                 <div className="mt-12 space-y-2">
-                  <label htmlFor="lead-name" className="font-mono text-[9px] tracking-[0.35em] text-white/40">
-                    YOUR NAME *
+                  <label
+                    htmlFor="lead-name"
+                    className="block text-[14px] leading-snug text-white/60"
+                  >
+                    Your name <span aria-hidden="true">*</span>
                   </label>
                   <input
                     id="lead-name"
+                    name="name"
                     data-testid="lead-name-input"
+                    type="text"
+                    autoComplete="name"
+                    spellCheck={false}
                     className="input-line text-lg"
                     value={details.name || ""}
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? "lead-name-error" : undefined}
                     onChange={(e) => {
                       setDetails({ ...details, name: e.target.value });
                       setErrors((p) => ({ ...p, name: undefined }));
                     }}
                   />
                   {errors.name && (
-                    <p data-testid="error-name" className="pt-1 font-mono text-[9px] tracking-[0.3em] text-ember">
+                    <p
+                      id="lead-name-error"
+                      role="alert"
+                      data-testid="error-name"
+                      className="pt-1.5 text-[14px] leading-snug text-ember"
+                    >
                       {errors.name}
                     </p>
                   )}
                   <div className="h-6" />
-                  <label htmlFor="lead-email" className="font-mono text-[9px] tracking-[0.35em] text-white/40">
-                    WORK EMAIL *
+                  <label
+                    htmlFor="lead-email"
+                    className="block text-[14px] leading-snug text-white/60"
+                  >
+                    Work email <span aria-hidden="true">*</span>
                   </label>
                   <input
                     id="lead-email"
+                    name="email"
                     data-testid="lead-email-input"
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    spellCheck={false}
                     className="input-line text-lg"
                     value={details.email || ""}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "lead-email-error" : undefined}
                     onChange={(e) => {
                       setDetails({ ...details, email: e.target.value });
                       setErrors((p) => ({ ...p, email: undefined }));
                     }}
                   />
                   {errors.email && (
-                    <p data-testid="error-email" className="pt-1 font-mono text-[9px] tracking-[0.3em] text-ember">
+                    <p
+                      id="lead-email-error"
+                      role="alert"
+                      data-testid="error-email"
+                      className="pt-1.5 text-[14px] leading-snug text-ember"
+                    >
                       {errors.email}
                     </p>
                   )}
                   <div className="h-6" />
-                  <label htmlFor="lead-company" className="font-mono text-[9px] tracking-[0.35em] text-white/40">
-                    COMPANY / BRAND
+                  <label
+                    htmlFor="lead-company"
+                    className="block text-[14px] leading-snug text-white/60"
+                  >
+                    Company or brand
                   </label>
                   <input
                     id="lead-company"
+                    name="organization"
                     data-testid="lead-company-input"
+                    type="text"
+                    autoComplete="organization"
                     className="input-line text-lg"
                     value={details.company || ""}
                     onChange={(e) => setDetails({ ...details, company: e.target.value })}
                   />
                   <div className="h-6" />
-                  <label htmlFor="lead-phone" className="font-mono text-[9px] tracking-[0.35em] text-white/40">
-                    PHONE (OPTIONAL)
+                  <label
+                    htmlFor="lead-phone"
+                    className="block text-[14px] leading-snug text-white/60"
+                  >
+                    Phone (optional)
                   </label>
                   <input
                     id="lead-phone"
+                    name="tel"
                     data-testid="lead-phone-input"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    spellCheck={false}
                     className="input-line text-lg"
                     value={details.phone || ""}
                     onChange={(e) => setDetails({ ...details, phone: e.target.value })}
                   />
                 </div>
                 <div className="mt-12 flex items-center gap-8">
-                  <button
+                  <FlowButton
                     data-testid="details-back-button"
                     data-hover
                     onClick={() => setStage(3)}
-                    className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-white"
-                  >
-                    ← BACK
-                  </button>
-                  <button
+                    text="Back"
+                    className="k-flow k-flow--ghost"
+                  />
+                  <FlowButton
                     data-testid="details-continue-button"
                     data-hover
                     onClick={() => validateDetails() && setStage(5)}
-                    className="font-mono text-[11px] tracking-[0.4em] text-bone transition-colors duration-300 hover:text-ember"
-                  >
-                    BOOK A CALL →
-                  </button>
+                    text="Book a call"
+                    className="k-flow k-flow--primary"
+                  />
                 </div>
               </div>
               <aside className="h-fit border border-white/10 p-6 md:sticky md:top-28 md:p-8">
                 <div className="flex items-center justify-between">
-                  <p className="font-mono text-[9px] tracking-[0.4em] text-white/40">
+                  <p className="t-data text-[12px] tracking-[0.16em] text-white/60">
                     CONFIGURED SCOPE ESTIMATE
                   </p>
                   <button
                     data-testid="summary-edit-button"
                     data-hover
                     onClick={() => setStage(0)}
-                    className="font-mono text-[9px] tracking-[0.3em] text-ember hover:text-white"
+                    className="estimator-cta text-[13px] text-ember transition-colors duration-300 hover:text-white"
                   >
-                    EDIT
+                    Edit
                   </button>
                 </div>
-                <div className="mt-6 space-y-3 font-mono text-[11px] tracking-[0.2em] text-bone">
+                <div className="mt-6 space-y-3 text-[13px] tracking-[0.04em] text-bone">
                   <p data-testid="summary-volume">{config.volume} ADS / MO</p>
                   <p>{labelOf(MIXES, config.mix)} MIX</p>
                   <p>{labelOf(CADENCES, config.cadence)}</p>
@@ -601,13 +652,13 @@ export default function Start() {
 
           {stage === 5 && (
             <div data-testid="book-stage">
-              <p className="font-mono text-[10px] tracking-[0.5em] text-ember">06 / THE CALL</p>
+              <p className="t-data text-[12px] tracking-[0.24em] text-ember">06 / THE CALL</p>
               <h1 className="mt-4 font-display text-4xl font-black tracking-tight text-bone md:text-6xl">
                 Book the first frame.
               </h1>
               <p className="mt-6 max-w-xl font-serif text-lg italic text-white/50">
-                real availability, confirmed instantly by the calendar — or send your scope and we
-                reply within 48H.
+                real availability, confirmed instantly by the calendar - or send your scope and
+                we'll reply by email.
               </p>
               <div className="mt-12 min-h-[640px] border border-white/10">
                 <Cal
@@ -618,43 +669,45 @@ export default function Start() {
                 />
               </div>
               {bookingState === "failed" && (
-                <p data-testid="booking-error" className="mt-4 font-mono text-[10px] tracking-[0.3em] text-ember">
-                  CALENDAR UNAVAILABLE — EMAIL media@kymrstudio.com OR SEND YOUR SCOPE BELOW
+                <p
+                  data-testid="booking-error"
+                  role="alert"
+                  className="mt-4 max-w-md text-[14px] leading-relaxed text-ember"
+                >
+                  The calendar didn&rsquo;t load. Email media@kymrstudio.com, or send your scope
+                  below.
                 </p>
               )}
               {bookingState === "submit-failed" && (
-                <p data-testid="submit-error" className="mt-4 font-mono text-[10px] tracking-[0.3em] text-ember">
-                  TRANSMISSION FAILED — TRY AGAIN OR EMAIL media@kymrstudio.com
-                </p>
-              )}
-              {bookingState === "crm-failed" && (
-                <p data-testid="crm-warning" className="mt-4 font-mono text-[10px] tracking-[0.3em] text-white/70">
-                  MEETING CONFIRMED. INTERNAL SCOPE TRANSMISSION DELAYED — WE HAVE YOUR MEETING ON CALENDAR.
+                <p
+                  data-testid="submit-error"
+                  role="alert"
+                  className="mt-4 max-w-md text-[14px] leading-relaxed text-ember"
+                >
+                  We couldn&rsquo;t send that. Try again, or email media@kymrstudio.com.
                 </p>
               )}
               <div className="mt-10 flex flex-wrap items-center gap-8">
-                <button
+                <FlowButton
                   data-testid="book-back-button"
                   data-hover
                   onClick={() => setStage(4)}
-                  className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-white"
-                >
-                  ← BACK
-                </button>
-                <button
+                  text="Back"
+                  className="k-flow k-flow--ghost"
+                />
+                <FlowButton
                   data-testid="book-skip-button"
                   data-hover
                   disabled={submitting}
                   onClick={() => submitLead({ booked: false })}
-                  className="font-mono text-[10px] tracking-[0.35em] text-white/60 transition-colors duration-300 hover:text-ember disabled:opacity-30"
-                >
-                  SKIP THE CALL — SEND MY SCOPE →
-                </button>
+                  text="Send my scope without a call"
+                  className="k-flow k-flow--ghost"
+                />
                 <a
                   data-testid="book-mailto"
                   data-hover
                   href="mailto:media@kymrstudio.com"
-                  className="font-mono text-[10px] tracking-[0.35em] text-white/40 transition-colors duration-300 hover:text-white"
+                  className="k-flow-link"
                 >
                   media@kymrstudio.com ↗
                 </a>
@@ -669,9 +722,9 @@ export default function Start() {
                 RECEIVED
               </h1>
               <p className="mt-8 font-serif text-xl italic text-white/50 md:text-2xl">
-                your scope is in the edit suite. we reply within 48H.
+                your scope is in the edit suite. we'll reply by email.
               </p>
-              <div className="mt-12 flex items-center justify-center gap-10 font-mono text-[10px] tracking-[0.35em]">
+              <div className="mt-12 flex flex-wrap items-center justify-center gap-10 text-[14px]">
                 <a
                   data-testid="done-mailto"
                   data-hover
@@ -686,7 +739,7 @@ export default function Start() {
                   data-hover
                   className="text-ember transition-colors duration-300 hover:text-white"
                 >
-                  ← BACK TO THE FILM
+                  Back to the site
                 </Link>
               </div>
             </div>

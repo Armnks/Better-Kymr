@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../lib/db';
 import { Quote, Client, Inquiry, ServiceItem, CatalogService, ServiceCategory } from '../types';
-import { FileText, Plus, X, ChevronRight, Briefcase, CheckCircle, Search, Save, Download, Play, Trash, ArrowRight, Mail } from 'lucide-react';
+import { FileText, Plus, X, ChevronRight, Briefcase, CheckCircle, Search, Save, Download, Play, Trash, Trash2, ArrowRight, Mail } from 'lucide-react';
 import { Button, Input, Badge } from '../components/ui/DesignSystem';
 import { useEmail } from '../contexts/EmailContext';
 
@@ -19,6 +19,7 @@ export default function Quotes() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
 
   // Builder States
   const [isBuilderOpen, setIsBuilderOpen] = useState(isCreating);
@@ -127,6 +128,33 @@ export default function Quotes() {
     const total = subtotal - (formState.discount || 0) + tax;
     setFormState(prev => ({ ...prev, subtotal, tax, total }));
   }, [formState.items, formState.discount]);
+
+  const handleClearAll = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL quotes? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      const res = await api.deleteAllDocuments('quotes');
+      alert(`Successfully deleted ${res.deletedCount} quotes.`);
+      load();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete quotes");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this quote?")) return;
+    try {
+      await api.deleteDocument('quotes', id);
+      setQuotes(prev => prev.filter(q => q.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete quote");
+    }
+  };
 
   const addService = (s: CatalogService) => {
     setFormState(prev => ({
@@ -310,6 +338,9 @@ export default function Quotes() {
           <p className="font-mono text-[10px] text-brand-muted uppercase tracking-[0.2em]">Offer Configuration</p>
         </div>
         <div className="flex gap-3">
+          <Button icon={Trash2} variant="danger" onClick={handleClearAll} disabled={clearing || quotes.length === 0}>
+            {clearing ? 'Clearing...' : 'Clear All'}
+          </Button>
           <Button icon={Plus} onClick={() => navigate('/admin/quotes?create=true')} variant="primary">Create Quote</Button>
         </div>
       </div>
@@ -336,7 +367,16 @@ export default function Quotes() {
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <Badge variant={q.status === 'ACCEPTED' ? 'success' : q.status === 'SENT' ? 'info' : 'default'}>{q.status}</Badge>
-                        <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{q.createdAt.toLocaleDateString()}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[9px] text-brand-muted uppercase tracking-widest">{q.createdAt.toLocaleDateString()}</span>
+                          <button 
+                            onClick={(e) => handleDelete(e, q.id!)}
+                            className="p-1 text-brand-muted hover:text-brand-accent-red hover:bg-brand-accent-red/10 rounded transition-colors"
+                            title="Delete Quote"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <h3 className="font-sans text-lg font-bold text-brand-ivory group-hover:text-brand-accent transition-colors mb-1">{q.title}</h3>
                       <div className="font-mono text-[10px] text-brand-muted uppercase tracking-wider mb-4">

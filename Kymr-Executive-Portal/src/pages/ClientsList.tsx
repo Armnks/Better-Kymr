@@ -4,7 +4,7 @@ import { Client } from '../types';
 import { Button } from '../components/ui/DesignSystem';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Search, Plus, Building2, Download } from 'lucide-react';
+import { Search, Plus, Building2, Download, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { createSpreadsheet } from '../lib/google';
 import { useGoogle } from '../contexts/GoogleContext';
@@ -13,6 +13,7 @@ export default function ClientsList() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { isAuthorized } = useGoogle();
@@ -25,6 +26,34 @@ export default function ClientsList() {
     }
     load();
   }, []);
+
+  const handleClearAll = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL clients? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      const res = await api.deleteAllDocuments('clients');
+      alert(`Successfully deleted ${res.deletedCount} clients.`);
+      const data = await api.getClients();
+      setClients(data || []);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete clients");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this client?")) return;
+    try {
+      await api.deleteDocument('clients', id);
+      setClients(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete client");
+    }
+  };
 
   const filtered = clients.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -81,6 +110,9 @@ export default function ClientsList() {
           <Button icon={Download} variant="outline" onClick={handleExport} disabled={exporting}>
             {exporting ? 'Exporting...' : 'Export'}
           </Button>
+          <Button icon={Trash2} variant="danger" onClick={handleClearAll} disabled={clearing || clients.length === 0}>
+            {clearing ? 'Clearing...' : 'Clear All'}
+          </Button>
           <Button icon={Plus} onClick={() => navigate('/admin/clients/new')}>New Client</Button>
         </div>
       </div>
@@ -104,6 +136,7 @@ export default function ClientsList() {
                 <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal">Primary Contact</th>
                 <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal">Website</th>
                 <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal">Since</th>
+                <th className="px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-brand-muted font-normal text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -128,6 +161,15 @@ export default function ClientsList() {
                   <td className="px-4 py-4 font-mono text-xs text-brand-muted">{client.website || '-'}</td>
                   <td className="px-4 py-4 font-mono text-xs text-brand-muted">
                     {format(client.createdAt, 'MMM yyyy')}
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <button 
+                      onClick={(e) => handleDelete(e, client.id!)}
+                      className="p-1.5 text-brand-muted hover:text-brand-accent-red hover:bg-brand-accent-red/10 rounded transition-colors"
+                      title="Delete Client"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </td>
                 </motion.tr>
               ))}

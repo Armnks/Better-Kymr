@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "npm --prefix public-app install --legacy-peer-deps && npm --prefix public-app run build && vite build && rm -rf .vercel-output && mkdir -p .vercel-output && cp -R public-app/build/* .vercel-output/ && mkdir -p .vercel-output/admin && cp -R dist/* .vercel-output/admin/",
+    "build": "npx yarn --cwd public-app install && npx yarn --cwd public-app build && vite build && rm -rf .vercel-output && mkdir -p .vercel-output && cp -R public-app/build/* .vercel-output/ && mkdir -p .vercel-output/admin && cp -R dist/* .vercel-output/admin/",
     "preview": "vite preview",
     "start": "NODE_ENV=production tsx server.ts",
     "clean": "rm -rf dist .vercel-output",

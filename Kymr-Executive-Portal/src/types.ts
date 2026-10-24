@@ -248,4 +248,49 @@ export interface ActivityEvent {
   entityId: string;
   description: string;
   createdAt: Date;
+  taskId?: string;
+  projectId?: string;
+  clientId?: string;
+  inquiryId?: string;
 }
+
+export type TreasuryEntryType = 'CAPITAL_INFLOW' | 'OPERATING_EXPENSE' | 'RESERVE_DEPOSIT' | 'ASSET_REBALANCE';
+export type TreasuryAssetClass = 'FIAT' | 'STOCKS' | 'CRYPTO';
+
+export interface TreasuryEntry {
+  id?: string;
+  type: TreasuryEntryType;
+  category: string;
+  amount: number;
+  currency: string;
+  assetClass: TreasuryAssetClass;
+  description: string;
+  date: Date;
+  createdAt: Date;
+}
+
+export interface TreasuryGoal {
+  id?: string;
+  name: string;
+  target: number;
+  currentAmount?: number;
+  progress?: number;
+  category?: 'REVENUE' | 'RESERVE' | 'CAPITAL' | 'HARDWARE' | 'CUSTOM';
+}
+
+export type ConnectorStatus = 'CONNECTED' | 'DISCONNECTED' | 'SYNCING' | 'ERROR';
+
+export interface ConnectorItem {
+  id: string;
+  name: string;
+  category: 'GOOGLE_WORKSPACE' | 'COMMUNICATION' | 'STORAGE' | 'SCHEDULING' | 'INVOICING' | 'PUBLIC_WEB' | 'PAYMENTS' | 'TREASURY' | 'CLOUD';
+  ecosystem: string;
+  description: string;
+  status: ConnectorStatus;
+  latencyMs?: number;
+  endpointUrl?: string;
+  scopes?: string[];
+  lastSyncedAt?: Date | string;
+  authType: 'OAUTH2' | 'WEBHOOK' | 'API_KEY' | 'SERVICE_ACCOUNT';
+}
+
