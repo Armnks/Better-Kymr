@@ -21,7 +21,8 @@ export function createGoogleRouter(db: Firestore | null) {
   const router = express.Router();
 
   const getOAuthClient = (req: express.Request) => {
-    const host = req.headers.host || 'localhost:8000';
+    const rawHost = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:8000';
+    const host = Array.isArray(rawHost) ? rawHost[0] : (rawHost ? rawHost.split(',')[0].trim() : 'localhost:8000');
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
     const rawProto = req.headers['x-forwarded-proto'];
     const protoStr = Array.isArray(rawProto) ? rawProto[0] : (rawProto ? rawProto.split(',')[0].trim() : '');
@@ -203,6 +204,7 @@ export function createGoogleRouter(db: Firestore | null) {
         prompt: 'consent',
         state: initId
       });
+      console.log(`[GOOGLE_AUTH_START] generated authorizeUrl with redirect_uri: ${(client as any)._redirectUri || (client as any).redirectUri}`);
       res.redirect(authorizeUrl);
     } catch (e: any) {
       console.error(e);

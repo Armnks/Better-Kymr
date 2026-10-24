@@ -55,8 +55,19 @@ Configure these strictly in the Vercel Dashboard (Settings > Environment Variabl
 - **Secret**: Configure in Cal.com UI and set `CALCOM_WEBHOOK_SECRET` in Vercel.
 
 ### Google Workspace (OAuth)
-1. Go to Google Cloud Console > APIs & Services > Credentials.
-2. Under OAuth 2.0 Client IDs, add your Vercel domains (e.g. `https://kymrstudio.com`) to the **Authorized JavaScript origins**.
+1. Go to [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials?project=gen-lang-client-0467065981).
+2. Edit OAuth 2.0 Client ID: `330935337881-3k5npdeqpjnl49hhgb8b2mqrd4p0gonq.apps.googleusercontent.com`.
+3. Under **Authorized JavaScript origins**, add:
+   - `https://kymrstudio.com`
+   - `https://www.kymrstudio.com`
+   - `https://kymrfinal.vercel.app`
+   - `http://localhost:8000`
+4. Under **Authorized redirect URIs**, add (REQUIRED to prevent `Error 400: redirect_uri_mismatch`):
+   - `https://kymrstudio.com/api/google/auth/callback`
+   - `https://www.kymrstudio.com/api/google/auth/callback`
+   - `https://kymrfinal.vercel.app/api/google/auth/callback`
+   - `http://localhost:8000/api/google/auth/callback`
+5. Click **Save** and wait 1–2 minutes for Google's edge cache to propagate.
 
 ## Deployment Steps
 
